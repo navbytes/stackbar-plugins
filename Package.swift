@@ -28,6 +28,9 @@ let plugins: [(category: String, name: String)] = categories.flatMap { category 
     }.map { (category, $0) }
 }
 
+/// The plugins Tests/PluginTests runs.
+let testedPlugins = ["Clipboard", "PRCockpit", "Quicklinks", "Snippets", "StayAwake", "UpNext"]
+
 let stackbar: Package.Dependency = ProcessInfo.processInfo.environment["STACKBAR_PATH"].map { .package(name: "stackbar", path: $0) }
     ?? .package(url: "https://github.com/navbytes/stackbar", revision: stackbarRevision)
 
@@ -43,5 +46,17 @@ let package = Package(
             path: "\(plugin.category)/\(plugin.name)",
             exclude: ["README.md"]
         )
-    }
+    } + [
+        // Plugins' own behaviour, driven as real processes through
+        // StackbarHostCore's supervisor over a simulated Mac. Depending on a
+        // plugin builds its executable next to the tests.
+        .testTarget(
+            name: "PluginTests",
+            dependencies: [
+                .product(name: "StackbarHostCore", package: "stackbar"),
+                .product(name: "StackbarProtocol", package: "stackbar"),
+            ] + testedPlugins.map { .target(name: "Plugin_\($0)") },
+            path: "Tests/PluginTests"
+        ),
+    ]
 )
