@@ -10,10 +10,10 @@ import Foundation
 import PackageDescription
 
 /// The Stackbar every plugin here builds against: a commit on stackbar's main
-/// with commands, run, context and storage grants (what Stackbar 0.11.0 ships).
+/// with commands, run, context, storage grants and the reader-thread memory fix.
 /// Switch to `exact:` once tags are pushed, and raise it in its own pull
 /// request; a plugin may still set an older `minimumStackbar`.
-let stackbarRevision = "147d2158e7b041f0632f1c6730a4c8c3f45da247" // main after Snippets (#31)
+let stackbarRevision = "2a82ecb0ef3ba449aa8acd4270d1a453d110aba2" // Stackbar 0.11.0: the first-party move (#34)
 
 /// Category folders. The folder name is the category the store shows.
 let categories = ["System", "Developer", "Network", "Monitoring", "Productivity"]
