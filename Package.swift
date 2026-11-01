@@ -14,7 +14,7 @@ import PackageDescription
 /// and custom styling.
 /// Switch to `exact:` once tags are pushed, and raise it in its own pull
 /// request; a plugin may still set an older `minimumStackbar`.
-let stackbarRevision = "6996c7da4b3535c496ec80f673363b2024978332" // Stackbar 0.12.0 with custom styling, host timers and box shadows (#38)
+let stackbarRevision = "be31c8e8a735082dce2f7f0d0439fa4e8a045623" // Stackbar main with manifest --json, publishing rules and getJSON(auth:) (#45)
 
 /// Category folders. The folder name is the category the store shows.
 let categories = ["System", "Developer", "Network", "Monitoring", "Productivity"]
