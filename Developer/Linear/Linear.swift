@@ -182,7 +182,9 @@ final class Linear: StackbarPlugin {
                 PanelHeader("Linear", subtitle: "Checking…", symbol: "checklist", theme: theme)
             } else if let problem, assigned.isEmpty {
                 if problem.contains("LINEAR_API_KEY") && !problem.contains("401") {
-                    EmptyState("Paste a Linear API key above", symbol: "key.fill", message: "Create a personal API key in Linear under Settings > Security & access.", theme: theme)
+                    EmptyState("Connect Linear", symbol: "key.fill", message: "Create a personal API key in Linear under Settings > Security & access. Stackbar asks for it once and keeps it in your Keychain.", theme: theme) {
+                        ActionButton("Add API Key", symbol: "key.fill", theme: theme, prominent: true) { try await self.refresh() }
+                    }
                 } else {
                     EmptyState("Can't reach Linear", symbol: "exclamationmark.triangle.fill", message: problem, theme: .critical) {
                         ActionButton("Try Again", symbol: "arrow.clockwise", theme: theme) { try await self.refresh() }

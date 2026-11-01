@@ -59,7 +59,7 @@ final class Pomodoro: StackbarPlugin {
     /// The ring's ember sweep: pale gold at the start, burnt orange at the end.
     let ember = Paint.angularGradient(colors: [HexColor("#FFC074", dark: "#FFB45E"), HexColor("#F28C38", dark: "#F59A4E"), HexColor("#D9512C", dark: "#F0703F")], angle: -90)
     /// The warm halo behind a running ring.
-    let halo = Paint.radialGradient(colors: [HexColor("#F28C3866", dark: "#F59A4E55"), HexColor("#F28C3800", dark: "#F59A4E00")], x: 0.5, y: 0.5, radius: 90)
+    let halo = Paint.radialGradient(colors: [HexColor("#F28C3866", dark: "#F59A4E55"), HexColor("#F28C3800", dark: "#F59A4E00")], x: 0.5, y: 0.5, radius: 72)
 
     @Stored("mode") var mode = Mode.focus
     @Stored("focusMinutes") var focusMinutes = 25
@@ -201,7 +201,7 @@ final class Pomodoro: StackbarPlugin {
     @ViewBuilder private var ring: ViewContent {
         ZStack {
             if isRunning {
-                Circle().fill(halo).frame(width: 176, height: 176)
+                Circle().fill(halo).frame(width: 144, height: 144)
             }
             progress(lineWidth: 10)
             Button(key: "start") { self.toggle() } label: {

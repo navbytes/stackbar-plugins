@@ -106,6 +106,18 @@ final class Quicklinks: StackbarPlugin {
         return "https://icons.duckduckgo.com/ip3/\(host).ico"
     }
 
+    /// A host without "www." and its registry suffix: "calendar.google".
+    static func shortHost(_ host: String) -> String {
+        var parts = host.replacingOccurrences(of: "www.", with: "").split(separator: ".").map(String.init)
+        if parts.count > 1 { parts.removeLast() }
+        return parts.joined(separator: ".")
+    }
+
+    /// One line short enough for a tile, so tiles in a row match.
+    static func clip(_ text: String, _ limit: Int) -> String {
+        text.count > limit ? String(text.prefix(limit - 1)) + "…" : text
+    }
+
     /// The launcher: up to six links that open without asking anything, as
     /// tiles with their site's icon.
     @ViewBuilder func launcher(_ shown: [Link]) -> ViewContent {
@@ -113,7 +125,7 @@ final class Quicklinks: StackbarPlugin {
         if ready.count >= 3 {
             Grid(columns: 3, spacing: Space.s) {
                 ForEach(Array(ready)) { link in
-                    Tile(link.name, subtitle: Self.host(of: link.link).map { $0.replacingOccurrences(of: "www.", with: "") }, symbol: Self.symbol(for: link), imageURL: favicon(link), theme: theme, key: "tile-\(link.id.uuidString)") {
+                    Tile(Self.clip(link.name, 14), subtitle: Self.host(of: link.link).map { Self.clip(Self.shortHost($0), 14) }, symbol: Self.symbol(for: link), imageURL: favicon(link), theme: theme, key: "tile-\(link.id.uuidString)") {
                         try await self.open(link)
                     }
                 }

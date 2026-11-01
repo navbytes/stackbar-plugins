@@ -208,9 +208,8 @@ final class Homebrew: StackbarPlugin {
                     Banner(lastResult, symbol: lastFailed ? "xmark.octagon.fill" : "checkmark.circle.fill", theme: lastFailed ? .critical : .success)
                 }
                 if shown.isEmpty {
-                    EmptyState("Everything is up to date", symbol: "checkmark.seal.fill", message: checkedText, theme: .success) {
-                        ActionButton("Update Homebrew", symbol: "arrow.down.circle", theme: theme) { _ = try await self.update() }
-                    }
+                    // The hero above already says it's all fresh.
+                    ActionButton("Update Homebrew", symbol: "arrow.down.circle", theme: theme, fillWidth: true) { _ = try await self.update() }
                 } else {
                     List(shown, searchable: shown.count > 8) { package in
                         self.row(package)

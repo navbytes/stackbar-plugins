@@ -396,7 +396,7 @@ final class Snippets: StackbarPlugin {
             }
             if let notice { Banner(notice, symbol: "checkmark.circle.fill", theme: .success) }
             if !allTags.isEmpty {
-                TagChips(tagsByUse, selection: panelTag.flatMap { allTags.contains($0) ? $0 : nil }, theme: theme) { self.panelTag = $0 }
+                TagChips(tagsByUse, selection: panelTag.flatMap { allTags.contains($0) ? $0 : nil }, theme: theme, limit: 3) { self.panelTag = $0 }
             }
         }
         if panelTag == nil || !allTags.contains(panelTag ?? "") { quickPaste }
@@ -410,11 +410,16 @@ final class Snippets: StackbarPlugin {
         if snippets.count > 4, quick.count >= 2 {
             Grid(columns: 2, spacing: Space.xs) {
                 ForEach(Array(quick)) { snippet in
-                    Tile(snippet.name, subtitle: Self.firstLine(of: preview(snippet)), symbol: Self.symbol(for: snippet), theme: theme,
+                    Tile(Self.clip(snippet.name, 18), subtitle: Self.clip(Self.firstLine(of: preview(snippet)), 22), symbol: Self.symbol(for: snippet), theme: theme,
                          key: "quick-" + snippet.id.uuidString) { try await self.paste(snippet) }
                 }
             }
         }
+    }
+
+    /// One line short enough for a tile, so tiles in a row match.
+    static func clip(_ text: String, _ limit: Int) -> String {
+        text.count > limit ? String(text.prefix(limit - 1)) + "…" : text
     }
 
     /// A symbol for what the snippet holds: placeholders, a link, code,

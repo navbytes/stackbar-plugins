@@ -136,7 +136,7 @@ final class Ports: StackbarPlugin {
                 let open = shown.filter { !$0.isLocalOnly }.count
                 PanelHeader(shown.isEmpty ? "Nothing listening" : "\(shown.count) listening", subtitle: open > 0 ? "\(open) open to the network" : "All local", symbol: "network", theme: theme) {
                     Picker("Show ports", options: Self.ranges, selection: range, style: .segmented) { self.setRange($0) }
-                        .frame(width: 150)
+                        .frame(width: 180)
                 }
                 if !shown.isEmpty {
                     HeroCard(theme: theme, look: .glow) {

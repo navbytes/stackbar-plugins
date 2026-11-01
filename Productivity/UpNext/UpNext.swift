@@ -335,7 +335,8 @@ final class UpNext: StackbarPlugin {
             let link = Self.meetingLink(for: event)
             let dial = Self.dialIn(for: event)
             let started = event.start <= now
-            Backdrop(paint: stage(for: event), theme: theme, height: link != nil || dial != nil ? 164 : 124) {
+            // Sized by its content, unlike a Backdrop, so there's no empty band.
+            VStack(spacing: Space.m) {
                 HStack(alignment: .end, spacing: Space.m) {
                     VStack(spacing: Space.xxs) {
                         HStack(spacing: Space.xs) {
@@ -367,6 +368,11 @@ final class UpNext: StackbarPlugin {
                     }
                 }
             }
+            .foreground(.onMedia)
+            .padding(Space.l)
+            .frame(fillWidth: true, alignment: .leading)
+            .background(.scrim, in: .roundedRectangle(cornerRadius: Radius.large + 2))
+            .background(stage(for: event), in: .roundedRectangle(cornerRadius: Radius.large + 2))
         } else if loaded {
             HeroCard(theme: theme, spacing: Space.s) {
                 HStack(spacing: Space.m) {
@@ -458,6 +464,7 @@ final class UpNext: StackbarPlugin {
                     Text("\(hour)").role(.secondary).typography(.captionNumber)
                 }
             }
+            .frame(width: 332)
         }
     }
 
