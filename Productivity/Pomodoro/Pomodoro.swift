@@ -100,22 +100,24 @@ final class Pomodoro: StackbarPlugin {
             controls
         }
         .padding(18)
-        .frame(width: 300)
+        .frame(fillWidth: true)
         .background(cream, in: .roundedRectangle(cornerRadius: 18))
     }
 
     var widget: ViewContent {
-        HStack(spacing: 12) {
+        HStack(spacing: 16) {
             ZStack {
-                progress(lineWidth: 5)
-                Image(systemName: mode.symbol).font(size: 16).foreground(orange)
+                progress(lineWidth: 7)
+                Image(systemName: mode.symbol).font(size: 24).foreground(orange)
             }
-            .frame(width: 52, height: 52)
-            VStack(spacing: 2) {
-                Text(mode.rawValue).font(size: 12, weight: .semibold).foreground(muted)
-                timeText.font(size: 28, weight: .heavy, design: .rounded, monospacedDigit: true).foreground(ink)
+            .frame(width: 84, height: 84)
+            VStack(alignment: .start, spacing: 2) {
+                Text("\(mode.rawValue) · \(currentTag)").font(size: 13, weight: .semibold).foreground(muted)
+                timeText.font(size: 44, weight: .heavy, design: .rounded, monospacedDigit: true).foreground(ink)
             }
         }
+        .frame(fillWidth: true, fillHeight: true)
+        .background(cream, in: .roundedRectangle(cornerRadius: 18))
     }
 
     var settings: ViewContent {
@@ -209,7 +211,7 @@ final class Pomodoro: StackbarPlugin {
     @ViewBuilder private var tagChip: ViewContent {
         Button(key: "tag") { self.nextTag() } label: {
             HStack(spacing: 6) {
-                Circle().stroke(orange, lineWidth: 2).frame(width: 10, height: 10)
+                Circle().fill(orange).frame(width: 8, height: 8)
                 Text(currentTag)
             }
             .font(size: 13, weight: .semibold)
@@ -245,7 +247,7 @@ final class Pomodoro: StackbarPlugin {
     @ViewBuilder private var controls: ViewContent {
         HStack(spacing: 14) {
             iconButton("forward.fill", label: "Skip", key: "skip") { self.skip() }
-            Toggle("Auto", isOn: autoStart) { self.autoStart = $0 }.font(size: 13, weight: .semibold).foreground(muted)
+            iconButton("repeat", label: autoStart ? "Auto-start on" : "Auto-start off", key: "auto", filled: autoStart) { self.autoStart.toggle() }
             iconButton(sound ? "music.note" : "speaker.slash.fill", label: sound ? "Sound on" : "Sound off", key: "sound", filled: sound) { self.sound.toggle() }
             iconButton("arrow.counterclockwise", label: "Reset", key: "reset") { self.reset() }
         }
