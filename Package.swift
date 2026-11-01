@@ -10,11 +10,11 @@ import Foundation
 import PackageDescription
 
 /// The Stackbar every plugin here builds against: main after Snippets
-/// (stackbar#31), which has commands, `Stackbar.run`, the invocation
+/// (stackbar#31) and its reader-thread memory fix (#33), which has commands, `Stackbar.run`, the invocation
 /// context, templates and paste options. Switch to `exact: "0.11.0"` once
 /// that tag is pushed, and raise it in its own pull request; a plugin may
 /// still set an older `minimumStackbar`.
-let stackbarRevision = "ceb6e175097074671b4e05e2b65242a518303e43" // stackbar#33 (autorelease fix), re-pinned to main once it merges
+let stackbarRevision = "6e38cbb8a50f38af7802741640ecf958f4086f61" // main after stackbar#33, before 0.11.0
 
 /// Category folders. The folder name is the category the store shows.
 let categories = ["System", "Developer", "Network", "Monitoring", "Productivity"]
