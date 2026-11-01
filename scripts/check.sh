@@ -10,9 +10,9 @@ set -eu
 cd "$(dirname "$0")/.."
 
 swift build
-python3 scripts/lint.py "$@"
 
 # stackbarctl comes from the same StackbarKit the plugins build against.
+# lint.py reads each manifest through it.
 swift build -c release --product stackbarctl
 CTL="$(swift build -c release --show-bin-path)/stackbarctl"
 if [ -n "${STACKBAR_PATH:-}" ]; then
@@ -21,6 +21,7 @@ else
     STACKBAR_PACKAGE="$(pwd)/.build/checkouts/stackbar"
 fi
 export STACKBAR_PACKAGE
+STACKBARCTL="$CTL" python3 scripts/lint.py "$@"
 
 summary="${GITHUB_STEP_SUMMARY:-/dev/null}"
 for source in */*/*.swift; do
