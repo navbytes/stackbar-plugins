@@ -125,7 +125,7 @@ final class Quicklinks: StackbarPlugin {
         if ready.count >= 3 {
             Grid(columns: 3, spacing: Space.s) {
                 ForEach(Array(ready)) { link in
-                    Tile(Self.clip(link.name, 14), subtitle: Self.host(of: link.link).map { Self.clip(Self.shortHost($0), 14) }, symbol: Self.symbol(for: link), imageURL: favicon(link), theme: theme, key: "tile-\(link.id.uuidString)") {
+                    Tile(Self.clip(link.name, 14), subtitle: Self.host(of: link.link).map { Self.clip(Self.shortHost($0), 17) } ?? (link.link.hasPrefix("/") || link.link.hasPrefix("~") ? "Folder" : "Link"), symbol: Self.symbol(for: link), imageURL: favicon(link), theme: theme, key: "tile-\(link.id.uuidString)") {
                         try await self.open(link)
                     }
                 }
