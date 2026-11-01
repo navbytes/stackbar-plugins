@@ -36,6 +36,7 @@ An update that asks for something new waits for your approval.
 | [Linear](Developer/Linear) | Developer | Your assigned Linear issues, branch names, search and new issues from the palette. |
 | [PR Cockpit](Developer/PRCockpit) | Developer | Your pull requests and the ones waiting on your review, with CI and review state. |
 | [Ports](Developer/Ports) | Developer | Which process is listening on which port, and a way to stop it. |
+| [LiteLLM](Monitoring/LiteLLM) | Monitoring | Tokens, spend, budget and model mix from your LiteLLM proxy, with charts. |
 | [System Monitor](Monitoring/SystemMonitor) | Monitoring | CPU, memory and disk in the menu bar, with the processes using the most. |
 | [Clipboard History](Productivity/Clipboard) | Productivity | Everything you copy, searchable and one keystroke from pasting back. |
 | [Music](Productivity/Music) | Productivity | What's playing in Music or Spotify, with play, pause, skip and volume. |
