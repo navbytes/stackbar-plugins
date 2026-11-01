@@ -25,9 +25,12 @@ final class StayAwakeTests: XCTestCase {
         let supervisor = try await host.start("StayAwake", policy: fast)
         XCTAssertTrue(host.system.keptAwake.isEmpty)
 
-        let rows = await supervisor.views[.panel]?.rows ?? []
-        let hour = try XCTUnwrap(rows.first { $0.key == "for-60" })
-        await supervisor.press(try XCTUnwrap(hour.actions.first).id)
+        // The durations are chips: buttons keyed by their minutes.
+        let hour = await supervisor.views[.panel]?.tree.lazy.compactMap { node -> ActionID? in
+            if case .tappable(_, let action) = node, action.rawValue == "button/for-60" { return action }
+            return nil
+        }.first
+        await supervisor.press(try XCTUnwrap(hour, "no one-hour chip"))
         let held = await waitUntil(10) { host.system.keptAwake[self.id] != nil }
         XCTAssertTrue(held)
         let status = await supervisor.callTool("awake_status")
