@@ -134,7 +134,8 @@ final class QuicklinksTests: XCTestCase {
             try await session.event(action.id)
         }
         XCTAssertTrue(host.copies.all.contains("/tmp"), "a row copies its link: \(host.copies.all)")
-        XCTAssertTrue(host.opened.all.contains { $0.url == "file:///tmp/" }, "and opens it: \(host.opened.all)")
+        // /tmp is a symlink on macOS, so its file URL has no trailing slash there.
+        XCTAssertTrue(host.opened.all.contains { ["file:///tmp/", "file:///tmp"].contains($0.url) }, "and opens it: \(host.opened.all)")
         await session.stop()
     }
 }
