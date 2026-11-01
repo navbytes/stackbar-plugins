@@ -110,6 +110,8 @@ final class Quicklinks: StackbarPlugin {
     static func shortHost(_ host: String) -> String {
         var parts = host.replacingOccurrences(of: "www.", with: "").split(separator: ".").map(String.init)
         if parts.count > 1 { parts.removeLast() }
+        // Still too long for a tile: drop the subdomain ("news.ycombinator").
+        if parts.count > 1, parts.joined(separator: ".").count > 15 { parts.removeFirst() }
         return parts.joined(separator: ".")
     }
 
