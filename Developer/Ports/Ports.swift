@@ -134,7 +134,7 @@ final class Ports: StackbarPlugin {
                 PanelHeader("Ports", subtitle: "Checking…", symbol: "network", theme: theme)
             } else {
                 let open = shown.filter { !$0.isLocalOnly }.count
-                PanelHeader(shown.isEmpty ? "Nothing listening" : "\(shown.count) port\(shown.count == 1 ? "" : "s") listening", subtitle: open > 0 ? "\(open) open to the network" : "All local", symbol: "network", theme: theme) {
+                PanelHeader(shown.isEmpty ? "Nothing listening" : "\(shown.count) listening", subtitle: open > 0 ? "\(open) open to the network" : "All local", symbol: "network", theme: theme) {
                     Picker("Show ports", options: Self.ranges, selection: range, style: .segmented) { self.setRange($0) }
                         .frame(width: 150)
                 }

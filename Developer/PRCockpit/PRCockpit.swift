@@ -443,7 +443,7 @@ final class PRCockpit: StackbarPlugin {
                 } else if currentTab == .mine {
                     list(shownMine, showAuthor: false, empty: ("Nothing of yours open", "Pull requests you open show up here."))
                 } else {
-                    list(shownReview, showAuthor: true, empty: ("All caught up", "Nobody is waiting on your review."))
+                    list(shownReview, showAuthor: true, empty: ("No reviews waiting", "Pull requests that ask for your review show up here."))
                 }
                 if hiddenCount > 0 || !hiddenRepos.isEmpty {
                     ActionButton("Show \(hiddenCount) hidden", symbol: "eye", theme: theme, key: "unhide") {
@@ -572,6 +572,7 @@ final class PRCockpit: StackbarPlugin {
                 }
             }
         }
+        .frame(fillWidth: true, fillHeight: true)
     }
 
     var tabs: [Tab] { showInbox ? Tab.allCases : [.review, .mine] }

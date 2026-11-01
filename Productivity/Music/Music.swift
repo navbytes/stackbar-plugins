@@ -47,50 +47,57 @@ final class Music: StackbarPlugin {
     @Stored("preferred") var preferred = "Whichever is playing"
     @Stored("showInMenuBar") var showInMenuBar = "Title and artist"
 
-    /// One line per running player: state, name, artist, album, duration
-    /// (seconds), position (seconds), volume (0-100), tab-separated.
-    static let statusScript = """
-    set output to ""
-    if application "Music" is running then
-        tell application "Music"
-            if player state is not stopped then
-                set t to current track
-                set output to output & "Music" & tab & (player state as text) & tab & (name of t) & tab & (artist of t) & tab & (album of t) & tab & (duration of t) & tab & player position & tab & sound volume & linefeed
-            end if
-        end tell
-    end if
-    if application "Spotify" is running then
-        tell application "Spotify"
-            if player state is not stopped then
-                set t to current track
-                set output to output & "Spotify" & tab & (player state as text) & tab & (name of t) & tab & (artist of t) & tab & (album of t) & tab & ((duration of t) / 1000) & tab & player position & tab & sound volume & linefeed
-            end if
-        end tell
-    end if
-    return output
-    """
+    /// One line for the player if it is running: state, name, artist,
+    /// album, duration (seconds), position (seconds), volume (0-100),
+    /// tab-separated. Each player gets its own script, because AppleScript
+    /// can't compile one that names an app that isn't installed.
+    static func statusScript(for player: Player) -> String {
+        let duration = player == .spotify ? "((duration of t) / 1000)" : "(duration of t)"
+        return """
+        if application "\(player.rawValue)" is running then
+            tell application "\(player.rawValue)"
+                if player state is not stopped then
+                    set t to current track
+                    return "\(player.rawValue)" & tab & (player state as text) & tab & (name of t) & tab & (artist of t) & tab & (album of t) & tab & \(duration) & tab & player position & tab & sound volume
+                end if
+            end tell
+        end if
+        return ""
+        """
+    }
 
     func refresh() async throws {
         await check()
     }
 
     func check() async {
-        do {
-            let result = try await Stackbar.run("osascript", ["-e", Self.statusScript], timeout: .seconds(10))
-            checked = true
-            guard result.succeeded else {
-                // -1743: the user said no to automation.
-                problem = result.errorText.contains("-1743") || result.errorText.contains("Not authorized")
-                    ? "Stackbar isn't allowed to control the player. Turn it on in System Settings › Privacy & Security › Automation › Stackbar."
-                    : "The player didn't answer: \(result.errorText.trimmingCharacters(in: .whitespacesAndNewlines).prefix(160))"
-                return
+        var tracks: [Track] = []
+        var denied = false
+        var failed: Player?
+        for player in Player.allCases {
+            guard let result = try? await Stackbar.run("osascript", ["-e", Self.statusScript(for: player)], timeout: .seconds(10)) else {
+                failed = player
+                continue
             }
-            track = Self.choose(Self.parse(result.text), preferred: Player(rawValue: preferred))
-            problem = nil
-        } catch {
-            checked = true
-            problem = "\(error)"
+            if result.succeeded {
+                tracks += Self.parse(result.text)
+            } else if result.errorText.contains("-1743") || result.errorText.contains("Not authorized") {
+                // -1743: the user said no to automation.
+                denied = true
+            } else if !(result.errorText.contains("-2741") || result.errorText.contains("-2740") || result.errorText.contains("-1728")) {
+                // A compile error means the player isn't installed; anything else is worth saying.
+                failed = player
+            }
         }
+        checked = true
+        if denied && tracks.isEmpty {
+            problem = "Stackbar isn't allowed to control the player. Turn it on in System Settings › Privacy & Security › Automation › Stackbar."
+        } else if let failed, tracks.isEmpty {
+            problem = "\(failed.rawValue) didn't answer. Try again in a moment."
+        } else {
+            problem = nil
+        }
+        track = Self.choose(tracks, preferred: Player(rawValue: preferred))
     }
 
     static func parse(_ output: String) -> [Track] {
@@ -167,7 +174,7 @@ final class Music: StackbarPlugin {
 
     var panel: ViewContent {
         if let problem {
-            EmptyState("Can't reach the player", symbol: "lock.shield", message: problem, theme: .warning) {
+            EmptyState("Can't reach the player", symbol: problem.contains("allowed") ? "lock.shield" : "exclamationmark.triangle", message: problem, theme: .warning) {
                 ActionButton("Try Again", symbol: "arrow.clockwise", theme: theme, prominent: true) { await self.check() }
             }
         } else {

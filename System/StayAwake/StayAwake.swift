@@ -432,8 +432,10 @@ final class StayAwake: StackbarPlugin {
             }
         }
         let week = hoursAwake(days: 7)
-        Card("This week", detail: "today \(Self.clock(awakeByDay[Self.day(Date())] ?? 0)) · average \(Self.clock(week.values.reduce(0, +) / 7 * 3600))", spacing: Space.s) {
-            Chart(values: week.values, kind: .bar, labels: week.labels, unit: "h", highlight: 6).foreground(theme.solidPaint)
+        if awakeByDay.values.contains(where: { $0 > 0 }) {
+            Card("This week", detail: "today \(Self.clock(awakeByDay[Self.day(Date())] ?? 0)) · average \(Self.clock(week.values.reduce(0, +) / 7 * 3600))", spacing: Space.s) {
+                Chart(values: week.values, kind: .bar, labels: week.labels, unit: "h", highlight: 6).foreground(theme.solidPaint)
+            }
         }
         if awake, whileDownloading, rateTrail.count >= 3, rateTrail.contains(where: { $0 >= Self.downloadThreshold }) {
             Card("Download speed", detail: downloading ? Self.rate(rateTrail.last ?? 0) : "quiet", spacing: Space.s) {

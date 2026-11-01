@@ -388,7 +388,7 @@ final class UpNext: StackbarPlugin {
         HStack(spacing: Space.xs + 2) {
             Text("Start a call").role(.secondary).typography(.caption)
             ForEach(Self.instantMeetings) { meeting in
-                Chip(meeting.name == "Google Meet" ? "Meet" : meeting.name, symbol: meeting.name == "Google Meet" ? "video.badge.plus" : nil,
+                Chip(meeting.name == "Google Meet" ? "Meet" : meeting.name,
                      theme: theme, key: "start-\(meeting.name)") { Stackbar.open(meeting.url) }
             }
             Spacer()

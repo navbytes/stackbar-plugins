@@ -155,7 +155,8 @@ final class Docker: StackbarPlugin {
                 PanelHeader("Containers", subtitle: "Checking…", symbol: "shippingbox.fill", theme: theme)
             } else if let problem, containers.isEmpty {
                 let missing = problem.contains("isn't installed")
-                EmptyState(missing ? "Docker isn't installed" : "Docker isn't running", symbol: missing ? "shippingbox" : "exclamationmark.triangle.fill", message: problem, theme: missing ? theme : .critical) {
+                EmptyState(missing ? "Docker isn't installed" : "Docker isn't running", symbol: missing ? "shippingbox" : "exclamationmark.triangle.fill",
+                           message: problem.hasPrefix("Docker isn't running. ") ? String(problem.dropFirst("Docker isn't running. ".count)) : problem, theme: missing ? theme : .critical) {
                     ActionButton("Try Again", symbol: "arrow.clockwise", theme: theme) { await self.load() }
                 }
                 if missing { Link("Get OrbStack", url: "https://orbstack.dev") }
@@ -198,7 +199,11 @@ final class Docker: StackbarPlugin {
 
     var widget: ViewContent {
         if problem != nil, containers.isEmpty {
-            Label("Docker isn't running", symbol: "shippingbox")
+            VStack(alignment: .center, spacing: Space.xs) {
+                IconTile("shippingbox", theme: .neutral, size: 32)
+                Text("Docker isn't running").role(.secondary).typography(.caption)
+            }
+            .frame(fillWidth: true, fillHeight: true)
         } else {
             VStack(spacing: Space.s) {
                 HStack(spacing: Space.s) {

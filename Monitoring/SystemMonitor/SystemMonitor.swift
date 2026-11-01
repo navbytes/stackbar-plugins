@@ -172,6 +172,13 @@ final class SystemMonitor: StackbarPlugin {
         }
     }
 
+    /// top's `1129M-` or `6337K+` as `1.1 GB` or `6 MB`.
+    static func memory(_ text: String) -> String {
+        guard let bytes = bytes(text) else { return text }
+        let megabytes = bytes / pow(1024, 2)
+        return megabytes >= 1000 ? String(format: "%.1f GB", megabytes / 1024) : String(format: "%.0f MB", max(1, megabytes))
+    }
+
     static func size(_ bytes: Double) -> String {
         let gigabytes = bytes / pow(1024, 3)
         return gigabytes >= 10 || gigabytes == gigabytes.rounded() ? String(format: "%.0f GB", gigabytes) : String(format: "%.1f GB", gigabytes)
@@ -250,8 +257,8 @@ final class SystemMonitor: StackbarPlugin {
                         .frame(width: 130)
                     }
                     ForEach(sample.processes.prefix(8)) { process in
-                        Row(process.command, subtitle: "pid \(process.pid) · \(process.memory)", symbol: "app.dashed", key: "\(process.pid)")
-                            .badge(sortBy == "Memory" ? process.memory : String(format: "%.1f%%", process.cpu), role: process.cpu > 80 ? .warning : .secondary)
+                        Row(process.command, subtitle: "pid \(process.pid) · \(Self.memory(process.memory))", symbol: "gearshape", key: "\(process.pid)")
+                            .badge(sortBy == "Memory" ? Self.memory(process.memory) : String(format: "%.1f%%", process.cpu), role: process.cpu > 80 ? .warning : .secondary)
                             .action("Copy PID") { Stackbar.copy("\(process.pid)") }
                             .action("Quit Process", role: .critical) { try await self.quit(process) }
                     }

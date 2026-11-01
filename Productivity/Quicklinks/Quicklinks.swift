@@ -176,9 +176,9 @@ final class Quicklinks: StackbarPlugin {
         let shown = links.filter { tag == nil || tag == "All" || $0.tags.contains(tag!) }
             .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
         if links.isEmpty {
-            EmptyState("No quicklinks yet", symbol: "link", message: "Open links, folders and apps by name, with placeholders filled in.", theme: theme) {
+            EmptyState("No quicklinks yet", symbol: "link", message: "Open links, folders and apps by name, with placeholders filled in. Import brings in a Raycast export.", theme: theme) {
                 ActionButton("Create Quicklink", symbol: "plus", theme: theme, prominent: true) { self.openCommand("create") }
-                ActionButton("Import from Raycast", symbol: "square.and.arrow.down", theme: theme) { self.notice = try await self.importLinks() }
+                ActionButton("Import", symbol: "square.and.arrow.down", theme: theme) { self.notice = try await self.importLinks() }
             }
         } else {
             List(searchable: true) {

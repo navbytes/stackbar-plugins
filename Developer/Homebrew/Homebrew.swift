@@ -177,8 +177,7 @@ final class Homebrew: StackbarPlugin {
                 }
                 if missing { Link("Get Homebrew at brew.sh", url: "https://brew.sh") }
             } else {
-                let casks = shown.filter(\.isCask).count
-                PanelHeader(shown.isEmpty ? "Up to date" : "\(shown.count) update\(shown.count == 1 ? "" : "s")", subtitle: checkedText + (casks > 0 ? " · \(casks) cask\(casks == 1 ? "" : "s")" : ""), symbol: "mug.fill", theme: theme) {
+                PanelHeader(shown.isEmpty ? "Up to date" : "\(shown.count) update\(shown.count == 1 ? "" : "s")", subtitle: checkedText, symbol: "mug.fill", theme: theme) {
                     IconButton("arrow.down.circle", label: "Update Homebrew", theme: theme, prominence: .tinted) { _ = try await self.update() }
                     if upgradable.count >= 2 {
                         ActionButton("Upgrade All", theme: theme, prominent: true) {
