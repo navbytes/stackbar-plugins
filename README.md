@@ -28,6 +28,15 @@ An update that asks for something new waits for your approval.
 
 | Plugin | Category | What it does |
 | --- | --- | --- |
+| [Docker](Developer/Docker) | Developer | Your containers, with start, stop, restart and logs a click away. |
+| [GitHub](Developer/GitHub) | Developer | Your repositories and issues from the palette, and new issues without a browser. |
+| [Homebrew](Developer/Homebrew) | Developer | Outdated formulae and casks, with upgrades a click away. |
+| [Jira](Developer/Jira) | Developer | Your assigned Jira Cloud issues, search and new issues from the palette. |
+| [Linear](Developer/Linear) | Developer | Your assigned Linear issues, branch names, search and new issues from the palette. |
+| [Ports](Developer/Ports) | Developer | Which process is listening on which port, and a way to stop it. |
+| [System Monitor](Monitoring/SystemMonitor) | Monitoring | CPU, memory and disk in the menu bar, with the processes using the most. |
+| [Music](Productivity/Music) | Productivity | What's playing in Music or Spotify, with play, pause, skip and volume. |
+| [Translate](Productivity/Translate) | Productivity | Translate the selected text, in your browser or in place with DeepL. |
 | [World Clock](Productivity/WorldClock) | Productivity | The time in the cities you work with, with offsets and working hours. |
 
 <!-- plugins:end -->

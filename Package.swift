@@ -9,10 +9,12 @@
 import Foundation
 import PackageDescription
 
-/// The Stackbar every plugin here builds against: the commit of Stackbar
-/// 0.10.0. Switch to `exact: "0.10.0"` once that tag is pushed, and raise it
-/// in its own pull request; a plugin may still set an older `minimumStackbar`.
-let stackbarRevision = "1d871aa2e0818d372916f488e953d42d2269b518" // 0.10.0
+/// The Stackbar every plugin here builds against: main after Snippets
+/// (stackbar#31), which has commands, `Stackbar.run`, the invocation
+/// context, templates and paste options. Switch to `exact: "0.11.0"` once
+/// that tag is pushed, and raise it in its own pull request; a plugin may
+/// still set an older `minimumStackbar`.
+let stackbarRevision = "147d2158e7b041f0632f1c6730a4c8c3f45da247" // main, before 0.11.0
 
 /// Category folders. The folder name is the category the store shows.
 let categories = ["System", "Developer", "Network", "Monitoring", "Productivity"]
