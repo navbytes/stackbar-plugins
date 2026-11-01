@@ -335,14 +335,14 @@ final class UpNext: StackbarPlugin {
             let link = Self.meetingLink(for: event)
             let dial = Self.dialIn(for: event)
             let started = event.start <= now
-            Backdrop(paint: stage(for: event), theme: theme, height: link != nil || dial != nil ? 196 : 148) {
+            Backdrop(paint: stage(for: event), theme: theme, height: link != nil || dial != nil ? 164 : 124) {
                 HStack(alignment: .end, spacing: Space.m) {
                     VStack(spacing: Space.xxs) {
                         HStack(spacing: Space.xs) {
                             Image(systemName: started ? "record.circle.fill" : "clock.fill").font(size: 10, weight: .bold).symbolEffect(started ? .pulse : .breathe)
                             Text(started ? "NOW" : "NEXT").typography(.overline)
                         }
-                        Text(Self.clipped(event.title, 40)).typography(Typography(size: 18, weight: .bold))
+                        Text(Self.clipped(event.title, 30)).typography(Typography(size: 18, weight: .bold))
                         Text(heroDetail(event)).typography(.caption).opacity(0.85)
                     }
                     .frame(fillWidth: true, alignment: .leading)
@@ -418,7 +418,7 @@ final class UpNext: StackbarPlugin {
             .frame(width: 62, height: 62)
         } else if event.start.timeIntervalSince(now) < 3600 {
             VStack(alignment: .end, spacing: 0) {
-                TimerText(TimeRange(start: now, end: event.start)).typography(Typography(size: 30, weight: .heavy, design: .rounded, monospacedDigit: true))
+                TimerText(TimeRange(start: now, end: event.start)).typography(Typography(size: 26, weight: .heavy, design: .rounded, monospacedDigit: true))
                 Text("until it starts").typography(.caption).opacity(0.8)
             }
         } else {

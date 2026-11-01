@@ -245,7 +245,10 @@ final class Music: StackbarPlugin {
                 HStack {
                     TimerText(range, countsDown: false).typography(.captionNumber)
                     Spacer()
-                    TimerText(range).typography(.captionNumber)
+                    HStack(spacing: 0) {
+                        Text("-").typography(.captionNumber)
+                        TimerText(range).typography(.captionNumber)
+                    }
                 }
                 .opacity(0.8)
             } else {
@@ -295,11 +298,12 @@ final class Music: StackbarPlugin {
             }
             HStack(spacing: Space.s) {
                 Image(systemName: "speaker.fill").font(size: 11).foreground(.role(.secondary))
-                Slider("Volume", value: track.volume, in: 0...100, step: 5) { value in
+                Slider("Volume", value: track.volume, in: 0...100) { value in
                     // Set it here rather than asking again on every step of a drag.
                     self.track?.volume = value
                     try await self.send("set sound volume to \(Int(value))")
                 }
+                .foreground(theme.solidPaint)
                 Image(systemName: "speaker.wave.3.fill").font(size: 11).foreground(.role(.secondary))
             }
             .padding(horizontal: Space.xs)

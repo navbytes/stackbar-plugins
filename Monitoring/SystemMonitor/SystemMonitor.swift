@@ -274,7 +274,7 @@ final class SystemMonitor: StackbarPlugin {
                             self.sortBy = choice
                             await self.measure()
                         }
-                        .frame(width: 130)
+                        .frame(width: 150)
                     }
                     ForEach(sample.processes.prefix(8)) { process in
                         Row(process.command, subtitle: "pid \(process.pid) · \(Self.memory(process.memory))", symbol: "gearshape", key: "\(process.pid)")
@@ -302,10 +302,12 @@ final class SystemMonitor: StackbarPlugin {
             Capsule().fill(theme.sweep).frame(width: 4, height: 30)
             VStack(spacing: 0) {
                 Text(name).role(.secondary).typography(.caption)
-                Text(value).typography(.stat).numericTransition()
+                HStack(alignment: .end, spacing: Space.xs) {
+                    Text(value).typography(.stat).numericTransition()
+                    if !detail.isEmpty { Text(detail).role(.secondary).typography(.caption) }
+                }
             }
-            Spacer(minLength: Space.xs)
-            Text(detail).role(.secondary).typography(.caption)
+            Spacer(minLength: 0)
         }
         .accessibilityLabel("\(name) \(value), \(detail)")
     }

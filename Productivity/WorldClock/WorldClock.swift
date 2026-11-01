@@ -53,7 +53,7 @@ final class WorldClock: StackbarPlugin {
             VStack(spacing: Space.s) {
                 ForEach(validZones) { zone in card(zone) }
             }
-            Text("Tap a city to show it in the menu bar").role(.secondary).typography(.caption)
+            Text("Bars show each city's working hours across your day, and the tick is your time now. Tap a city to show it in the menu bar.").role(.secondary).typography(.caption)
         }
     }
 

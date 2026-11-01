@@ -13,12 +13,12 @@ final class Homebrew: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.homebrew",
         name: "Homebrew",
-        version: "1.1.0",
+        version: "1.2.0",
         summary: "Outdated formulae and casks, with upgrades a click away.",
         surfaces: [.menuBar, .panel, .widget, .settings],
         triggers: [.launch, .minutes(60), .wake],
         capabilities: [.run(commands: ["brew"])],
-        minimumStackbar: "0.13.0",
+        minimumStackbar: "0.14.0",
         homepage: "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/Homebrew"
     )
 
@@ -183,6 +183,22 @@ final class Homebrew: StackbarPlugin {
                         ActionButton("Upgrade All", theme: theme, prominent: true) {
                             try await self.upgrade(self.upgradable.map(\.name), label: "Upgrading everything")
                         }
+                    }
+                }
+                HeroCard(theme: shown.isEmpty ? .success : theme, look: .glow) {
+                    HStack(spacing: Space.l) {
+                        if shown.isEmpty {
+                            Image(systemName: "checkmark.seal.fill").font(size: 30, weight: .semibold).foreground(Theme.success.textPaint).symbolEffect(.bounce, repeats: false)
+                            VStack(spacing: Space.xxs) {
+                                Text("Everything's fresh").typography(.title)
+                                Text(checkedText).role(.secondary).typography(.caption)
+                            }
+                        } else {
+                            HeroStat("Outdated", value: "\(shown.count)", theme: theme, symbol: "arrow.up.circle.fill")
+                            HeroStat("Formulae", value: "\(shown.filter { !$0.isCask }.count)", theme: theme, symbol: "terminal.fill")
+                            HeroStat("Casks", value: "\(shown.filter(\.isCask).count)", theme: theme, symbol: "macwindow")
+                        }
+                        Spacer()
                     }
                 }
                 if let problem { Banner(problem) }
