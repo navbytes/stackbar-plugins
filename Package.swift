@@ -14,7 +14,7 @@ import PackageDescription
 /// context, templates and paste options. Switch to `exact: "0.11.0"` once
 /// that tag is pushed, and raise it in its own pull request; a plugin may
 /// still set an older `minimumStackbar`.
-let stackbarRevision = "147d2158e7b041f0632f1c6730a4c8c3f45da247" // main, before 0.11.0
+let stackbarRevision = "ceb6e175097074671b4e05e2b65242a518303e43" // stackbar#33 (autorelease fix), re-pinned to main once it merges
 
 /// Category folders. The folder name is the category the store shows.
 let categories = ["System", "Developer", "Network", "Monitoring", "Productivity"]
