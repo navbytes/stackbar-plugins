@@ -134,7 +134,9 @@ final class QuicklinksTests: XCTestCase {
             try await session.event(action.id)
         }
         XCTAssertTrue(host.copies.all.contains("/tmp"), "a row copies its link: \(host.copies.all)")
-        XCTAssertTrue(host.opened.all.contains { $0.url == "file:///tmp/" }, "and opens it: \(host.opened.all)")
+        // Foundation adds a trailing slash for a directory, which /tmp is on
+        // Linux; on macOS it is a symlink to /private/tmp and gets none.
+        XCTAssertTrue(host.opened.all.contains { ["file:///tmp", "file:///tmp/"].contains($0.url) }, "and opens it: \(host.opened.all)")
         await session.stop()
     }
 }
