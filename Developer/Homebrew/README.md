@@ -10,8 +10,9 @@ Upgrade All at the bottom.
 - **Surfaces:** menu bar, panel, settings.
 - **How it checks:** hourly and on wake it runs `brew outdated --json=v2`,
   which reads what Homebrew already knows. When that list is more than 6 hours
-  old it runs `brew update` in the background first, so the count is never
-  stale; the panel says how old the list is. Update Homebrew fetches it now.
+  old it runs `brew update` first (from the second check after launch, so
+  the list shows right away), so the count doesn't go stale; the panel says
+  how old the list is. Update Homebrew fetches it now.
 - **Settings:** show casks, hide pinned formulae, include casks that update
   themselves (`--greedy`), fetch the latest formulae every 6 hours (on by
   default), and a notification when new updates appear.

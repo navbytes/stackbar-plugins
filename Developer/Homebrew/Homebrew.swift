@@ -89,7 +89,9 @@ final class Homebrew: StackbarPlugin {
 
     func refresh() async throws {
         if busy == nil { lastResult = nil }
-        if autoUpdate, busy == nil, indexIsStale() {
+        // Not on the first check after launch, which should show the list
+        // right away; the next hourly or wake check fetches first.
+        if autoUpdate, busy == nil, checked != nil, indexIsStale() {
             // Quietly: a failed fetch (offline, say) still leaves the last list to show.
             _ = try? await fetchIndex(label: "Fetching the latest formulae")
         }
