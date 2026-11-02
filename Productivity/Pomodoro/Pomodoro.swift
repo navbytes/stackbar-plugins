@@ -106,11 +106,11 @@ final class Pomodoro: StackbarPlugin {
 
     var widget: ViewContent {
         HStack(spacing: Space.l) {
-            dial(size: 96, lineWidth: 8, timeSize: 20, showTag: false)
+            dial(size: 104, lineWidth: 8, timeSize: 22, showTag: false)
             VStack(spacing: Space.xxs) {
                 Text(mode.rawValue.uppercased()).typography(.overline).foreground(theme.textPaint)
                 Text(currentTag).typography(.title)
-                Text("\(today.sessions) sessions today").role(.secondary).typography(.caption)
+                Text("\(today.sessions) sessions · \(minutesText(today.minutes)) today").role(.secondary).typography(.caption)
             }
             .frame(fillWidth: true, alignment: .leading)
         }
@@ -157,6 +157,8 @@ final class Pomodoro: StackbarPlugin {
     /// which changes on a click.
     @ViewBuilder private func dial(size: Double, lineWidth: Double, timeSize: Double, showTag: Bool = true) -> ViewContent {
         ZStack {
+            // A neutral track, so the ring still shows before it fills.
+            Circle().stroke(.hex("#00000017", dark: "#FFFFFF1F"), lineWidth: lineWidth)
             progress(lineWidth: lineWidth)
             VStack(alignment: .center, spacing: Space.xxs) {
                 if isRunning {
@@ -166,15 +168,8 @@ final class Pomodoro: StackbarPlugin {
                 }
                 timeText.typography(Typography(size: timeSize, weight: .bold, design: .rounded, monospacedDigit: true))
                 if showTag {
-                    Button(key: "tag") { self.nextTag() } label: {
-                        HStack(spacing: Space.xxs) {
-                            Text(currentTag)
-                            Image(systemName: "chevron.up.chevron.down").font(size: 8, weight: .bold)
-                        }
-                        .font(size: 11, weight: .medium)
-                        .foreground(.role(.secondary))
-                    }
-                    .accessibilityLabel("Change tag: \(currentTag)")
+                    Chip(currentTag, symbol: "tag.fill", theme: theme, key: "tag") { self.nextTag() }
+                        .accessibilityLabel("Change tag: \(currentTag)")
                 }
             }
         }
@@ -183,11 +178,10 @@ final class Pomodoro: StackbarPlugin {
 
     @ViewBuilder private var controls: ViewContent {
         HStack(alignment: .center, spacing: Space.m) {
-            IconButton("repeat", label: autoStart ? "Auto-start on" : "Auto-start off", theme: theme, prominence: autoStart ? .tinted : .plain, size: 34, key: "auto") { self.autoStart.toggle() }
+            IconButton(autoStart ? "repeat" : "repeat.1", label: autoStart ? "Auto-start on" : "Auto-start off", theme: theme, size: 34, key: "auto") { self.autoStart.toggle() }
             IconButton("forward.fill", label: "Skip", theme: theme, size: 34, key: "skip") { self.skip() }
             IconButton(isRunning ? "pause.fill" : "play.fill", label: isRunning ? "Pause" : "Start", theme: theme, prominence: .filled, size: 52, key: "start") { self.toggle() }
-            IconButton(sound ? "speaker.wave.2.fill" : "speaker.slash.fill", label: sound ? "Sound on" : "Sound off", theme: theme, prominence: sound ? .tinted : .plain, size: 34, key: "sound") { self.sound.toggle() }
-            IconButton("tag", label: "Next tag", theme: theme, size: 34, key: "next-tag") { self.nextTag() }
+            IconButton(sound ? "speaker.wave.2.fill" : "speaker.slash.fill", label: sound ? "Sound on" : "Sound off", theme: theme, size: 34, key: "sound") { self.sound.toggle() }
         }
     }
 
