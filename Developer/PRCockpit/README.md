@@ -26,6 +26,10 @@ all here, with the same `GITHUB_TOKEN`.
   Create GitHub Issue, Refresh Pull Requests.
 - **Agent tools:** `review_queue`, `my_pull_requests` and `my_issues`.
 
+## What's new in 1.5.0
+
+- Store screenshots now show it in use, with sample data, instead of its first-run screen.
+
 ## What's new in 1.4.3
 
 - Its own icon and colour in the Store and in Settings.
