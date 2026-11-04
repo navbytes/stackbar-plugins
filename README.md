@@ -39,6 +39,7 @@ An update that asks for something new waits for your approval.
 | [System Monitor](Monitoring/SystemMonitor) | Monitoring | CPU, memory and disk in the menu bar, with the processes using the most. |
 | [App Switcher](Productivity/AppSwitcher) | Productivity | Hold Right ⌘ and press an app's first letter to switch to it. Press again to cycle or hide. |
 | [Clipboard History](Productivity/Clipboard) | Productivity | Everything you copy, searchable and one keystroke from pasting back. |
+| [Emoji](Productivity/Emoji) | Productivity | Search every emoji by name in a grid, and paste it where you were typing. |
 | [Music](Productivity/Music) | Productivity | What's playing in Music or Spotify, with play, pause, skip and volume. |
 | [Pomodoro](Productivity/Pomodoro) | Productivity | A focus timer with presets, a progress ring, tags and today's sessions. |
 | [Quicklinks](Productivity/Quicklinks) | Productivity | Open links and folders by name, with placeholders filled in. |
@@ -46,6 +47,7 @@ An update that asks for something new waits for your approval.
 | [Todo](Productivity/Todo) | Productivity | A calm to-do list that understands dates as you type them, kept in Apple Reminders so it's on all your devices. |
 | [Translate](Productivity/Translate) | Productivity | Translate the selected text in place, on your Mac or with Google or DeepL. |
 | [Up Next](Productivity/UpNext) | Productivity | Your next meeting in the menu bar, with a countdown and one-click join. |
+| [Window Layouts](Productivity/WindowLayouts) | Productivity | Snap the front window to halves, quarters, thirds or the whole screen from the palette or a hotkey. |
 | [Workspaces](Productivity/Workspaces) | Productivity | Saves where your windows are for each monitor setup, and puts them back when you dock, undock or wake. |
 | [World Clock](Productivity/WorldClock) | Productivity | The time in the cities you work with, with offsets and working hours. |
 
