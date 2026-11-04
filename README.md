@@ -67,7 +67,7 @@ Up Next and PR Cockpit) live in the Stackbar repository and update with the app.
   signed `index.json` is rebuilt. Published versions are never rewritten.
   Each version's surfaces are rendered in light and dark under
   `<Category>/shots/<id>/<version>/`, listed in `site.json` for the plugin's
-  page on [stackbar.navbytes.io](https://stackbar.navbytes.io/plugins/), where
+  page on [stackbar.app](https://stackbar.app/plugins/), where
   the branch's own address redirects.
 - `revoked.json` withdraws a published version; Stackbar removes it from Macs
   that installed it.
