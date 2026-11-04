@@ -37,6 +37,10 @@ crowded afternoon coming.
 A widget keeps what's next in view without opening anything.
 <!-- preview: widget -->
 
+## What's new in 1.4.1
+
+- Its store screenshots no longer show a meeting under both Today and Tomorrow.
+
 ## What's new in 1.4.0
 
 - Store screenshots now show it in use, with sample data, instead of its first-run screen.
