@@ -22,7 +22,7 @@ final class Clipboard: StackbarPlugin {
         triggers: [.launch, .clipboard, .every(.seconds(60))],
         capabilities: [.clipboard],
         hotkey: "cmd+shift+v",
-        minimumStackbar: "0.19.0",
+        minimumStackbar: "0.20.0",
         homepage: "https://github.com/navbytes/stackbar-plugins/tree/main/Productivity/Clipboard",
         accent: .blue,
         symbol: "doc.on.clipboard.fill"

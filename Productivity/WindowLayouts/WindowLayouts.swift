@@ -16,7 +16,7 @@ final class WindowLayouts: StackbarPlugin {
         surfaces: [.panel, .settings],
         triggers: [.launch],
         capabilities: [.windows],
-        minimumStackbar: "0.19.0",
+        minimumStackbar: "0.20.0",
         homepage: "https://github.com/navbytes/stackbar-plugins/tree/main/Productivity/WindowLayouts",
         accent: .indigo,
         symbol: "rectangle.split.2x1"

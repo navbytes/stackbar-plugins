@@ -15,7 +15,7 @@ final class Emoji: StackbarPlugin {
         surfaces: [.panel],
         triggers: [.launch],
         capabilities: [.clipboard],
-        minimumStackbar: "0.19.0",
+        minimumStackbar: "0.20.0",
         homepage: "https://github.com/navbytes/stackbar-plugins/tree/main/Productivity/Emoji",
         accent: .amber,
         symbol: "face.smiling"

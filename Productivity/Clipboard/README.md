@@ -43,7 +43,7 @@ The window shows how much you copy, and from which apps.
 ## What's new in 1.6.0
 
 - Matching copies show in the command palette's own results as you type, so
-  you can paste one without opening the history first (Stackbar 0.19.0). Turn
+  you can paste one without opening the history first (Stackbar 0.20.0). Turn
   it off in Settings.
 
 ## What's new in 1.5.0

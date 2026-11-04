@@ -6,7 +6,7 @@ type "left half" in the palette or give any layout a hotkey in Settings ›
 Commands. Restore puts the window back where it was before its last snap.
 
 - **Needs:** `.windows`: the host moves windows through Accessibility, so
-  Stackbar asks for Accessibility access the first time. Stackbar 0.19.0 or
+  Stackbar asks for Accessibility access the first time. Stackbar 0.20.0 or
   later.
 - **Surfaces:** panel (a button for every layout), settings.
 - **Settings:** the gap left around snapped windows.

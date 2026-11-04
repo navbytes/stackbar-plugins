@@ -7,7 +7,7 @@ keys, and press Return to paste the emoji where you were typing. ⌘K copies it
 instead. The panel keeps your frequent ones a click from the clipboard.
 
 - **Needs:** the clipboard, to paste (your clipboard is put back afterwards).
-  Stackbar 0.19.0 or later, which draws grids in the palette.
+  Stackbar 0.20.0 or later, which draws grids in the palette.
 - **Surfaces:** panel.
 - **Commands:** Search Emoji. Give it a hotkey in Settings › Commands.
 - **Data:** Unicode's Emoji 15.1 list and English names, without skin-tone

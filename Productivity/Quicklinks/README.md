@@ -26,7 +26,7 @@ of its own. Links use Raycast's template syntax:
 - **Fallbacks:** a search quicklink can be offered under the palette's results
   for anything you type ("Use “…” with Google"). Google, DuckDuckGo, Kagi,
   Perplexity, Ask Claude and Wikipedia start as fallbacks; switch any
-  quicklink in its form. Needs Stackbar 0.19.0.
+  quicklink in its form. Needs Stackbar 0.20.0.
 
 ## What's new in 1.4.0
 

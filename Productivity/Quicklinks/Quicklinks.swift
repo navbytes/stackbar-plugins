@@ -28,7 +28,7 @@ final class Quicklinks: StackbarPlugin {
         // Site icons come from DuckDuckGo's icon service, which sees the
         // domain of each web link shown in the launcher (off in Settings).
         capabilities: [.openURLs(schemes: ["*"]), .clipboard, .context, .network("icons.duckduckgo.com")],
-        minimumStackbar: "0.19.0",
+        minimumStackbar: "0.20.0",
         homepage: "https://github.com/navbytes/stackbar-plugins/tree/main/Productivity/Quicklinks",
         accent: .cyan,
         symbol: "link"
