@@ -29,6 +29,7 @@ An update that asks for something new waits for your approval.
 | Plugin | Category | What it does |
 | --- | --- | --- |
 | [Applications](System/Applications) | System | Open any app or System Settings pane from the command palette by typing a few letters. |
+| [Menu Search](System/MenuSearch) | System | Search the menus of the app you're in and choose an item without the mouse. |
 | [Stay Awake](System/StayAwake) | System | Keeps your Mac awake for a while, until a time, while an app runs or on a schedule. |
 | [System Commands](System/SystemCommands) | System | Lock, sleep, restart, empty the Trash or switch to dark mode from the palette. |
 | [Docker](Developer/Docker) | Developer | Your containers, with start, stop, restart and logs a click away. |
@@ -52,6 +53,7 @@ An update that asks for something new waits for your approval.
 | [Translate](Productivity/Translate) | Productivity | Translate the selected text in place, on your Mac or with Google or DeepL. |
 | [Up Next](Productivity/UpNext) | Productivity | Your next meeting in the menu bar, with a countdown and one-click join. |
 | [Window Layouts](Productivity/WindowLayouts) | Productivity | Snap the front window to halves, quarters, thirds or the whole screen from the palette or a hotkey. |
+| [Window Switcher](Productivity/WindowSwitcher) | Productivity | Jump to any open window by typing part of its app or title in the palette. |
 | [Workspaces](Productivity/Workspaces) | Productivity | Saves where your windows are for each monitor setup, and puts them back when you dock, undock or wake. |
 | [World Clock](Productivity/WorldClock) | Productivity | The time in the cities you work with, with offsets and working hours. |
 
