@@ -14,7 +14,7 @@ import PackageDescription
 /// and custom styling.
 /// Switch to `exact:` once tags are pushed, and raise it in its own pull
 /// request; a plugin may still set an older `minimumStackbar`.
-let stackbarRevision = "6820c44dcf58cea8757592b81e9fbe7e4d2b7713" // 0.25.0: windows focus and menu items (#113)
+let stackbarRevision = "3a43ed52b655271d712603e1b79d72769ded2c02" // 0.25.0: plugin handover, replaces: (#115)
 
 /// Category folders. The folder name is the category the store shows.
 let categories = ["System", "Developer", "Network", "Monitoring", "Productivity"]
@@ -29,7 +29,7 @@ let plugins: [(category: String, name: String)] = categories.flatMap { category 
 }
 
 /// The plugins Tests/PluginTests runs.
-let testedPlugins = ["AppSwitcher", "Clipboard", "MenuSearch", "PRCockpit", "Pomodoro", "Quicklinks", "Snippets", "StayAwake", "Todo", "UpNext", "WindowSwitcher", "Workspaces"]
+let testedPlugins = ["AppSwitcher", "Clipboard", "MenuSearch", "PRCockpit", "Pomodoro", "Quicklinks", "Snippets", "StayAwake", "Todo", "UpNext", "WindowSwitcher", "Windows"]
 
 let stackbar: Package.Dependency = ProcessInfo.processInfo.environment["STACKBAR_PATH"].map { .package(name: "stackbar", path: $0) }
     ?? .package(url: "https://github.com/navbytes/stackbar", revision: stackbarRevision)

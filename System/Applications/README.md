@@ -12,6 +12,16 @@ The ones you open most rank higher. Search Applications lists them all.
 - **Looks in:** /Applications (one folder deep), ~/Applications and the
   system's own apps, plus every pane System Settings lists.
 
+## What's new in 1.1.0
+
+- The panel points to App Switcher, for switching apps with Right ⌘ and a
+  letter. It stays a separate plugin, because it listens to the keyboard.
+
+## What's new in 1.0.1
+
+- Typing "settings" finds the System Settings app first. Every pane used to
+  outrank it, because each one has "settings" as a keyword.
+
 ## What's new in 1.0.0
 
 - First release: the palette's app search, now a plugin.
