@@ -63,6 +63,9 @@ An update that asks for something new waits for your approval.
 
 <!-- plugins:end -->
 
+Wrote a plugin you'd like others to have? The community lane takes it under
+your own name: see [CONTRIBUTING.md](CONTRIBUTING.md#the-community-lane).
+
 The four plugins that ship inside Stackbar (Clipboard History, Stay Awake,
 Up Next and PR Cockpit) live in the Stackbar repository and update with the app.
 
