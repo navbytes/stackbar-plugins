@@ -72,7 +72,13 @@ jobs:
     timeout-minutes: 75
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      # A pull request soaks only the plugins it changed; a push to main
+      # soaks them all, so a StackbarKit pin change is soaked there.
       - run: scripts/check.sh
+        env:
+          SOAK_CHANGED_SINCE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
 
   # One check that is green when every job that ran passed and the rest were
   # skipped on purpose. Make this the required status check, not the jobs
