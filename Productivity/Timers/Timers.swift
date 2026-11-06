@@ -166,8 +166,8 @@ final class Timers: StackbarPlugin {
         guard timers.count < 20 else { throw HostError("20 timers are running already") }
         let name = parsed.name.isEmpty ? "\(Self.length(parsed.end.timeIntervalSince(now))) timer" : parsed.name
         let timer = Countdown(name: String(name.prefix(60)), start: now, end: parsed.end)
-        timers.append(timer)
-        timers.sort { $0.end < $1.end }
+        // One assignment, so storage gets one write of the sorted list.
+        timers = (timers + [timer]).sorted { $0.end < $1.end }
         if Self.duration(parsed.length) != nil {
             recent = Array(([parsed.length] + recent.filter { $0 != parsed.length }).prefix(5))
         }
@@ -180,14 +180,15 @@ final class Timers: StackbarPlugin {
 
     func extend(_ id: String, by seconds: Double) {
         guard let index = timers.firstIndex(where: { $0.id == id }) else { return }
-        timers[index].end = max(Date(), timers[index].end).addingTimeInterval(seconds)
-        timers.sort { $0.end < $1.end }
+        var changed = timers
+        changed[index].end = max(Date(), changed[index].end).addingTimeInterval(seconds)
+        timers = changed.sorted { $0.end < $1.end }
     }
 
     // MARK: Surfaces
 
     var menuBar: ViewContent {
-        if showInMenuBar, let soonest = timers.first {
+        if showInMenuBar, let soonest = timers.min(by: { $0.end < $1.end }) {
             HStack(spacing: 4) {
                 Image(systemName: "timer")
                 TimerText(soonest.range)
@@ -210,7 +211,7 @@ final class Timers: StackbarPlugin {
             EmptyState("Start a timer", symbol: "timer", message: "Pick one below, or open the palette and type Start Timer, then \"10m tea\" or \"17:45 call\".", theme: theme)
         } else {
             Card("Running", spacing: Space.s, padding: Space.s) {
-                ForEach(timers) { timer in
+                ForEach(timers.sorted { $0.end < $1.end }) { timer in
                     VStack(alignment: .start, spacing: Space.xs) {
                         HStack(spacing: Space.s) {
                             Text(timer.name).font(size: 13, weight: .semibold)
