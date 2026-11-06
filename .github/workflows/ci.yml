@@ -66,7 +66,10 @@ jobs:
     needs: changes
     if: needs.changes.outputs.macos == 'true'
     runs-on: macos-26
-    timeout-minutes: 45
+    # Each plugin soaks for a minute, so this grows with the store: 34
+    # plugins took the whole 45 minutes on 11-06 and the job was cancelled
+    # after "check: ok".
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - run: scripts/check.sh
