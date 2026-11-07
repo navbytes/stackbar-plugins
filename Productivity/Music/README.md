@@ -6,7 +6,7 @@ pause; right-click for the panel with the track, Previous, Next and volume.
 - **Needs:** to run `osascript`, the only way to talk to Music and Spotify.
   The install sheet warns that osascript can run any program; this plugin
   only sends the fixed scripts in its source. macOS asks once whether
-  Stackbar may control Music or Spotify.
+  Stackbar may control Music or Spotify. Stackbar 0.22.0 or later.
 - **Surfaces:** menu bar, panel, widget, settings.
 - **How it checks:** every 5 seconds while playing, 15 while paused and 30
   with no player open, and only players that are already running; it never

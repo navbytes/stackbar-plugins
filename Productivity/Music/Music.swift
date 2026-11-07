@@ -23,7 +23,7 @@ final class Music: StackbarPlugin {
         // Album art: Spotify names its own image URL; for Music the cover
         // is looked up in the iTunes catalog by artist and album.
         capabilities: [.run(commands: ["osascript"]), .network("itunes.apple.com", "*.mzstatic.com", "i.scdn.co")],
-        minimumStackbar: "0.21.0",
+        minimumStackbar: "0.22.0",
         homepage: "https://github.com/navbytes/stackbar-plugins/tree/main/Productivity/Music",
         accent: .pink,
         symbol: "music.note"
@@ -107,6 +107,9 @@ final class Music: StackbarPlugin {
     /// with no player open. A click checks at once.
     var idle = false
     var lastCheck = Date.distantPast
+    /// The track last announced, as its name, a unit separator and its artist.
+    /// It isn't cleared when nothing plays, so a relaunch doesn't repeat the song.
+    var lastAnnounced: String?
 
     func refresh() async throws {
         let wait: TimeInterval = idle ? 25 : (track?.playing == false ? 14 : 0)
@@ -144,14 +147,19 @@ final class Music: StackbarPlugin {
         } else {
             problem = nil
         }
-        let before = track
         track = Self.choose(tracks, preferred: Player(rawValue: preferred))
         // A drag still being applied shows the thumb, not the player's older value.
         if let volumeTarget { track?.volume = Double(volumeTarget) }
-        // The first check only reads what is playing. After that, a playing
-        // track with a new name or artist is announced.
-        if announce, !firstCheck, let track, track.playing, before?.name != track.name || before?.artist != track.artist {
-            Stackbar.notify(track.name, body: [track.artist, track.album].filter { !$0.isEmpty }.joined(separator: " — "))
+        // Each new track is announced once. The first check only remembers
+        // what is playing, so starting Stackbar doesn't announce it.
+        if let track, track.playing {
+            let key = "\(track.name)\u{1F}\(track.artist)"
+            if key != lastAnnounced {
+                if announce, !firstCheck {
+                    Stackbar.notify(track.name, body: [track.artist, track.album].filter { !$0.isEmpty }.joined(separator: " — "))
+                }
+                lastAnnounced = key
+            }
         }
         // The catalog lookup runs on its own, so a slow answer doesn't hold
         // up the ticks and clicks queued behind this check; the cover shows
@@ -212,7 +220,7 @@ final class Music: StackbarPlugin {
         let record = output.trimmingCharacters(in: .newlines)
         guard !record.isEmpty else { return [] }
         let fields = record.split(separator: "\u{1F}", omittingEmptySubsequences: false).map { field -> String in
-            let text = field.replacingOccurrences(of: "\r", with: " ").replacingOccurrences(of: "\n", with: " ").replacingOccurrences(of: "\t", with: " ")
+            let text = field.replacingOccurrences(of: "\r\n", with: " ").replacingOccurrences(of: "\r", with: " ").replacingOccurrences(of: "\n", with: " ").replacingOccurrences(of: "\t", with: " ")
             return text == "missing value" ? "" : text
         }
         guard fields.count >= 8, let player = Player(rawValue: fields[0]) else { return [] }
@@ -235,6 +243,8 @@ final class Music: StackbarPlugin {
         // The player may not have switched yet, so show the click now and let
         // the next tick confirm.
         if command == "playpause", let wasPlaying, track?.playing == wasPlaying { track?.playing = !wasPlaying }
+        // The next tick checks again, even while paused.
+        lastCheck = .distantPast
     }
 
     /// The volume the player should have once the sends catch up, while a
