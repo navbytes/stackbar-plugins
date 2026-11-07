@@ -19,7 +19,7 @@ final class Quicklinks: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.quicklinks",
         name: "Quicklinks",
-        version: "1.5.0",
+        version: "1.5.1",
         summary: "Open links and folders by name, with placeholders filled in.",
         surfaces: [.panel, .settings],
         triggers: [.launch],
@@ -258,14 +258,38 @@ final class Quicklinks: StackbarPlugin {
         guard let colon = link.firstIndex(of: ":") else { return nil }
         let scheme = link[..<colon]
         guard let first = scheme.first, first.isLetter, scheme.allSatisfy({ $0.isLetter || $0.isNumber || "+-.".contains($0) }) else { return nil }
+        // `localhost:3000` and `example.com:8080/x` are a host and a port, not a scheme.
+        if isHostAndPort(link, colon: colon) { return nil }
         return scheme.lowercased()
+    }
+
+    /// Schemes that are followed by digits: a number to call, not a port.
+    private static let numberSchemes: Set<String> = ["tel", "sms", "facetime", "facetime-audio", "callto", "fax", "imessage"]
+
+    /// A port (1 to 65535) straight after the colon, then the end or a path.
+    private static func isHostAndPort(_ link: String, colon: String.Index) -> Bool {
+        guard !numberSchemes.contains(link[..<colon].lowercased()) else { return false }
+        let rest = link[link.index(after: colon)...]
+        let digits = rest.prefix { $0.isASCII && $0.isNumber }
+        guard (1...5).contains(digits.count), let port = Int(digits), (1...65535).contains(port) else { return false }
+        let after = rest.dropFirst(digits.count)
+        return after.isEmpty || "/?#".contains(after.first!)
+    }
+
+    /// A dev server answers plain http: `localhost`, loopback and `.local` hosts.
+    static func isLocal(host: String) -> Bool {
+        let name = host.split(separator: ":").first.map { $0.lowercased() } ?? ""
+        return name == "localhost" || name.hasSuffix(".localhost") || name.hasSuffix(".local") || name.hasPrefix("127.") || name == "0.0.0.0"
     }
 
     static func target(_ rendered: String) -> String {
         let trimmed = rendered.trimmingCharacters(in: .whitespacesAndNewlines)
         switch kind(of: trimmed) {
         case .path, .app: return trimmed
-        case .web: return scheme(of: trimmed) == nil ? "https://" + trimmed : trimmed
+        case .web:
+            guard scheme(of: trimmed) == nil else { return trimmed }
+            let host = trimmed.prefix { $0 != "/" && $0 != "?" && $0 != "#" }
+            return (isLocal(host: String(host)) ? "http://" : "https://") + trimmed
         }
     }
 
@@ -528,8 +552,10 @@ final class Quicklinks: StackbarPlugin {
         var duplicates = 0
         var unknownApps: [String] = []
         var problems: [String] = []
+        // Collected here and saved once, not once per link.
+        var all = links
         for item in items {
-            if links.contains(where: { $0.name == item.name && $0.link == item.link }) {
+            if all.contains(where: { $0.name == item.name && $0.link == item.link }) {
                 duplicates += 1
                 continue
             }
@@ -542,9 +568,10 @@ final class Quicklinks: StackbarPlugin {
                 app = try await Stackbar.resolveApplication(openWith)
                 if app == nil { unknownApps.append(openWith) }
             }
-            links.append(Link(id: UUID(), name: item.name, link: item.link, openWith: app, tags: item.tags ?? []))
+            all.append(Link(id: UUID(), name: item.name, link: item.link, openWith: app, tags: item.tags ?? []))
             imported += 1
         }
+        if imported > 0 { links = all }
         var summary = "Imported \(imported)"
         if duplicates > 0 { summary += ", skipped \(duplicates) duplicate\(duplicates == 1 ? "" : "s")" }
         if !problems.isEmpty { summary += ", skipped \(problems.count) that didn't parse (\(problems.prefix(3).joined(separator: "; ")))" }

@@ -21,6 +21,11 @@ of its own. Links use Raycast's template syntax:
   Import Quicklinks, Export Quicklinks (a file Raycast reads too), plus one
   command per quicklink.
 
+## What's new in 1.5.1
+
+- Links written as host:port, like localhost:3000 or example.com:8080/path, now open: local servers over http, other hosts over https.
+- Importing a big export saves once instead of once per link.
+
 ## What's new in 1.5.0
 
 - **Fallbacks:** a search quicklink can be offered under the palette's results
