@@ -41,4 +41,34 @@ final class EmojiTests: XCTestCase {
         XCTAssertGreaterThan(all.count, 1000, "nothing typed still browses everything")
         await session.stop()
     }
+
+    func testPlainLettersFindAccentedAndApostropheNames() async throws {
+        let host = Host(self)
+        let session = try await host.session("Emoji")
+        let pinata = try await found(session, "pinata")
+        XCTAssertTrue(pinata.contains { $0.title == "🪅" }, "\(pinata.map(\.title))")
+        let clock = try await found(session, "oclock")
+        XCTAssertTrue(clock.contains { $0.title == "🕐" }, "\(clock.map(\.title))")
+        let cote = try await found(session, "cote")
+        XCTAssertTrue(cote.contains { $0.subtitle?.contains("Côte") == true }, "\(cote.map(\.subtitle))")
+        await session.stop()
+    }
+
+    func testPastingAnEmojiFindsIt() async throws {
+        let host = Host(self)
+        let session = try await host.session("Emoji")
+        let pasted = try await found(session, "👍")
+        XCTAssertEqual(pasted.first?.title, "👍")
+        await session.stop()
+    }
+
+    func testCommonWordsFindTheirEmoji() async throws {
+        let host = Host(self)
+        let session = try await host.session("Emoji")
+        let happy = try await found(session, "happy")
+        XCTAssertTrue(happy.contains { $0.title == "😀" })
+        let love = try await found(session, "love")
+        XCTAssertTrue(love.contains { $0.title == "❤️" }, "\(love.map(\.title))")
+        await session.stop()
+    }
 }
