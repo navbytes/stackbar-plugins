@@ -160,4 +160,34 @@ final class QuicklinksTests: XCTestCase {
         XCTAssertTrue(moved, "the most used quicklink comes first")
         await supervisor.stop()
     }
+
+    func testALinkWithAPortButNoSchemeIsAWebLink() async throws {
+        let host = Host(self)
+        let session = try await host.session("Quicklinks")
+        let export = """
+        [
+          {"name": "Dev", "link": "localhost:3000"},
+          {"name": "Staging", "link": "staging.example.com:8080/app?x=1"},
+          {"name": "Call", "link": "tel:5551234"},
+          {"name": "Slack", "link": "slack://channel"},
+          {"name": "Full", "link": "http://localhost:3000/x"}
+        ]
+        """
+        host.system.simulate(chosenFile: ChosenFile(name: "ql.json", data: Data(export.utf8)))
+        _ = try await session.runCommand("import")
+        func opened(_ title: String) async throws -> CommandResult {
+            try await session.runCommand(try await command(session, titled: title).id)
+        }
+        let dev = try await opened("Dev")
+        XCTAssertEqual(dev, .open(url: "http://localhost:3000", app: nil), "a dev server answers plain http")
+        let staging = try await opened("Staging")
+        XCTAssertEqual(staging, .open(url: "https://staging.example.com:8080/app?x=1", app: nil))
+        let call = try await opened("Call")
+        XCTAssertEqual(call, .open(url: "tel:5551234", app: nil), "a number to call is not a port")
+        let slack = try await opened("Slack")
+        XCTAssertEqual(slack, .open(url: "slack://channel", app: nil), "app schemes pass through")
+        let full = try await opened("Full")
+        XCTAssertEqual(full, .open(url: "http://localhost:3000/x", app: nil))
+        await session.stop()
+    }
 }
