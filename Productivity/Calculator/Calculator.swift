@@ -209,14 +209,22 @@ final class Calculator: StackbarPlugin {
         ///   so a comma there is a decimal comma;
         /// - a single separator before exactly three digits (`1,000`) is a
         ///   thousands separator, unless this Mac's decimal mark is that very
-        ///   character (a German Mac reads `1,000` as 1 and `1.000` as 1000).
+        ///   character (a German Mac reads `1,000` as 1 and `1.000` as 1000);
+        /// - commas in the Indian style (`1,00,000`, `12,34,567`: a last group
+        ///   of three, earlier groups of two) are thousands grouping too;
+        /// - a lone `.` or `,` is not a number.
         static func number(_ token: String, decimalComma: Bool) -> Double? {
-            guard !token.isEmpty else { return nil }
-            /// `1,234,567`: one to three digits, then groups of exactly three.
+            guard !token.isEmpty, token.contains(where: \.isNumber) else { return nil }
+            /// `1,234,567`: one to three digits, then groups of exactly three;
+            /// or, with commas, `12,34,567`: one or two digits, groups of two,
+            /// then a last group of three.
             func grouped(_ text: Substring, by mark: Character) -> Bool {
                 let parts = text.split(separator: mark, omittingEmptySubsequences: false)
                 guard parts.count >= 2, let first = parts.first, (1...3).contains(first.count), first.first != "0" else { return false }
-                return parts.allSatisfy { $0.allSatisfy(\.isASCII) && $0.allSatisfy(\.isNumber) } && parts.dropFirst().allSatisfy { $0.count == 3 }
+                guard parts.allSatisfy({ $0.allSatisfy(\.isASCII) && $0.allSatisfy(\.isNumber) }) else { return false }
+                if parts.dropFirst().allSatisfy({ $0.count == 3 }) { return true }
+                guard mark == ",", parts.count >= 3, first.count <= 2, parts.last?.count == 3 else { return false }
+                return parts.dropFirst().dropLast().allSatisfy { $0.count == 2 }
             }
             func clean(_ text: Substring, mark: Character) -> String { text.filter { $0 != mark } }
             let hasDot = token.contains("."), hasComma = token.contains(",")

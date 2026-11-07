@@ -310,7 +310,12 @@ final class PRCockpit: StackbarPlugin {
     var reposAttempted: Date?
     /// GitHub repository searches already made, by query, so typing back over
     /// the same text asks nothing; and why the last one failed.
-    var repoSearches: [String: [Repo]] = [:]
+    var repoSearches: [String: (items: [Repo], at: Date)] = [:]
+    /// A cached search answers for this long.
+    static let repoSearchTTL: TimeInterval = 300
+    /// The token and server the repository list was last requested with: a
+    /// change retries at once instead of waiting out the pause.
+    var reposCredentials: String?
     var repoSearchError: String?
     var formError: String?
     var created: String?
@@ -336,7 +341,7 @@ final class PRCockpit: StackbarPlugin {
     /// Seconds a refresh request may take. The plugin handles one message at a
     /// time, so a slow GitHub holds up every click behind the refresh; a
     /// short limit keeps that wait short, and the next refresh tries again.
-    static let refreshTimeout = 10.0
+    static let refreshTimeout = 20.0
 
     func refresh() async throws {
         defer { loaded = true }
@@ -607,7 +612,9 @@ final class PRCockpit: StackbarPlugin {
     /// `maxAge`, a list fetched more recently than that is kept: the palette
     /// view calls this on every keystroke and filters the list locally.
     func loadIssues(maxAge: TimeInterval = 0) async {
-        if maxAge > 0, issuesError == nil, let at = issuesFetched, Date().timeIntervalSince(at) < maxAge { return }
+        // While the last fetch failed, wait 30 s between tries instead of
+        // retrying on every keystroke.
+        if maxAge > 0, let at = issuesFetched, Date().timeIntervalSince(at) < (issuesError == nil ? maxAge : max(maxAge, 30)) { return }
         issuesFetched = Date()
         do {
             // Every assigned issue, not only recent ones: an old one that
@@ -644,8 +651,12 @@ final class PRCockpit: StackbarPlugin {
     func loadRepos(force: Bool = false) async {
         if !force, !repos.isEmpty, let at = reposLoaded, Date().timeIntervalSince(at) < 6 * 3600 { return }
         // An empty account or an unreachable GitHub never fills the cache;
-        // the palette asks on every keystroke, so wait a minute between tries.
-        if !force, let at = reposAttempted, Date().timeIntervalSince(at) < 60 { return }
+        // the palette asks on every keystroke, so wait between tries, unless
+        // the token or server changed since the last one.
+        let token = (try? await Stackbar.secret("GITHUB_TOKEN")) ?? ""
+        let credentials = token + "|" + apiBase
+        if !force, credentials == reposCredentials, let at = reposAttempted, Date().timeIntervalSince(at) < 15 { return }
+        reposCredentials = credentials
         reposAttempted = Date()
         do {
             var all: [Repo] = []
@@ -671,8 +682,8 @@ final class PRCockpit: StackbarPlugin {
             repoSearchError = nil
             return
         }
-        if let known = repoSearches[query] {
-            repoResults = known
+        if let known = repoSearches[query], Date().timeIntervalSince(known.at) < Self.repoSearchTTL {
+            repoResults = known.items
             repoSearchError = nil
             return
         }
@@ -681,7 +692,7 @@ final class PRCockpit: StackbarPlugin {
         do {
             let items = try Self.restDecoder.decode(Reply.self, from: try await rest("/search/repositories?q=\(encoded)&per_page=10")).items
             if repoSearches.count >= 50 { repoSearches.removeAll() }
-            repoSearches[query] = items
+            repoSearches[query] = (items, Date())
             repoResults = items
             repoSearchError = nil
         } catch {

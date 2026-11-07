@@ -25,6 +25,7 @@ of its own. Links use Raycast's template syntax:
 
 - Links written as host:port, like localhost:3000 or example.com:8080/path, now open: local servers over http, other hosts over https.
 - Importing a big export saves once instead of once per link.
+- Links to a box on your network open over plain http too: nas:5000, 192.168.x.x, 10.x.x.x, 172.16-31.x.x, 169.254.x.x and [::1].
 
 ## What's new in 1.5.0
 

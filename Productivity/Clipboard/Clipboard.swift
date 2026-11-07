@@ -401,12 +401,18 @@ final class Clipboard: StackbarPlugin {
     func trimmed(_ history: [Entry]) -> [Entry] {
         var history = history
         var pinnedBytes = 0
+        var autoUnpinned = 0
         for index in history.indices where history[index].pinned {
             pinnedBytes += history[index].bytes
             if pinnedBytes > Self.pinnedBudget {
                 pinnedBytes -= history[index].bytes
                 history[index].pinned = false
+                autoUnpinned += 1
             }
+        }
+        if autoUnpinned > 0 {
+            // Said once: the pin is gone after this, so it can't repeat.
+            lastError = "\(autoUnpinned) older pin\(autoUnpinned == 1 ? " was" : "s were") unpinned: pinned items are limited in size so the history stays within its storage."
         }
         var kept: [Entry] = []
         var unpinned = 0
@@ -420,6 +426,10 @@ final class Clipboard: StackbarPlugin {
             guard unpinned < Int(limit), bytes <= Self.storageBudget else { continue }
             unpinned += 1
             kept.append(entry)
+        }
+        if textStats.count > kept.count {
+            let ids = Set(kept.map(\.id))
+            textStats = textStats.filter { ids.contains($0.key) }
         }
         return kept
     }

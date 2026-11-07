@@ -205,6 +205,29 @@ final class TodoTests: XCTestCase {
         await supervisor.stop()
     }
 
+    /// A save Reminders refuses must not let the pull replace the local edit
+    /// with Reminders' older copy.
+    func testAFailedPushKeepsTheLocalEdit() async throws {
+        let system = SimulatedSystem()
+        system.simulate(reminders: .sample())
+        let host = Host(self, system: system)
+        let supervisor = try await host.start("Todo")
+        _ = await supervisor.runCommand("add", arguments: ["task": "Send the invoice"], source: .palette)
+        _ = await waitUntil { host.system.simulatedReminders.reminders.contains { $0.title == "Send the invoice" } }
+        let created = host.system.simulatedReminders.reminders.first { $0.title == "Send the invoice" }
+        XCTAssertNotNil(created, "the task reached Reminders")
+        // Its list disappears, so the next save is refused.
+        var state = host.system.simulatedReminders
+        state.lists.removeAll { $0.id == created?.list }
+        host.system.simulate(reminders: state)
+        _ = await supervisor.runCommand("snooze", arguments: ["task": "invoice"], source: .palette)
+        await refreshed(supervisor)
+        await refreshed(supervisor)
+        let tasks = await supervisor.callTool("tasks").text
+        XCTAssertTrue(tasks.contains("- Send the invoice (due \(day(1)))"), "the snooze survives the failed push: \(tasks)")
+        await supervisor.stop()
+    }
+
     func testDeclinedRemindersKeepsTasksOnThisMac() async throws {
         let system = SimulatedSystem()
         system.simulate(reminders: SimulatedReminders(access: .notDetermined, grantWhenAsked: false))

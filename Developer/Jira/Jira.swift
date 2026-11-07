@@ -121,6 +121,10 @@ final class Jira: StackbarPlugin {
     var me: String?
     /// Workflow transitions of an issue, by key, for the status command.
     var transitions: [String: [Transition]] = [:]
+    /// When each issue's transitions were loaded: a workflow changed by
+    /// someone else shows up again after `transitionsTTL`.
+    var transitionsLoadedAt: [String: Date] = [:]
+    static let transitionsTTL: TimeInterval = 60
     var actionProblem: String?
     var commentDone: String?
     var assigned: [Issue] = []
@@ -376,10 +380,12 @@ final class Jira: StackbarPlugin {
     func loadTransitions(_ key: String) async {
         struct Reply: Decodable { let transitions: [Transition] }
         // The view asks on every keystroke: partial keys always fail, and a
-        // workflow already loaded stays until a move changes it.
-        guard Self.isKey(key), transitions[key] == nil else { return }
+        // workflow already loaded stays until a move changes it, or a minute.
+        guard Self.isKey(key) else { return }
+        if transitions[key] != nil, let at = transitionsLoadedAt[key], Date().timeIntervalSince(at) < Self.transitionsTTL { return }
         do {
             transitions[key] = try JSONDecoder().decode(Reply.self, from: try await api("/issue/\(key)/transitions")).transitions
+            transitionsLoadedAt[key] = Date()
             actionProblem = nil
         } catch {
             actionProblem = "\(error)"
@@ -391,6 +397,7 @@ final class Jira: StackbarPlugin {
             _ = try await api("/issue/\(key)/transitions", method: "POST", body: ["transition": ["id": transition.id]])
             Stackbar.hud("\(key) moved to \(transition.to?.name ?? transition.name)")
             transitions[key] = nil
+            transitionsLoadedAt[key] = nil
             try await refresh()
         } catch {
             Stackbar.hud("\(error)", isError: true)

@@ -276,10 +276,27 @@ final class Quicklinks: StackbarPlugin {
         return after.isEmpty || "/?#".contains(after.first!)
     }
 
-    /// A dev server answers plain http: `localhost`, loopback and `.local` hosts.
+    /// A dev server or a box on the home network answers plain http:
+    /// `localhost`, loopback, `.local`, private (10/8, 172.16/12, 192.168/16)
+    /// and link-local (169.254/16) addresses, `::1`, and dotless names (`nas:5000`).
     static func isLocal(host: String) -> Bool {
-        let name = host.split(separator: ":").first.map { $0.lowercased() } ?? ""
-        return name == "localhost" || name.hasSuffix(".localhost") || name.hasSuffix(".local") || name.hasPrefix("127.") || name == "0.0.0.0"
+        var name = host.lowercased()
+        if let at = name.lastIndex(of: "@") { name = String(name[name.index(after: at)...]) }
+        if name.hasPrefix("[") {
+            let inside = name.dropFirst().prefix { $0 != "]" }
+            return inside == "::1"
+        }
+        if name == "::1" { return true }
+        name = name.split(separator: ":", omittingEmptySubsequences: false).first.map(String.init) ?? ""
+        guard !name.isEmpty else { return false }
+        if name == "localhost" || name.hasSuffix(".localhost") || name.hasSuffix(".local") || name.hasPrefix("127.") || name == "0.0.0.0" { return true }
+        let octets = name.split(separator: ".", omittingEmptySubsequences: false).map { Int($0) }
+        if octets.count == 4, octets.allSatisfy({ $0 != nil && (0...255).contains($0!) }) {
+            let o = octets.map { $0! }
+            return o[0] == 10 || (o[0] == 172 && (16...31).contains(o[1])) || (o[0] == 192 && o[1] == 168) || (o[0] == 169 && o[1] == 254)
+        }
+        // A name with no dot can't be on the public internet.
+        return !name.contains(".")
     }
 
     static func target(_ rendered: String) -> String {

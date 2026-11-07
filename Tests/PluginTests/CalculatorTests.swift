@@ -37,6 +37,12 @@ final class CalculatorTests: XCTestCase {
             ("1,234.56*2", "2469.12"),
             ("1.234,56+1", "1235.56"),
             ("1,2,3+1", nil),
+            ("1,00,000+1", "100001"),
+            ("12,34,567*2", "2469134"),
+            ("1,00,00+1", nil),
+            ("12,34,56+1", nil),
+            ("1+.", nil),
+            (".", nil),
         ]
         for (text, expected) in cases {
             let title = try await answer(session, text)

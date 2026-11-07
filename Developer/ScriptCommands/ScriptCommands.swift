@@ -99,7 +99,12 @@ final class ScriptCommands: StackbarPlugin {
         return status == 0 || status == 1 || (status == 2 && hasOutput)
     }
 
+    private var lastScan = Date.distantPast
+    /// Opening the Script Commands view rescans unless a scan just ran.
+    static let openRescanAfter: TimeInterval = 5
+
     func scan() async {
+        defer { lastScan = Date() }
         do {
             // Every metadata line and every shebang, as ./file:line.
             let result = try await Stackbar.run("grep", Self.grepArguments, workingDirectory: Self.folder, timeout: .seconds(10))
@@ -250,6 +255,18 @@ final class ScriptCommands: StackbarPlugin {
 
     var commands: [Command] {
         for script in scripts { command(for: script) }
+        Command("scripts", title: "Script Commands", subtitle: "Your scripts; opening this looks for new ones", symbol: "terminal", keywords: ["script", "scripts", "list", "run"])
+            .view(search: { _ in
+                // Opening the view (and each keystroke after) picks up scripts
+                // added since the last scan, without waiting for the timer.
+                if Date().timeIntervalSince(self.lastScan) >= Self.openRescanAfter { await self.scan() }
+            }) { _ in
+                if let problem = self.problem { Banner(problem, theme: .warning) }
+                List(self.scripts, searchable: true) { script in
+                    Row(script.title, subtitle: [script.package, script.name].compactMap { $0 }.joined(separator: " · "), symbol: "terminal", key: script.id)
+                        .badge(script.interpreter ?? "no #!", role: script.interpreter.map { Self.interpreters.contains($0) } == true ? .secondary : .critical)
+                }
+            }
         Command("reload", title: "Reload Script Commands", subtitle: Self.folder, symbol: "arrow.clockwise", keywords: ["script", "reload", "refresh"]) { _ in
             await self.scan()
             if let problem = self.problem { return .failure(problem) }

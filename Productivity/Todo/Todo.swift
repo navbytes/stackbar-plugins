@@ -129,11 +129,21 @@ final class Todo: StackbarPlugin {
     /// Mac's own go out when they're made. The tick still checks what is due.
     static let tickSyncEvery: TimeInterval = 300
 
+    /// After a failed sync, the next 30-second tick tries again.
+    static let retrySyncEvery: TimeInterval = 25
+
     private var lastSync = Date.distantPast
+    /// Tasks whose last push failed: the pull must not replace their local
+    /// edits with Reminders' older copy.
+    private var unpushed: Set<String> = []
+    /// How often a delete has failed, by task id, so one that can never
+    /// succeed is given up on.
+    private var deleteFailures: [String: Int] = [:]
+    static let deleteAttempts = 5
 
     func refresh() async throws {
         now = Date()
-        if Stackbar.refreshReason != .interval || now.timeIntervalSince(lastSync) >= Self.tickSyncEvery {
+        if Stackbar.refreshReason != .interval || now.timeIntervalSince(lastSync) >= (syncProblem == nil ? Self.tickSyncEvery : Self.retrySyncEvery) {
             lastSync = now
             await sync()
         }
@@ -251,6 +261,7 @@ final class Todo: StackbarPlugin {
                 self.storage = choice
                 // Measure from what Reminders has now, not from an old copy.
                 self.mirror = [:]
+                self.lastSync = Date()
                 await self.sync()
             }
             Text(storageNote).role(.secondary)
@@ -1258,6 +1269,7 @@ extension Todo {
         var current = tasks
         var known = mirror
         var failure: Error?
+        unpushed = []
         for index in current.indices {
             let task = current[index]
             let wanted = task.reminder(alarms: alarms)
@@ -1287,6 +1299,7 @@ extension Todo {
                 // Keep going: what was saved so far must be remembered below,
                 // or the next sync would add those tasks to Reminders again.
                 failure = failure ?? error
+                unpushed.insert(task.id)
             }
         }
         let ids = Set(current.map(\.id))
@@ -1297,10 +1310,18 @@ extension Todo {
                 } catch where !"\(error)".contains("deleted") {
                     // Still in Reminders: stay in the mirror, so the next
                     // sync deletes it again and the pull doesn't bring it back.
-                    failure = failure ?? error
-                    continue
+                    let count = (deleteFailures[id] ?? 0) + 1
+                    if count < Self.deleteAttempts {
+                        deleteFailures[id] = count
+                        failure = failure ?? error
+                        continue
+                    }
+                    // It can't be deleted: stop retrying, and say so once.
+                    deleteFailures[id] = nil
+                    notice = Notice(text: "Couldn't delete “\(before.title)” from Reminders after \(Self.deleteAttempts) tries (\(error)); it may reappear.", before: nil, at: Date())
                 } catch {}
             }
+            deleteFailures[id] = nil
             known[id] = nil
         }
         if current != tasks { tasks = current }
@@ -1338,7 +1359,9 @@ extension Todo {
             // usually doesn't.
             let match = byID.removeValue(forKey: id) ?? task.external.flatMap { idByExternal[$0] }.flatMap { byID.removeValue(forKey: $0) }
             if let match {
-                task.adopt(match)
+                // A local edit that failed to go out stays; Reminders' copy
+                // is older than it.
+                if !unpushed.contains(task.id) { task.adopt(match) }
                 result.append(task)
             } else if let done = task.done, done < cutoff {
                 result.append(task)
@@ -1355,6 +1378,8 @@ extension Todo {
         if result != tasks { tasks = result }
         var known = Dictionary(result.filter { $0.remote != nil }.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         known.merge(pendingDeletes) { current, _ in current }
+        // Keep measuring an unpushed edit against what Reminders last had.
+        for id in unpushed { known[id] = mirror[id] }
         if known != mirror { mirror = known }
     }
 

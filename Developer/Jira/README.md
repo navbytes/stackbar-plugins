@@ -30,6 +30,7 @@ first.
 - Your assigned and done lists load past the first 50 issues (up to 200).
 - Typing in My Jira Issues, Change Status and Jira Issue by Key no longer asks Jira again on every keystroke; a lookup that failed says why.
 - Changing the site, email or JQL no longer announces the new list as freshly assigned.
+- A workflow's transitions are looked up again after a minute, so a status changed elsewhere shows up in Change Jira Issue Status.
 
 ## What's new in 1.5.0
 
