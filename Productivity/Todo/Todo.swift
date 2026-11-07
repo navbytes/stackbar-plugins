@@ -124,9 +124,19 @@ final class Todo: StackbarPlugin {
         case icon = "Icon only"
     }
 
+    /// The 30-second tick only needs to be a safety net for Reminders: changes
+    /// on other devices arrive through the `.reminders` trigger, and this
+    /// Mac's own go out when they're made. The tick still checks what is due.
+    static let tickSyncEvery: TimeInterval = 300
+
+    private var lastSync = Date.distantPast
+
     func refresh() async throws {
         now = Date()
-        await sync()
+        if Stackbar.refreshReason != .interval || now.timeIntervalSince(lastSync) >= Self.tickSyncEvery {
+            lastSync = now
+            await sync()
+        }
         remind()
         summarize()
         nudge()
