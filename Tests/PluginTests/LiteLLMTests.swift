@@ -158,6 +158,20 @@ final class LiteLLMTests: XCTestCase {
         await supervisor.stop()
     }
 
+    /// A key with no budget of its own is asked about once an hour, not on every refresh.
+    func testAKeyWithoutABudgetIsNotAskedAboutOnEveryRefresh() async throws {
+        let stub = try LiteLLMStub { method, path, _, _ in answer(method, path, Proxy()) }
+        let host = Host(self)
+        try host.services.secrets.setSecret("http://127.0.0.1:\(stub.port)", for: "LITELLM_PROXY_URL")
+        try host.services.secrets.setSecret("k", for: "LITELLM_API_KEY")
+        let supervisor = try await host.start("LiteLLM")
+        await refreshed(supervisor)
+        await refreshed(supervisor)
+        let asked = stub.requests.all.filter { $0.hasPrefix("GET /key/info") }.count
+        XCTAssertEqual(asked, 1, "\(stub.requests.all)")
+        await supervisor.stop()
+    }
+
     /// Without a key the panel asks for one rather than saying the proxy can't be reached.
     func testWithoutAKeyThePanelAsksForOne() async throws {
         let stub = try LiteLLMStub { method, path, _, _ in answer(method, path, Proxy()) }

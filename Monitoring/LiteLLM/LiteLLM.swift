@@ -125,6 +125,8 @@ final class LiteLLM: StackbarPlugin {
     var needsKey = false
     /// When the last refresh started, so the palette's Spend view doesn't ask on every keystroke.
     var lastAttempt: Date?
+    /// When `/key/info` last gave no budget, so it isn't asked on every refresh.
+    var keyInfoMissed: Date?
 
     // MARK: - Fetching
 
@@ -199,8 +201,11 @@ final class LiteLLM: StackbarPlugin {
             let max = info.max_budget?.value
             budget = Budget(spend: info.spend?.value ?? 0, max: max.flatMap { $0 > 0 ? $0 : nil }, resetAt: info.budget_reset_at.flatMap(Self.parseDate))
         }
-        if budget?.max == nil, let keyBudget = await fetchKeyBudget(base: base, key: key) {
-            return (keyBudget, reply.user_id)
+        if budget?.max == nil, keyInfoMissed.map({ Date().timeIntervalSince($0) > 3600 }) ?? true {
+            if let keyBudget = await fetchKeyBudget(base: base, key: key) {
+                return (keyBudget, reply.user_id)
+            }
+            keyInfoMissed = Date()
         }
         return (budget, reply.user_id)
     }

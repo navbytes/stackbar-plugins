@@ -21,7 +21,7 @@ red at 90%.
   `https://litellm.example.com`, and the plugin can reach that host and no
   other. `LITELLM_API_KEY` is a LiteLLM key. Both are kept in the Keychain.
   Nothing is contacted until you enter the URL.
-- **Calls:** `/user/info` (and `/key/info` when the key has its own budget)
+- **Calls:** `/user/info` (and `/key/info` when your user has no budget of its own)
   and `/user/daily/activity`, every two minutes for the last 30 days and every
   six hours for the six months before that.
 - **Surfaces:** menu bar, panel, window, widget, settings.
