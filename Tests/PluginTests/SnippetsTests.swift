@@ -262,4 +262,23 @@ final class SnippetsTests: XCTestCase {
         XCTAssertTrue(settings.contains(";sig expands before ;sign can be typed in full"), settings)
         await supervisor.stop()
     }
+
+    func testSavingAnEditThatKeepsAClashingKeywordStillWorks() async throws {
+        let host = host()
+        let id = "io.navbytes.stackbar.snippets"
+        let sign = "5A1B0000-0000-4000-8000-000000000002"
+        let saved = #"[{"id":"5A1B0000-0000-4000-8000-000000000001","name":"Sig","text":"x","keyword":";sig","tags":[]},{"id":"\#(sign)","name":"Sign","text":"y","keyword":";sign","tags":[]}]"#
+        try await host.services.storage.set("snippets", saved, for: id)
+        let session = try await host.session("Snippets")
+        let opened = try await session.openView("create", query: CommandQuery(arguments: ["id": sign]))
+        try await session.event(ActionID("view/\(opened.session)/form/\(sign)"), value: .fields([
+            "name": .text("Sign"), "text": .text("Changed"), "keyword": .text(";sign"), "tags": .text(""),
+        ]))
+        let errors = await session.commandView(opened.session)?.form?.errors ?? [:]
+        XCTAssertEqual(errors, [:], "a clash that was already there doesn't block an edit that keeps the keyword")
+        let edited = try await command(session, titled: "Sign")
+        let result = try await session.runCommand(edited.id)
+        XCTAssertEqual(result, .paste("Changed", cursorFromEnd: 0), "the new text is saved")
+        await session.stop()
+    }
 }

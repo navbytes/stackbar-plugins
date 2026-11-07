@@ -362,8 +362,8 @@ final class Snippets: StackbarPlugin {
         if draft.keywordError == nil, !keyword.isEmpty, snippets.contains(where: { $0.keyword == keyword && $0.id != id }) {
             draft.keywordError = "Another snippet has the keyword \(keyword)"
         }
-        if draft.keywordError == nil, !keyword.isEmpty,
-           let clash = snippets.first(where: { $0.id != id && Self.clashes($0.keyword, keyword) })?.keyword {
+        let unchanged = id.flatMap { id in snippets.first { $0.id == id } }?.keyword == keyword
+        if draft.keywordError == nil, !keyword.isEmpty, !unchanged, let clash = snippets.first(where: { $0.id != id && Self.clashes($0.keyword, keyword) })?.keyword {
             draft.keywordError = keyword.hasPrefix(clash)
                 ? "Typing \(keyword) would expand \(clash) first"
                 : "\(keyword) would expand before you finish typing \(clash)"
@@ -488,7 +488,7 @@ final class Snippets: StackbarPlugin {
         var summary = "Imported \(imported)"
         if duplicates > 0 { summary += ", skipped \(duplicates) duplicate\(duplicates == 1 ? "" : "s")" }
         if !problems.isEmpty { summary += ", skipped \(problems.count) that didn't parse (\(problems.prefix(3).joined(separator: "; ")))" }
-        if !droppedKeywords.isEmpty { summary += "; left out keywords already taken or not allowed: " + droppedKeywords.prefix(5).joined(separator: ", ") }
+        if !droppedKeywords.isEmpty { summary += "; left out keywords already taken, would clash with another, or not allowed: " + droppedKeywords.prefix(5).joined(separator: ", ") }
         notice = summary
         return summary
     }
@@ -790,15 +790,11 @@ final class Snippets: StackbarPlugin {
     }
 
     /// Keywords that expand before another can be typed, as (shorter, longer), at most three.
+    /// Sorted, a keyword that starts another is followed by one that starts with it, so neighbours are enough.
     var keywordClashes: [(String, String)] {
-        let keywords = expansions.map(\.keyword).sorted()
+        let sorted = expansions.map(\.keyword).sorted()
         var found: [(String, String)] = []
-        for shorter in keywords {
-            for longer in keywords where longer != shorter && longer.hasPrefix(shorter) {
-                guard found.count < 3 else { return found }
-                found.append((shorter, longer))
-            }
-        }
+        for (a, b) in zip(sorted, sorted.dropFirst()) where b.hasPrefix(a) && found.count < 3 { found.append((a, b)) }
         return found
     }
 

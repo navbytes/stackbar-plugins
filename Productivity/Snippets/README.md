@@ -34,11 +34,11 @@ Import Snippets reads:
 - **Text Replacements:** select them in System Settings > Keyboard > Text
   Replacements and drag them to the Desktop, then import the plist.
 
-Duplicates are skipped, and keywords already taken are left off.
+Duplicates are skipped, and keywords already taken, or that would clash, are left off.
 
 ## What's new in 1.6.0
 
-- A keyword that starts another one, like ;sig and ;sign, is refused when you save or import it, because the shorter one would always expand first. Settings points out any you already have.
+- A keyword that starts another one, like ;sig and ;sign, is refused when you save it and left off when you import (the snippet is kept), because the shorter one would always expand first. Settings points out any you already have.
 - Create Snippet starts with the text you had selected.
 - Copy on a snippet that asks for input is now called Copy Template, since it copies the snippet with its placeholders.
 
