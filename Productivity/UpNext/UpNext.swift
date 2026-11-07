@@ -88,6 +88,18 @@ final class UpNext: StackbarPlugin {
     /// "evil.com/?r=zoom.us/j/1" and "evilzoom.us/j/1" are not Zoom.
     static func service(for url: String) -> Service? {
         guard let parts = URLComponents(string: url), let scheme = parts.scheme?.lowercased(), scheme == "https" || scheme == "http", let host = parts.host?.lowercased() else { return nil }
+        // URLComponents decodes the host, so "evil.com%2f.zoom.us" arrives as
+        // "evil.com/.zoom.us": only letters, digits, hyphens and dots may remain.
+        guard host.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-" || $0 == ".") }) else { return nil }
+        // Nor may the raw address hide a separator, a control character or a
+        // dot-dot in its encoded form.
+        let raw = url.lowercased()
+        guard let schemeEnd = raw.range(of: "://") else { return nil }
+        let afterScheme = raw[schemeEnd.upperBound...]
+        let authority = afterScheme.prefix { $0 != "/" && $0 != "?" && $0 != "#" }
+        guard !["%2f", "%5c", "%23", "%3f", "%00"].contains(where: { authority.contains($0) }) else { return nil }
+        let rawPath = afterScheme.dropFirst(authority.count).prefix { $0 != "?" && $0 != "#" }
+        guard !rawPath.contains("/..") && !rawPath.contains("%2e") else { return nil }
         let path = parts.path.lowercased()
         return services.first { service in
             service.patterns.contains { pattern in
@@ -697,12 +709,16 @@ final class UpNext: StackbarPlugin {
         return text.isEmpty ? (invocation["text"] ?? "").trimmingCharacters(in: .whitespaces) : text
     }
 
-    /// "Today 1:00 PM–1:45 PM", "Tomorrow, all day", "Fri, Nov 13 – Sun, Nov 15, all day".
+    /// "Today 1:00 PM–1:45 PM", "Fri, Nov 13 3:00 PM – Sun, Nov 15 3:00 PM" when a
+    /// timed event ends on another day, "Tomorrow, all day", "Fri, Nov 13 – Sun, Nov 15, all day".
     static func whenText(_ draft: CalendarEventDraft) -> String {
         if draft.isAllDay {
             let last = Calendar.current.date(byAdding: .day, value: -1, to: draft.end) ?? draft.end
             let span = Calendar.current.isDate(last, inSameDayAs: draft.start) ? "" : " – \(dayName(last))"
             return "\(dayName(draft.start))\(span), all day"
+        }
+        if !Calendar.current.isDate(draft.end, inSameDayAs: draft.start) {
+            return "\(dayName(draft.start)) \(time(draft.start)) – \(dayName(draft.end)) \(time(draft.end))"
         }
         return "\(dayName(draft.start)) \(time(draft.start))–\(time(draft.end))"
     }
@@ -739,10 +755,17 @@ final class UpNext: StackbarPlugin {
             markJoined(event.id)
             lastJoin = Date()
             Stackbar.open(openInApps ? Self.appURL(for: link) : link.url)
-        } else if let url = event.url {
+        } else if let url = event.url, Self.isWebURL(url) {
+            markJoined(event.id)
             lastJoin = Date()
             Stackbar.open(url)
         }
+    }
+
+    /// Whether a link is one a browser opens: http or https, nothing else.
+    static func isWebURL(_ url: String) -> Bool {
+        guard let scheme = URLComponents(string: url)?.scheme?.lowercased() else { return false }
+        return scheme == "https" || scheme == "http"
     }
 
     /// Remembers a join, in memory and on disk, so no later pass or restart opens the same call again.
@@ -1283,7 +1306,7 @@ final class UpNext: StackbarPlugin {
     var commands: [Command] {
         Command("join-next", title: "Join Next Meeting", symbol: "video", keywords: ["meeting", "zoom", "meet", "teams", "call", "join"]) { _ in
             guard let event = self.focus() else { return .message("No more meetings today") }
-            guard Self.meetingLink(for: event) != nil || event.url != nil else { return .failure("\(event.title) has no call link") }
+            guard Self.meetingLink(for: event) != nil || Self.isWebURL(event.url ?? "") else { return .failure("\(event.title) has no call link") }
             self.join(event)
             return .message("Joining \(event.title)")
         }
@@ -1327,16 +1350,13 @@ final class UpNext: StackbarPlugin {
                 }
             }
         // The Join button of a reminder or alert runs this, so the join counts
-        // and auto-join won't open the call again.
+        // and auto-join won't open the call again. Without a meeting that's on
+        // the calendar and has a call link, it opens nothing.
         Command("join-event", title: "Join Meeting", subtitle: "From a reminder or alert", symbol: "video") { invocation in
-            let event: CalendarEvent?
-            if let id = invocation["event"] {
-                event = self.events.first { $0.id == id }
-            } else {
-                event = self.focus()
+            guard let id = invocation["event"], let event = self.events.first(where: { $0.id == id }) else {
+                return .failure("That meeting is no longer on your calendar")
             }
-            guard let event else { return .failure("That meeting is no longer on your calendar") }
-            guard Self.meetingLink(for: event) != nil || event.url != nil else { return .failure("\(event.title) has no call link") }
+            guard Self.meetingLink(for: event) != nil else { return .failure("That meeting has no call link") }
             self.join(event)
             return .done
         }

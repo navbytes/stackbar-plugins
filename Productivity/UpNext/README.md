@@ -58,6 +58,8 @@ A widget keeps what's next in view without opening anything.
 - Two meetings at once get one full-screen alert.
 - Waking or launching just before a meeting gives one reminder, not two.
 - Join buttons only for real meeting-service addresses (Zoom, Meet, Teams, Webex and the rest), matched by host and path, so a look-alike link gets none. Outlook Safe Links and meeting links written without https work too.
+- Join buttons refuse addresses whose host hides a slash, dot or other odd character in encoded form, so a look-alike address gets none.
+- The add-event preview shows the day a timed event ends, when that's a different day.
 - Today's Meetings: faster search that also matches calendar and place, and timed meetings are listed before all-day ones.
 - A Join button on the widget.
 - Hide a meeting from the countdown, and show it again from its row.

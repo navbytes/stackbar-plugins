@@ -268,6 +268,39 @@ final class UpNextTests: XCTestCase {
         await second.stop()
     }
 
+    func testJoinEventNeedsAKnownMeetingWithALinkToOpenAnything() async throws {
+        let now = Date()
+        let host = Host(self, system: SimulatedSystem(events: [
+            CalendarEvent(id: "soon", title: "Sync", start: now.addingTimeInterval(600), end: now.addingTimeInterval(1800), location: "https://acme.zoom.us/j/111222333", calendar: "Work", participation: .accepted, attendees: 3),
+            CalendarEvent(id: "plain", title: "Plain", start: now.addingTimeInterval(900), end: now.addingTimeInterval(2400), calendar: "Work", participation: .accepted, attendees: 1),
+        ]))
+        let session = try await host.session("UpNext")
+        guard case .failure(let missing) = try await session.runCommand("join-event") else { return XCTFail("a join without a meeting fails") }
+        XCTAssertEqual(missing, "That meeting is no longer on your calendar")
+        guard case .failure(let unknown) = try await session.runCommand("join-event", arguments: ["event": "gone"]) else { return XCTFail("an unknown meeting fails") }
+        XCTAssertEqual(unknown, "That meeting is no longer on your calendar")
+        guard case .failure(let nolink) = try await session.runCommand("join-event", arguments: ["event": "plain"]) else { return XCTFail("a meeting without a link fails") }
+        XCTAssertEqual(nolink, "That meeting has no call link")
+        XCTAssertTrue(host.opened.all.isEmpty, "none of them opens anything")
+    }
+
+    func testJoinNextOpensAWebLinkAndNothingElse() async throws {
+        let now = Date()
+        let web = Host(self, system: SimulatedSystem(events: [
+            CalendarEvent(id: "agenda", title: "Review", start: now.addingTimeInterval(600), end: now.addingTimeInterval(1800), url: "https://docs.example.com/agenda", calendar: "Work", participation: .accepted, attendees: 3),
+        ]))
+        let webSession = try await web.session("UpNext")
+        guard case .message = try await webSession.runCommand("join-next") else { return XCTFail("a web link is opened") }
+        XCTAssertEqual(web.opened.all.map(\.url), ["https://docs.example.com/agenda"])
+
+        let other = Host(self, system: SimulatedSystem(events: [
+            CalendarEvent(id: "share", title: "Share", start: now.addingTimeInterval(600), end: now.addingTimeInterval(1800), url: "ftp://files.example.com/x", calendar: "Work", participation: .accepted, attendees: 3),
+        ]))
+        let otherSession = try await other.session("UpNext")
+        guard case .failure = try await otherSession.runCommand("join-next") else { return XCTFail("only a web link is opened") }
+        XCTAssertTrue(other.opened.all.isEmpty)
+    }
+
     // MARK: Alerts, reminders and links
 
     func testMeetingsStartingTogetherShareOneFullScreenAlert() async throws {
@@ -592,6 +625,14 @@ final class UpNextTests: XCTestCase {
         XCTAssertEqual(draft.start, moment(16, 9), "Monday's nine has passed, so the Monday after")
     }
 
+    @MainActor func testThePreviewShowsTheDayATimedEventEnds() {
+        // Two moments a minute apart share a day, and two days apart never do, in any time zone.
+        let sameDay = CalendarEventDraft(title: "Call", start: moment(13, 0), end: moment(13, 1))
+        XCTAssertTrue(UpNext.whenText(sameDay).contains("–") && !UpNext.whenText(sameDay).contains(" – "), UpNext.whenText(sameDay))
+        let overnight = CalendarEventDraft(title: "Call", start: moment(13, 0), end: moment(15, 0))
+        XCTAssertTrue(UpNext.whenText(overnight).contains(" – "), "the end's day is shown: \(UpNext.whenText(overnight))")
+    }
+
     @MainActor func testOnlyARealMeetingHostMakesAJoinLink() {
         func service(_ location: String) -> String? {
             UpNext.meetingLink(for: CalendarEvent(id: "x", title: "x", start: Date(), end: Date(), location: location))?.service
@@ -629,6 +670,18 @@ final class UpNextTests: XCTestCase {
         // Wrapped in a Safe Link, the look-alike still gets nothing, and a real Zoom link still joins.
         XCTAssertNil(service("https://nam04.safelinks.protection.outlook.com/?url=https%3A%2F%2Fevil.com%2F%3Fr%3Dzoom.us%2Fj%2F1&data=05"))
         XCTAssertEqual(service("https://nam04.safelinks.protection.outlook.com/?url=https%3A%2F%2Facme.zoom.us%2Fj%2F1&data=05"), "Zoom")
+        // A host can hide a slash, a backslash, a hash, a question mark or a null in encoded form.
+        // URLComponents decodes it, so the host it finds ends in zoom.us; the address is refused all the same.
+        for url in ["https://evil.com%2f.zoom.us/j/1", "https://evil.com%5c.zoom.us/j/1", "https://evil.com%23.zoom.us/j/1", "https://evil.com%3f.zoom.us/j/1", "https://evil.com%00.zoom.us/j/1"] {
+            XCTAssertNil(service(url), url)
+        }
+        for inner in ["https%3A%2F%2Fevil.com%252f.zoom.us%2Fj%2F1", "https%3A%2F%2Fevil.com%255c.zoom.us%2Fj%2F1", "https%3A%2F%2Fevil.com%2523.zoom.us%2Fj%2F1"] {
+            XCTAssertNil(service("https://nam04.safelinks.protection.outlook.com/?url=\(inner)&data=05"), inner)
+        }
+        // A dot-dot or an encoded dot in the path, and a look-alike letter in the host, get nothing either.
+        for url in ["https://acme.zoom.us/j/1/../../evil", "https://acme.zoom.us/%2e%2e/evil", "https://z\u{043E}om.us/j/1"] {
+            XCTAssertNil(service(url), url)
+        }
     }
 
     // MARK: Helpers
