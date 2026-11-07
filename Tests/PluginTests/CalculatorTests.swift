@@ -2,6 +2,7 @@ import Foundation
 import XCTest
 import StackbarHostCore
 import StackbarProtocol
+@testable import Plugin_Calculator
 
 final class CalculatorTests: XCTestCase {
     /// The answer row's title for what was typed, or nil when there is no answer.
@@ -130,5 +131,11 @@ final class CalculatorTests: XCTestCase {
         let empty = try await session.openView("calculate", query: CommandQuery(text: ""))
         XCTAssertEqual(empty.root?.rows.first?.title, "4")
         await session.stop()
+    }
+
+    func testDecimalCommaFollowsTheSettingExceptInExponentForm() {
+        XCTAssertEqual(Calculator.Math.format(7.5, decimalComma: true), "7,5")
+        XCTAssertEqual(Calculator.Math.format(7.5, decimalComma: false), "7.5")
+        XCTAssertEqual(Calculator.Math.format(1.5e20, decimalComma: true), "1.5e+20")
     }
 }
