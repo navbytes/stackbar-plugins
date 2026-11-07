@@ -117,9 +117,10 @@ final class Emoji: StackbarPlugin {
     /// Every typed word must start a word of the name ("thu up" finds
     /// thumbs up); the most used come first, then Unicode's order.
     static func matches(_ query: String, in items: [Item] = all, uses: [String: Int] = [:]) -> [Item] {
-        // A pasted emoji finds itself, with or without its variation selector.
+        // A pasted emoji finds itself, with or without its variation selector or skin tone.
         let trimmed = query.trimmingCharacters(in: .whitespaces)
-        if let item = byEmoji[trimmed] ?? byEmoji[trimmed.replacingOccurrences(of: "\u{FE0F}", with: "")] ?? byEmoji[trimmed + "\u{FE0F}"],
+        let plain = String(String.UnicodeScalarView(trimmed.unicodeScalars.filter { !(0x1F3FB...0x1F3FF).contains($0.value) }))
+        if let item = byEmoji[plain] ?? byEmoji[plain.replacingOccurrences(of: "\u{FE0F}", with: "")] ?? byEmoji[plain + "\u{FE0F}"],
            items.contains(where: { $0.emoji == item.emoji }) {
             return [item]
         }
@@ -150,12 +151,15 @@ final class Emoji: StackbarPlugin {
 
     static let toneNames = ["None", "Light", "Medium-Light", "Medium", "Medium-Dark", "Dark"]
     static let tones: [String: String] = ["Light": "\u{1F3FB}", "Medium-Light": "\u{1F3FC}", "Medium": "\u{1F3FD}", "Medium-Dark": "\u{1F3FE}", "Dark": "\u{1F3FF}"]
+    /// Family, bunny-eared pairs and wrestlers: marked as modifier bases, yet with no tone variants.
+    static let untoned: Set<Unicode.Scalar> = ["\u{1F46A}", "\u{1F46F}", "\u{1F93C}"]
 
     /// `emoji` in the chosen skin tone. Only an emoji with exactly one person
     /// or hand gets it, so families and couples stay as they are.
     static func toned(_ emoji: String, _ tone: String) -> String {
         guard let modifier = tones[tone] else { return emoji }
         let scalars = Array(emoji.unicodeScalars)
+        if scalars.contains(where: { untoned.contains($0) }) { return emoji }
         let bases = scalars.indices.filter { scalars[$0].properties.isEmojiModifierBase }
         guard bases.count == 1, let at = bases.first else { return emoji }
         var out = String.UnicodeScalarView()

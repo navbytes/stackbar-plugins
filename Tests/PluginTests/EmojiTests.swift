@@ -59,6 +59,29 @@ final class EmojiTests: XCTestCase {
         let session = try await host.session("Emoji")
         let pasted = try await found(session, "👍")
         XCTAssertEqual(pasted.first?.title, "👍")
+        let toned = try await found(session, "👍🏽")
+        XCTAssertEqual(toned.first?.title, "👍", "a toned emoji finds its plain one")
+        await session.stop()
+    }
+
+    func testSkinToneTonesHumansOnly() async throws {
+        let host = Host(self)
+        let session = try await host.session("Emoji")
+        try await session.event(ActionID("picker/Skin tone"), value: .text("Medium"))
+        let thumbs = try await found(session, "thumbs up")
+        XCTAssertEqual(thumbs.first?.title, "👍🏽")
+        let coder = try await found(session, "technologist")
+        XCTAssertTrue(coder.contains { $0.title == "\u{1F9D1}\u{1F3FD}\u{200D}\u{1F4BB}" }, "\(coder.map(\.title))")
+        let family = try await found(session, "family man woman girl")
+        XCTAssertTrue(family.contains { $0.title == "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}" }, "\(family.map(\.title))")
+        let keycap = try await found(session, "keycap 1")
+        XCTAssertTrue(keycap.contains { $0.title == "1\u{FE0F}\u{20E3}" }, "\(keycap.map(\.title))")
+        let japan = try await found(session, "japan")
+        XCTAssertTrue(japan.contains { $0.title == "\u{1F1EF}\u{1F1F5}" }, "\(japan.map(\.title))")
+        let family2 = try await found(session, "family")
+        XCTAssertTrue(family2.contains { $0.title == "\u{1F46A}" }, "\(family2.map(\.title))")
+        let bunny = try await found(session, "people with bunny ears")
+        XCTAssertTrue(bunny.contains { $0.title == "\u{1F46F}" }, "\(bunny.map(\.title))")
         await session.stop()
     }
 
