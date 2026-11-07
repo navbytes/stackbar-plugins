@@ -14,7 +14,7 @@ final class Jira: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.jira",
         name: "Jira",
-        version: "1.5.0",
+        version: "1.5.1",
         summary: "Your assigned Jira issues: change status, assign, comment and watch, with alerts and new issues from the palette.",
         surfaces: [.menuBar, .panel, .widget, .settings],
         triggers: [.launch, .minutes(5), .wake],

@@ -15,7 +15,7 @@ final class Linear: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.linear",
         name: "Linear",
-        version: "1.5.0",
+        version: "1.5.1",
         summary: "Your assigned Linear issues and inbox: change status and priority, start work, comment, and new issues from the palette.",
         surfaces: [.menuBar, .panel, .widget, .settings],
         triggers: [.launch, .minutes(5), .wake],

@@ -13,7 +13,7 @@ final class Music: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.music",
         name: "Music",
-        version: "1.4.0",
+        version: "1.5.0",
         summary: "What's playing in Music or Spotify, with play, pause, skip and volume.",
         surfaces: [.menuBar, .panel, .widget, .settings],
         triggers: [.launch, .every(.seconds(5)), .wake],
@@ -21,7 +21,9 @@ final class Music: StackbarPlugin {
         // scripts are fixed text in this file, never built from input.
         // Album art: Spotify names its own image URL; for Music the cover
         // is looked up in the iTunes catalog by artist and album.
-        capabilities: [.run(commands: ["osascript"]), .network("itunes.apple.com", "*.mzstatic.com", "i.scdn.co")],
+        // .power is only for the list of running apps: with neither player
+        // open, nothing is run at all.
+        capabilities: [.run(commands: ["osascript"]), .power, .network("itunes.apple.com", "*.mzstatic.com", "i.scdn.co")],
         minimumStackbar: "0.21.0",
         homepage: "https://github.com/navbytes/stackbar-plugins/tree/main/Productivity/Music",
         accent: .pink,
@@ -48,6 +50,8 @@ final class Music: StackbarPlugin {
     enum Player: String, CaseIterable {
         case music = "Music"
         case spotify = "Spotify"
+
+        var bundleID: String { self == .music ? "com.apple.Music" : "com.spotify.client" }
     }
 
     struct Track: Equatable {
@@ -68,6 +72,9 @@ final class Music: StackbarPlugin {
     var checked = false
     /// Covers found in the iTunes catalog, by "artist|album"; "" when there is none.
     var covers: [String: String] = [:]
+    /// Albums being looked up now, and when to try again after a lookup failed.
+    var lookingUp: Set<String> = []
+    var coverRetryAt: [String: Date] = [:]
 
     @Stored("preferred") var preferred = "Whichever is playing"
     @Stored("showInMenuBar") var showInMenuBar = "Title and artist"
@@ -100,7 +107,11 @@ final class Music: StackbarPlugin {
         var tracks: [Track] = []
         var denied = false
         var failed: Player?
-        for player in Player.allCases {
+        // Only ask the players that are open: an osascript launch compiles a
+        // script, which is wasted work every 5 seconds with neither running.
+        // If the list can't be read, ask both.
+        let open = (try? await Stackbar.systemStatus())?.runningApps.map(\.id)
+        for player in Player.allCases where open?.contains(player.bundleID) ?? true {
             guard let result = try? await Stackbar.run("osascript", ["-e", Self.statusScript(for: player)], timeout: .seconds(10)) else {
                 failed = player
                 continue
@@ -124,7 +135,12 @@ final class Music: StackbarPlugin {
             problem = nil
         }
         track = Self.choose(tracks, preferred: Player(rawValue: preferred))
-        if let track, track.artworkURL == nil { await findCover(track) }
+        // A drag still being applied shows the thumb, not the player's older value.
+        if let volumeTarget { track?.volume = Double(volumeTarget) }
+        // The catalog lookup runs on its own, so a slow answer doesn't hold
+        // up the ticks and clicks queued behind this check; the cover shows
+        // from the next one.
+        if let track, track.artworkURL == nil { Task { await self.findCover(track) } }
     }
 
     struct CatalogResults: Decodable {
@@ -137,13 +153,21 @@ final class Music: StackbarPlugin {
     func findCover(_ track: Track) async {
         let key = "\(track.artist)|\(track.album)"
         guard covers[key] == nil, !track.artist.isEmpty || !track.album.isEmpty else { return }
-        covers[key] = ""
+        guard !lookingUp.contains(key), coverRetryAt[key].map({ Date() >= $0 }) ?? true else { return }
+        lookingUp.insert(key)
+        defer { lookingUp.remove(key) }
         var query = URLComponents(string: "https://itunes.apple.com/search")
         query?.queryItems = [URLQueryItem(name: "term", value: "\(track.artist) \(track.album)"), URLQueryItem(name: "entity", value: "album"), URLQueryItem(name: "limit", value: "1")]
-        guard let url = query?.url?.absoluteString,
-              let found = try? await Stackbar.getJSON(url, as: CatalogResults.self),
-              let small = found.results.first?.artworkUrl100 else { return }
-        covers[key] = Self.largeCover(small)
+        guard let url = query?.url?.absoluteString else { covers[key] = ""; return }
+        do {
+            let found = try await Stackbar.getJSON(url, as: CatalogResults.self)
+            // "" is a catalog with no cover: that stays. A failed request
+            // is asked again in a minute.
+            covers[key] = found.results.first?.artworkUrl100.map(Self.largeCover) ?? ""
+            coverRetryAt[key] = nil
+        } catch {
+            coverRetryAt[key] = Date().addingTimeInterval(60)
+        }
     }
 
     /// The catalog's 100-pixel cover URL asked for at 600.
@@ -185,6 +209,35 @@ final class Music: StackbarPlugin {
         try await send(command)
         try? await Task.sleep(for: .milliseconds(250))
         await check()
+    }
+
+    /// The volume the player should have once the sends catch up, while a
+    /// drag is being applied.
+    var volumeTarget: Int?
+    var volumeSending = false
+
+    /// Records the newest volume and, unless a send is already on its way,
+    /// sends it after a short pause. Steps of a drag in between only replace
+    /// the target, so the player gets a few values and the last one.
+    func setVolume(_ volume: Int) {
+        volumeTarget = volume
+        guard !volumeSending else { return }
+        volumeSending = true
+        Task {
+            defer { volumeSending = false; volumeTarget = nil }
+            while volumeTarget != nil {
+                try? await Task.sleep(for: .milliseconds(120))
+                guard let sending = volumeTarget else { return }
+                do {
+                    try await self.send("set sound volume to \(sending)")
+                } catch {
+                    Stackbar.hud("\(error)", isError: true)
+                    return
+                }
+                // Steps that arrived meanwhile went to the target: send it too.
+                if volumeTarget == sending { return }
+            }
+        }
     }
 
     func send(_ command: String) async throws {
@@ -318,9 +371,10 @@ final class Music: StackbarPlugin {
             HStack(spacing: Space.s) {
                 Image(systemName: "speaker.fill").font(size: 11).foreground(.role(.secondary))
                 Slider("Volume", value: track.volume, in: 0...100) { value in
-                    // Set it here rather than asking again on every step of a drag.
+                    // Show it here, and let one send at a time carry the newest
+                    // value, rather than one osascript for every step of a drag.
                     self.track?.volume = value
-                    try await self.send("set sound volume to \(Int(value))")
+                    self.setVolume(Int(value))
                 }
                 .foreground(theme.solidPaint)
                 Image(systemName: "speaker.wave.3.fill").font(size: 11).foreground(.role(.secondary))
