@@ -12,14 +12,14 @@ crashes, so it can't leave the Mac awake by accident.
   and staying awake while plugged in, on an external display, on a VPN or
   while downloading, and whether the menu bar shows the time left as digits
   or a ring.
-- **Commands:** Toggle Stay Awake, Keep Awake For… ("2 hours", "90m", "until 17:30", "noon")
+- **Commands:** Toggle Stay Awake, Keep Awake For… ("2 hours", "90m", "17:30" or "until 17:30", "noon"; "1:30" is an hour and a half)
   and Allow Sleep. Allow Sleep and Toggle pause the rules for an hour when a rule is holding the Mac awake. Give them a hotkey or an alias in Stackbar's Settings, or
   run them from Spotlight, Shortcuts or a `stackbar://` link.
 - **Agent tools:** `awake_status`, `keep_awake` and `allow_sleep`.
 
 ## What's new in 1.6.0
 
-- Type durations and times the way you'd say them: "2 hours", "45 mins", "1 hour 30 minutes", "for 2h", "at 5pm", "noon", "until midnight". The panel's box takes "until 17:30" too.
+- Type durations and times the way you'd say them: "2 hours", "45 mins", "1 hour 30 minutes", "for 2h", "at 5pm", "noon", "until midnight". The panel's box takes "17:30" or "until 17:30" too.
 - "until 12" late in the evening means midnight, not noon tomorrow, and "0" is no longer read as midnight.
 - When "while plugged in", a display, a VPN, downloads or the schedule keeps your Mac awake, Allow Sleep, Toggle and a click on the cup pause those rules for an hour instead of saying the Mac can sleep when it can't.
 - An overnight schedule with "Weekdays only" now runs through Friday night and leaves Sunday night alone.

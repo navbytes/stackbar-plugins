@@ -196,4 +196,41 @@ final class StayAwakeTests: XCTestCase {
         XCTAssertEqual(note?.actions.first?.arguments?["for"], "1h")
         await supervisor.stop()
     }
+
+    func testAColonTimeAfterNoonIsAClockTime() async throws {
+        let host = Host(self)
+        let session = try await host.session("StayAwake")
+        for (text, hour, minute) in [("17:30", 17, 30), ("13:00", 13, 0)] {
+            let before = Date()
+            guard case .message(let message) = try await session.runCommand("keep-awake", arguments: ["for": text]) else {
+                return XCTFail("\(text) keeps the Mac awake")
+            }
+            let end = try XCTUnwrap(Calendar.current.nextDate(after: before, matching: DateComponents(hour: hour, minute: minute, second: 0), matchingPolicy: .nextTime))
+            let shown = end.formatted(date: .omitted, time: .shortened).lowercased()
+            XCTAssertTrue(message?.lowercased().contains("until \(shown)") == true, "\(text) is a time: \(message ?? "")")
+            _ = try await session.runCommand("allow-sleep")
+        }
+        // "1:30" is an hour and a half, and ".5h" is half an hour.
+        _ = try await session.runCommand("keep-awake", arguments: ["for": "1:30"])
+        let ninety = try await session.callTool("awake_status", arguments: [:]).text
+        XCTAssertTrue(ninety.contains("1h 30m left") || ninety.contains("1h 29m left"), ninety)
+        _ = try await session.runCommand("allow-sleep")
+        _ = try await session.runCommand("keep-awake", arguments: ["for": ".5h"])
+        let half = try await session.callTool("awake_status", arguments: [:]).text
+        XCTAssertTrue(half.contains("30m left"), half)
+        _ = try await session.runCommand("allow-sleep")
+    }
+
+    func testAnUntilHourIsTheNextOneComing() async throws {
+        let host = Host(self)
+        let session = try await host.session("StayAwake")
+        let before = Date()
+        _ = try await session.runCommand("keep-awake", arguments: ["for": "until 5"])
+        let calendar = Calendar.current
+        let fiveAM = try XCTUnwrap(calendar.nextDate(after: before, matching: DateComponents(hour: 5, minute: 0, second: 0), matchingPolicy: .nextTime))
+        let fivePM = try XCTUnwrap(calendar.nextDate(after: before, matching: DateComponents(hour: 17, minute: 0, second: 0), matchingPolicy: .nextTime))
+        let status = try await session.callTool("awake_status", arguments: [:]).text
+        XCTAssertTrue(status.contains("Until \(min(fiveAM, fivePM).formatted(date: .omitted, time: .shortened))"), "a deadline is the next five o'clock: \(status)")
+        _ = try await session.runCommand("allow-sleep")
+    }
 }

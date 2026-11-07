@@ -342,7 +342,7 @@ final class StayAwake: StackbarPlugin {
             return (h * 60 + m) * 60
         }
         // 2d, 1h30m, 1h30, 1.5h, 45m, 90s
-        guard let regex = try? NSRegularExpression(pattern: #"^(?:(\d+(?:\.\d+)?)d)?(?:(\d+(?:\.\d+)?)h)?(?:(\d+(?:\.\d+)?)(?:m|(?![\d.])))?(?:(\d+(?:\.\d+)?)s)?$"#),
+        guard let regex = try? NSRegularExpression(pattern: #"^(?:(\d+(?:\.\d+)?|\.\d+)d)?(?:(\d+(?:\.\d+)?|\.\d+)h)?(?:(\d+(?:\.\d+)?|\.\d+)(?:m|(?![\d.])))?(?:(\d+(?:\.\d+)?|\.\d+)s)?$"#),
               let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) else { return nil }
         func value(_ i: Int) -> Double { Range(match.range(at: i), in: text).flatMap { Double(text[$0]) } ?? 0 }
         let total = value(1) * 86400 + value(2) * 3600 + value(3) * 60 + value(4)
@@ -350,8 +350,10 @@ final class StayAwake: StackbarPlugin {
     }
 
     /// The next time `text` (a clock time, "noon" or "midnight") happens, today or
-    /// tomorrow. A bare hour from 1 to 12 is either reading, whichever comes first:
-    /// "5" is 5 am or 5 pm, and "12" is noon or midnight.
+    /// tomorrow. A bare hour from 1 to 12 takes whichever reading comes first: "5" is
+    /// 5 am or 5 pm, and "12" is noon or midnight. That is deliberate, because "until 5"
+    /// is a deadline. Timers reads "at 3" as 3 pm, but that rule is for the start of a
+    /// countdown, so it does not apply here.
     static func next(_ input: String, after now: Date = Date()) -> Date? {
         var text = input.trimmingCharacters(in: .whitespaces).lowercased()
         if text.hasPrefix("at ") { text.removeFirst(3) }
@@ -758,6 +760,11 @@ final class StayAwake: StackbarPlugin {
         // "until 17:30", "till noon", "at 5pm": a time.
         if let lead = ["until ", "till ", "til ", "at "].first(where: { text.hasPrefix($0) }) {
             return next(String(text.dropFirst(lead.count)), after: now).map(Mode.until)
+        }
+        // A colon form from 13:00 on is a time ("17:30"), not a 17-hour session typed that way.
+        // "1:30" is still an hour and a half.
+        if text.range(of: #"^\d{1,2}:\d{2}$"#, options: .regularExpression) != nil, let hour = Int(text.prefix(while: { $0 != ":" })), hour >= 13 {
+            return next(text, after: now).map(Mode.until)
         }
         // Digits alone are minutes, never a time, so "0" is refused.
         if text.allSatisfy(\.isNumber) { return duration(text).map { Mode.until(now.addingTimeInterval($0)) } }
