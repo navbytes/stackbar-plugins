@@ -131,4 +131,69 @@ final class StayAwakeTests: XCTestCase {
         guard case .message = try await session.runCommand("keep-awake", arguments: ["for": "1e20"]) else { return XCTFail("a huge typed duration is capped, not a crash") }
         _ = try await session.runCommand("allow-sleep")
     }
+
+    func testDurationsAndTimesInWords() async throws {
+        let host = Host(self)
+        let session = try await host.session("StayAwake")
+        for text in ["2 hours", "45 mins", "1 hour 30 minutes", "for 2h", "at 5pm", "noon", "until midnight", "90 sec"] {
+            guard case .message = try await session.runCommand("keep-awake", arguments: ["for": text]) else {
+                return XCTFail("\(text) keeps the Mac awake")
+            }
+            _ = try await session.runCommand("allow-sleep")
+        }
+        guard case .failure = try await session.runCommand("keep-awake", arguments: ["for": "0"]) else {
+            return XCTFail("0 is neither a length nor a time")
+        }
+
+        _ = try await session.runCommand("keep-awake", arguments: ["for": "2 hours"])
+        let twoHours = try await session.callTool("awake_status", arguments: [:]).text
+        XCTAssertTrue(twoHours.contains("2h 0m left") || twoHours.contains("1h 59m left"), twoHours)
+        _ = try await session.runCommand("allow-sleep")
+
+        _ = try await session.runCommand("keep-awake", arguments: ["for": "90 sec"])
+        let ninety = try await session.callTool("awake_status", arguments: [:]).text
+        XCTAssertTrue(ninety.contains("1m left"), "90 seconds is a minute and a half, not nine minutes: \(ninety)")
+        _ = try await session.runCommand("allow-sleep")
+
+        // "until 12" is the next twelve o'clock: midnight when it is late in the evening.
+        let calendar = Calendar.current
+        let now = Date()
+        let noon = try XCTUnwrap(calendar.nextDate(after: now, matching: DateComponents(hour: 12, minute: 0, second: 0), matchingPolicy: .nextTime))
+        let midnight = try XCTUnwrap(calendar.nextDate(after: now, matching: DateComponents(hour: 0, minute: 0, second: 0), matchingPolicy: .nextTime))
+        _ = try await session.runCommand("keep-awake", arguments: ["for": "until 12"])
+        let untilTwelve = try await session.callTool("awake_status", arguments: [:]).text
+        let sooner = min(noon, midnight).formatted(date: .omitted, time: .shortened)
+        XCTAssertTrue(untilTwelve.contains("Until \(sooner)"), "\(untilTwelve) should end at \(sooner)")
+        _ = try await session.runCommand("allow-sleep")
+    }
+
+    func testAllowSleepPausesARuleThatHoldsTheMac() async throws {
+        let host = Host(self, system: SimulatedSystem(status: SystemStatus(batteryLevel: 0.9, onACPower: true)))
+        let supervisor = try await host.start("StayAwake")
+        await supervisor.press("toggle/Always stay awake while plugged in", value: .bool(true))
+        let held = await waitUntil(10) { host.system.keptAwake[self.id]?.reason.hasSuffix("While plugged in") == true }
+        XCTAssertTrue(held, "plugged in keeps the Mac awake")
+
+        // Allow Sleep can't turn off a rule for good, so it pauses the rule for an hour.
+        let allowed = await supervisor.runCommand("allow-sleep", source: .palette)
+        guard case .message(let text) = allowed else { return XCTFail("allow-sleep answers") }
+        XCTAssertTrue(text?.contains("paused") == true, text ?? "")
+        let released = await waitUntil(10) { host.system.keptAwake[self.id] == nil }
+        XCTAssertTrue(released, "the Mac can sleep while the rule is paused")
+        await supervisor.stop()
+    }
+
+    func testTheEndNotificationOffersMoreTime() async throws {
+        let host = Host(self)
+        let supervisor = try await host.start("StayAwake")
+        _ = await supervisor.runCommand("keep-awake", arguments: ["for": "2s"], source: .palette)
+        try await Task.sleep(nanoseconds: 2_500_000_000)
+        await supervisor.refresh()
+        let ended = await waitUntil(10) { host.notifications.all.contains { $0.title == "Your Mac can sleep again" } }
+        XCTAssertTrue(ended)
+        let note = host.notifications.all.first { $0.title == "Your Mac can sleep again" }
+        XCTAssertEqual(note?.actions.first?.command, "keep-awake", "the end offers to keep it awake")
+        XCTAssertEqual(note?.actions.first?.arguments?["for"], "1h")
+        await supervisor.stop()
+    }
 }
