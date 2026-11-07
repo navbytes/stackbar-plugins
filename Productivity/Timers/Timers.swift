@@ -139,8 +139,9 @@ final class Timers: StackbarPlugin {
 
     /// The next clock time after `now`, as a date: `17:45`, `5pm`, `5:30pm`,
     /// `5.30pm`, `noon` or `midnight`. With `bare`, an hour from 1 to 12 with
-    /// no am or pm means whichever of its two readings comes first: "at 5" is
-    /// 5 am or 5 pm, and "at 12" is noon or midnight.
+    /// no am or pm is read as a time after "at" or "until": 1 to 6 is the
+    /// afternoon or evening ("at 3" is 3 pm), 7 to 11 is whichever of morning
+    /// and night comes next ("at 8"), and 12 is the next noon.
     static func clockTime(_ text: String, after now: Date, bare: Bool = false) -> Date? {
         var text = text.lowercased().replacingOccurrences(of: " ", with: "")
         var meridiem: String?
@@ -165,7 +166,7 @@ final class Timers: StackbarPlugin {
             guard (1...12).contains(hour) else { return nil }
             readings = [hour % 12 + (meridiem == "pm" ? 12 : 0)]
         } else if bare, (1...12).contains(hour) {
-            readings = [hour % 12, hour % 12 + 12]
+            readings = hour <= 6 ? [hour + 12] : hour <= 11 ? [hour, hour + 12] : [12]
         } else {
             guard (0...23).contains(hour) else { return nil }
             readings = [hour]
@@ -186,14 +187,16 @@ final class Timers: StackbarPlugin {
         // Words that lead a length or a time ("for 10 minutes", "at 5 pm") and
         // are not part of the name.
         let fillers: Set<String> = ["for", "in", "at", "until", "till", "by"]
+        /// The name left once the `used` words are taken out, along with the
+        /// filler word just before the first of them.
+        func name(_ used: Set<Int>) -> String {
+            var gone = used
+            if let first = used.min(), first > 0, fillers.contains(words[first - 1].lowercased()) { gone.insert(first - 1) }
+            return words.enumerated().filter { !gone.contains($0.offset) }.map(\.element).joined(separator: " ")
+        }
         for (index, word) in words.enumerated() {
-            /// The name left once the `used` words are taken out, along with
-            /// the filler word just before the first of them.
-            func name(_ used: Set<Int>) -> String {
-                var gone = used
-                if index > 0, fillers.contains(words[index - 1].lowercased()) { gone.insert(index - 1) }
-                return words.enumerated().filter { !gone.contains($0.offset) }.map(\.element).joined(separator: " ")
-            }
+            // "noon" and "midnight" are read last, so "Midnight snack 10m" is still a timer.
+            if ["noon", "midnight"].contains(word.lowercased()) { continue }
             // "5 pm": the number and its meridiem are one time.
             if index + 1 < words.count, ["am", "pm"].contains(words[index + 1].lowercased()), let end = clockTime(word + words[index + 1], after: now) {
                 let rest = name([index, index + 1])
@@ -227,6 +230,13 @@ final class Timers: StackbarPlugin {
             if clockTime(word, after: now) == nil, let seconds = duration(word) {
                 return (now.addingTimeInterval(seconds), name([index]), word)
             }
+            if let end = clockTime(word, after: now) {
+                let rest = name([index])
+                return (end, rest.isEmpty ? "Alarm" : rest, nil)
+            }
+        }
+        // Only when nothing else in the text is a length or a time: "lunch at noon" is an alarm.
+        for (index, word) in words.enumerated() where ["noon", "midnight"].contains(word.lowercased()) {
             if let end = clockTime(word, after: now) {
                 let rest = name([index])
                 return (end, rest.isEmpty ? "Alarm" : rest, nil)

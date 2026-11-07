@@ -63,16 +63,14 @@ final class TimersTests: XCTestCase {
         XCTAssertEqual(Set(opened.root?.rows.map(\.title) ?? []), ["tea", "pasta", "call"])
         await session.stop()
 
-        // "lunch at 12" is an alarm for the next noon or midnight, not a 12-minute timer.
+        // "lunch at 12" is an alarm for the next noon, not a 12-minute timer.
         let before = Date()
         let lunch = try await Host(self).start("Timers")
         guard case .message = await lunch.runCommand("start", arguments: ["for": "lunch at 12"], source: .palette) else { return XCTFail("lunch at 12 starts") }
         _ = await waitUntil { await self.lengths(lunch).count == 1 }
-        let calendar = Calendar.current
-        let noon = try XCTUnwrap(calendar.nextDate(after: before, matching: DateComponents(hour: 12, minute: 0, second: 0), matchingPolicy: .nextTime))
-        let midnight = try XCTUnwrap(calendar.nextDate(after: before, matching: DateComponents(hour: 0, minute: 0, second: 0), matchingPolicy: .nextTime))
+        let noon = try XCTUnwrap(Calendar.current.nextDate(after: before, matching: DateComponents(hour: 12, minute: 0, second: 0), matchingPolicy: .nextTime))
         let alarm = await lengths(lunch).first ?? 0
-        XCTAssertEqual(Double(alarm), min(noon, midnight).timeIntervalSince(before), accuracy: 3, "the alarm is the sooner of noon and midnight: \(alarm)")
+        XCTAssertEqual(Double(alarm), noon.timeIntervalSince(before), accuracy: 3, "the alarm is the next noon: \(alarm)")
         await lunch.stop()
 
         // The rest of the times: "noon", and "5.30pm" with its point.
@@ -140,6 +138,32 @@ final class TimersTests: XCTestCase {
         _ = await waitUntil { !host.notifications.all.isEmpty }
         XCTAssertEqual(host.notifications.all.map(\.title), ["2 timers are done"])
         XCTAssertEqual(host.notifications.all.first?.body, "tea, eggs")
+        await supervisor.stop()
+    }
+
+    func testNoonAndMidnightDoNotStealATimer() async throws {
+        let host = Host(self)
+        let supervisor = try await host.start("Timers")
+        for text in ["Midnight snack 10m", "Noon walk 20m"] {
+            guard case .message = await supervisor.runCommand("start", arguments: ["for": text], source: .palette) else { return XCTFail("\(text) starts") }
+        }
+        _ = await waitUntil { await self.lengths(supervisor).count == 2 }
+        let durations = await lengths(supervisor)
+        XCTAssertEqual(durations, [600, 1200], "ten minutes, then twenty")
+        let session = try await host.session("Timers")
+        let opened = try await session.openView("list")
+        XCTAssertEqual(Set(opened.root?.rows.map(\.title) ?? []), ["Midnight snack", "Noon walk"])
+        await session.stop()
+        await supervisor.stop()
+    }
+
+    func testABareHourAfterAtIsTheNextOneAhead() async throws {
+        let host = Host(self)
+        let supervisor = try await host.start("Timers")
+        let before = Date()
+        let started = await supervisor.runCommand("start", arguments: ["for": "tea at 3"], source: .palette)
+        let threePM = try XCTUnwrap(Calendar.current.nextDate(after: before, matching: DateComponents(hour: 15, minute: 0, second: 0), matchingPolicy: .nextTime))
+        XCTAssertEqual(started, .message("tea: ends at \(threePM.formatted(date: .omitted, time: .shortened))"), "at 3 is 3 pm, today or tomorrow")
         await supervisor.stop()
     }
 }
