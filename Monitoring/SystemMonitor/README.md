@@ -34,7 +34,7 @@ using the most a click away and a notification when something stays high.
 ## Highlights
 
 ### CPU and memory, always in view
-The menu bar shows CPU by default. The panel adds five minutes of CPU
+The menu bar shows CPU and memory. The panel adds five minutes of CPU
 history, load averages, memory pressure, and memory and disk bars.
 
 ### Find what's slowing you down
@@ -64,7 +64,6 @@ A widget shows your Mac's load without opening anything.
 - When a reading can't be taken, the panel says how old its numbers are instead of showing zeros. Network speed shows a dash until it can be read again.
 - Busy alerts have a Show Processes button that opens Top Processes.
 - Disk sizes match Finder (1 GB is 1,000 MB). Memory is still counted the way Activity Monitor counts it.
-- The menu bar shows CPU alone by default, and a choice you already made stays.
 - Process names show the program's file name, also for programs started from a relative path.
 
 ## What's new in 1.6.1

@@ -193,15 +193,15 @@ final class SystemMonitor: StackbarPlugin {
     /// When each source last gave a reading, so a failed read can say how
     /// old the numbers on screen are.
     var lastGood: [String: Date] = [:]
-    /// The oldest reading on screen, when a source failed in the last read.
-    var staleSince: Date?
+    /// The sources whose last read failed, with when each last gave a good reading.
+    var stale: [String: Date] = [:]
     /// When the last read started: a palette view reads again only when this
     /// is more than five seconds old.
     var lastAttempt: Date?
     /// Quit presses waiting for their second press, by key, and when they came.
     var armed: [String: Date] = [:]
 
-    @Stored("menuBarShows") var menuBarShows = "CPU"
+    @Stored("menuBarShows") var menuBarShows = "CPU and memory"
     @Stored("sortBy") var sortBy = "CPU"
     @Stored("alerts") var alertsOn = true
     @Stored("cpuThreshold") var cpuThreshold = 85.0
@@ -241,10 +241,8 @@ final class SystemMonitor: StackbarPlugin {
 
         // Memory as Activity Monitor counts it. Without it the last figure stays.
         var used = sample?.memoryUsed
-        var memoryRead = false
         if let vm = try? await Stackbar.run("vm_stat", timeout: .seconds(10)), vm.succeeded, let counted = Self.parseVMStat(vm.text) {
             used = memoryTotal.map { min(counted, $0) } ?? counted
-            memoryRead = true
             lastGood["vm_stat"] = now
         } else {
             failed.append("vm_stat")
@@ -260,7 +258,8 @@ final class SystemMonitor: StackbarPlugin {
         let pressure = read != nil ? read?.pressure : sample?.pressure
         let swap = read != nil ? read?.swap : sample?.swapUsed
 
-        await readNetwork(recording: recording, now: now)
+        let networkRead = await readNetwork(recording: recording, now: now)
+        if !networkRead { failed.append("netstat") }
 
         if let readings = try? await Stackbar.sensors() { sensors = readings; lastGood["sensors"] = now } else { failed.append("sensors") }
         if let fresh = await Self.readDisk() { disk = fresh; lastGood["df"] = now } else { failed.append("df") }
@@ -282,19 +281,20 @@ final class SystemMonitor: StackbarPlugin {
             if read != nil, let pressure { Self.append(Double(pressure.rawValue), at: now, to: &pressureHistory) }
         }
 
-        staleSince = failed.compactMap { lastGood[$0] }.min()
-        checkAlerts(now: now, memoryRead: memoryRead)
+        stale = [:]
+        for source in failed { stale[source] = lastGood[source] }
+        checkAlerts(now: now)
     }
 
     /// The bytes through Wi-Fi and Ethernet since the last reading, as speeds.
     /// A dash, not the old speed, when netstat fails or the counters can't be
     /// compared: they went backwards (an interface went away) or the Mac slept.
-    func readNetwork(recording: Bool, now: Date) async {
+    func readNetwork(recording: Bool, now: Date) async -> Bool {
         guard let result = try? await Stackbar.run("netstat", ["-ibn"], timeout: .seconds(10)), result.succeeded,
               let totals = Self.parseNetstat(result.text) else {
             network = Network()
             counters = nil
-            return
+            return false
         }
         let current = Counters(received: totals.received, sent: totals.sent, at: now)
         var next = network ?? Network()
@@ -314,6 +314,7 @@ final class SystemMonitor: StackbarPlugin {
         network = next
         counters = current
         lastGood["netstat"] = now
+        return true
     }
 
     /// Adds a reading and drops the ones older than the chart shows.
@@ -357,15 +358,14 @@ final class SystemMonitor: StackbarPlugin {
     /// pressure stays at warning or worse, naming what is behind it, and when
     /// the disk is nearly full. Quiet for 30 minutes after (six hours for the
     /// disk), then the next spell notifies again.
-    func checkAlerts(now: Date, memoryRead: Bool) {
+    func checkAlerts(now: Date) {
         guard alertsOn, let sample else { return }
         let busiest = sample.processes.max { $0.cpu < $1.cpu }
         let biggest = sample.processes.max { $0.rss < $1.rss }
         let busy = Self.sustained(cpuHistory, atLeast: cpuThreshold, now: now)
         alert("cpu", when: busy, title: "CPU busy for a minute: \(Self.percent((cpuHistory.last?.value ?? 0) / 100))",
               body: busiest.map { "\($0.command) is using \(String(format: "%.0f%%", $0.cpu)) of a core." }, actions: [Self.showProcesses])
-        // Memory alerts wait for a fresh vm_stat, so a stale figure never notifies.
-        let pressed = memoryRead && Self.sustained(pressureHistory, atLeast: Double(Pressure.warning.rawValue), now: now)
+        let pressed = Self.sustained(pressureHistory, atLeast: Double(Pressure.warning.rawValue), now: now)
         alert("memory", when: pressed, title: "Memory pressure high for a minute",
               body: biggest.map { "\($0.command) is using \(Self.memory($0.rss))." }, actions: [Self.showProcesses])
         if let disk {
@@ -588,10 +588,22 @@ final class SystemMonitor: StackbarPlugin {
         seconds < 60 ? "\(Int(seconds.rounded())) s" : "\(Int(seconds / 60)) min"
     }
 
-    /// "Showing numbers from 2 min ago" while a source has failed since its last good reading.
+    /// Names the numbers on screen that are old, and how old, while a read has
+    /// failed: "Disk and network numbers from 2 min ago".
     var staleNote: String? {
-        staleSince.map { "Showing numbers from \(Self.span(Date().timeIntervalSince($0))) ago" }
+        guard let oldest = stale.values.min() else { return nil }
+        let nouns = Self.staleNouns.filter { stale[$0.source] != nil }.enumerated().map { index, item -> String in
+            index == 0 ? item.noun : item.noun.prefix(1).lowercased() + item.noun.dropFirst()
+        }
+        let subject = nouns.count > 1 ? nouns.dropLast().joined(separator: ", ") + " and " + nouns[nouns.count - 1] : nouns.joined()
+        return "\(subject) numbers from \(Self.span(Date().timeIntervalSince(oldest))) ago"
     }
+
+    /// What each source's numbers are called in the banner, in the banner's order.
+    static let staleNouns: [(source: String, noun: String)] = [
+        ("ps", "Processes and CPU"), ("vm_stat", "Memory"), ("sysctl", "Load and swap"),
+        ("df", "Disk"), ("netstat", "Network"), ("sensors", "Temperature and fan"),
+    ]
 
     /// How far back the CPU chart reaches, from the time of its oldest reading.
     var cpuHistoryLabel: String {
@@ -824,7 +836,10 @@ final class SystemMonitor: StackbarPlugin {
     func end(_ processes: [ProcessRow], force: Bool) async {
         let targets = processes.filter { !Self.keepsRunning($0) }
         guard let first = targets.first else { return }
-        let names = await Self.commandNames(targets.map(\.pid))
+        guard let names = await Self.commandNames(targets.map(\.pid)) else {
+            Stackbar.hud("Couldn't check \(first.command); nothing was quit", isError: true)
+            return
+        }
         let ours = targets.filter { names[$0.pid] == $0.command }
         guard !ours.isEmpty else {
             forget(Set(targets.map(\.pid)))
@@ -836,23 +851,30 @@ final class SystemMonitor: StackbarPlugin {
         var alive = Set(pids)
         for _ in 0..<8 {
             try? await Task.sleep(for: .milliseconds(250))
-            let listed = await Self.commandNames(Array(alive))
+            // A check that failed says nothing, so the pids still count as alive.
+            guard let listed = await Self.commandNames(Array(alive)) else { continue }
             alive = alive.filter { listed[$0] != nil }
             if alive.isEmpty { break }
         }
         forget(Set(targets.map(\.pid)).subtracting(alive))
+        let ended = ours.count - alive.count
         if alive.isEmpty {
-            Stackbar.hud("Ended \(pids.count - alive.count) of \(targets.count)")
+            Stackbar.hud(ended == targets.count ? "Ended \(ended) of \(targets.count)" : "Ended \(ended) · \(targets.count - ended) had already ended")
         } else {
             let refused = sent?.errorText.contains("not permitted") == true
-            Stackbar.hud("\(first.command) is still running" + (refused ? ": it belongs to another user" : ""), isError: true)
+            Stackbar.hud("Ended \(ended) of \(targets.count) · \(first.command) is still running" + (refused ? ": it belongs to another user" : ""), isError: true)
         }
     }
 
     /// The name each of these pids runs as now, in the same columns the list
-    /// uses, so the names compare. Pids that are gone are left out.
-    static func commandNames(_ pids: [Int]) async -> [Int: String] {
-        guard !pids.isEmpty, let result = try? await Stackbar.run("ps", ["-o", "pid=,comm=", "-p", pids.map(String.init).joined(separator: ",")], timeout: .seconds(10)) else { return [:] }
+    /// uses, so the names compare. Pids that are gone are left out. Nil when
+    /// the check itself failed (`ps` threw, timed out or wrote an error), which
+    /// is not the same as "gone".
+    static func commandNames(_ pids: [Int]) async -> [Int: String]? {
+        guard !pids.isEmpty else { return [:] }
+        guard let result = try? await Stackbar.run("ps", ["-o", "pid=,comm=", "-p", pids.map(String.init).joined(separator: ",")], timeout: .seconds(10)), !result.timedOut else { return nil }
+        // `ps -p` exits 1 with no output when none of the pids is running.
+        if result.status != 0 && !result.errorText.isEmpty { return nil }
         var names: [Int: String] = [:]
         for line in result.text.split(separator: "\n") {
             let fields = line.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: true)
