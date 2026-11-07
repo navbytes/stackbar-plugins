@@ -28,6 +28,12 @@ echo "Hello ${1:-world}"
 - **Surfaces:** panel (your scripts).
 - **Commands:** one for each script, and Reload Script Commands.
 
+## What's new in 1.1.0
+
+- A folder with an unreadable file or subfolder no longer stops the script list from refreshing.
+- A slow or failed scan keeps your last list of commands instead of emptying it.
+- Skips .git, node_modules and similar folders, and rescans every 5 minutes (Reload Script Commands does it at once).
+
 ## What's new in 1.0.0
 
 - First release.
