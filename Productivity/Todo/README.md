@@ -66,6 +66,11 @@ too, and Siri can add to them. Big tasks break into small steps.
   from plain words.
 - **Requires:** Stackbar 0.18.0 or later.
 
+## What's new in 2.1.1
+
+- A task Reminders refuses to save no longer makes every sync add the tasks before it to Reminders again, and no longer stops changes from your other devices arriving.
+- A reminder that couldn't be deleted in Reminders stays deleted here instead of coming back 30 seconds later; the delete is retried.
+
 ## What's new in 2.1.0
 
 - When nothing in the palette matches what you typed, Add Task offers to add it.

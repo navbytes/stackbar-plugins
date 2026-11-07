@@ -183,6 +183,28 @@ final class TodoTests: XCTestCase {
         await supervisor.stop()
     }
 
+    /// One task Reminders refuses (its list is gone) must not make the next
+    /// sync add the tasks before it to Reminders again.
+    func testAFailedSaveDoesNotDuplicateEarlierTasks() async throws {
+        let system = SimulatedSystem()
+        system.simulate(reminders: .sample())
+        let host = Host(self, system: system)
+        let created = Date().addingTimeInterval(-3600).timeIntervalSinceReferenceDate
+        try await host.services.storage.set("tasks", """
+        [{"id":"good","title":"Good one","hasTime":false,"important":false,"created":\(created),"reminded":false},
+         {"id":"bad","title":"Bad list","list":"deleted-list","hasTime":false,"important":false,"created":\(created),"reminded":false}]
+        """, for: id)
+        let supervisor = try await host.start("Todo")
+        await refreshed(supervisor)
+        await refreshed(supervisor)
+        await refreshed(supervisor)
+        let titles = host.system.simulatedReminders.reminders.map(\.title)
+        XCTAssertEqual(titles.filter { $0 == "Good one" }.count, 1, "saved once, then remembered: \(titles)")
+        let tasks = await supervisor.callTool("tasks").text
+        XCTAssertTrue(tasks.contains("- Good one") && tasks.contains("- Bad list"), "the refused task stays local: \(tasks)")
+        await supervisor.stop()
+    }
+
     func testDeclinedRemindersKeepsTasksOnThisMac() async throws {
         let system = SimulatedSystem()
         system.simulate(reminders: SimulatedReminders(access: .notDetermined, grantWhenAsked: false))

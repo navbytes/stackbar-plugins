@@ -17,7 +17,7 @@ final class Todo: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.todo",
         name: "Todo",
-        version: "2.1.0",
+        version: "2.1.1",
         summary: "A calm to-do list that understands dates as you type them, kept in Apple Reminders so it's on all your devices.",
         surfaces: [.menuBar, .panel, .settings, .widget],
         triggers: [.launch, .every(.seconds(30)), .wake, .reminders],
@@ -1219,9 +1219,12 @@ extension Todo {
         guard access == .granted else { return }
         do {
             lists = try await Stackbar.reminderLists()
-            try await push()
+            // A task Reminders refuses doesn't stop what others sent or
+            // changed from arriving.
+            var pushFailure: Error?
+            do { try await push() } catch { pushFailure = error }
             try await pull()
-            syncProblem = nil
+            syncProblem = pushFailure.map { "\($0)" }
         } catch {
             syncProblem = "\(error)"
         }
@@ -1244,38 +1247,55 @@ extension Todo {
         let alarms = reminders
         var current = tasks
         var known = mirror
+        var failure: Error?
         for index in current.indices {
             let task = current[index]
             let wanted = task.reminder(alarms: alarms)
-            if task.remote == nil {
-                let saved = try await Stackbar.saveReminder(wanted)
-                current[index].attach(saved)
-            } else if let before = known[task.id] {
-                let fields = Item.changes(from: before.reminder(alarms: alarms), to: wanted)
-                guard !fields.isEmpty else { continue }
-                do {
-                    let saved = try await Stackbar.saveReminder(wanted, fields: fields)
+            do {
+                if task.remote == nil {
+                    let saved = try await Stackbar.saveReminder(wanted)
                     current[index].attach(saved)
-                } catch where "\(error)".contains("deleted") {
-                    // Gone from Reminders (an Undo after a delete): add it again.
-                    var fresh = wanted
-                    fresh.id = ""
-                    let saved = try await Stackbar.saveReminder(fresh)
-                    current[index].attach(saved)
+                } else if let before = known[task.id] {
+                    let fields = Item.changes(from: before.reminder(alarms: alarms), to: wanted)
+                    guard !fields.isEmpty else { continue }
+                    do {
+                        let saved = try await Stackbar.saveReminder(wanted, fields: fields)
+                        current[index].attach(saved)
+                    } catch where "\(error)".contains("deleted") {
+                        // Gone from Reminders (an Undo after a delete): add it again.
+                        var fresh = wanted
+                        fresh.id = ""
+                        let saved = try await Stackbar.saveReminder(fresh)
+                        current[index].attach(saved)
+                    }
+                } else {
+                    // Never seen in Reminders by this copy: the pull decides.
+                    continue
                 }
-            } else {
-                // Never seen in Reminders by this copy: the pull decides.
-                continue
+                known[task.id] = current[index]
+            } catch {
+                // Keep going: what was saved so far must be remembered below,
+                // or the next sync would add those tasks to Reminders again.
+                failure = failure ?? error
             }
-            known[task.id] = current[index]
         }
         let ids = Set(current.map(\.id))
         for (id, before) in known where !ids.contains(id) {
-            if let remote = before.remote { try? await Stackbar.deleteReminder(id: remote) }
+            if let remote = before.remote {
+                do {
+                    try await Stackbar.deleteReminder(id: remote)
+                } catch where !"\(error)".contains("deleted") {
+                    // Still in Reminders: stay in the mirror, so the next
+                    // sync deletes it again and the pull doesn't bring it back.
+                    failure = failure ?? error
+                    continue
+                } catch {}
+            }
             known[id] = nil
         }
         if current != tasks { tasks = current }
         if known != mirror { mirror = known }
+        if let failure { throw failure }
     }
 
     /// Takes in Reminders as it is: changes from other devices win (this
@@ -1288,6 +1308,15 @@ extension Todo {
         for reminder in remote where byID[reminder.id] == nil { byID[reminder.id] = reminder }
         var idByExternal: [String: String] = [:]
         for reminder in remote { if let external = reminder.externalID, idByExternal[external] == nil { idByExternal[external] = reminder.id } }
+
+        // Tasks deleted here whose reminder is still there (the delete
+        // failed): the pull must neither bring them back nor forget them.
+        let localIDs = Set(tasks.map(\.id))
+        let pendingDeletes = mirror.filter { !localIDs.contains($0.key) }
+        for pending in pendingDeletes.values {
+            if let id = pending.remote { byID[id] = nil }
+            if let id = pending.external.flatMap({ idByExternal[$0] }) { byID[id] = nil }
+        }
 
         var result: [Item] = []
         for var task in tasks {
@@ -1314,7 +1343,8 @@ extension Todo {
             result.append(task)
         }
         if result != tasks { tasks = result }
-        let known = Dictionary(result.filter { $0.remote != nil }.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        var known = Dictionary(result.filter { $0.remote != nil }.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        known.merge(pendingDeletes) { current, _ in current }
         if known != mirror { mirror = known }
     }
 
