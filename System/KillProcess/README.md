@@ -5,7 +5,8 @@ Process and type part of the name, its command line or a pid: each row shows
 the command it runs and its CPU and memory. Return asks it to quit, and
 ⌘⇧Return force quits it. Quitting asks once more: press again within ten
 seconds. When several processes share a name, one action quits them all. The
-panel lists the heaviest processes, by CPU or memory.
+panel lists the heaviest processes, by CPU or memory, each with its command
+line.
 
 - **Needs:** running `ps` and `kill`. Stackbar 0.26.0 or later.
 - **Surfaces:** panel (the heaviest processes now), settings.

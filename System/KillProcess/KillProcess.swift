@@ -58,6 +58,13 @@ final class KillProcess: StackbarPlugin {
         var id: String { "\(pid)" }
     }
 
+    /// A process as the busy alert tracks it: by pid and by name, since a pid
+    /// can be reused by another program.
+    struct Watch: Hashable {
+        var pid: Int
+        var name: String
+    }
+
     /// When a process first went above the line, and when it was last seen there.
     struct Spell: Equatable {
         var since: Date
@@ -79,9 +86,9 @@ final class KillProcess: StackbarPlugin {
     /// Quit presses waiting for their second press, by key, and when they came.
     var armed: [String: Date] = [:]
     /// Processes above the busy line on each poll, since when.
-    var spells: [Int: Spell] = [:]
+    var spells: [Watch: Spell] = [:]
     /// Processes already notified for their current busy spell.
-    var notified: Set<Int> = []
+    var notified: Set<Watch> = []
     @Stored("sortByMemory") var sortByMemory = false
     @Stored("alertBusy") var alertBusy = false
     @Stored("alertAbove") var alertAbove = "90%"
@@ -96,11 +103,14 @@ final class KillProcess: StackbarPlugin {
             problem = "Couldn't run ps. Stackbar will try again in a minute."
             return
         }
+        let listed = Self.parse(result.text)
+        // The command lines come from a second ps call, so a pid can have been
+        // reused in between; parseArgs checks each line against the name.
         var commands: [Int: String] = [:]
         if let lines = try? await Stackbar.run("ps", ["-xwwo", "pid=,args="], timeout: .seconds(10)), lines.succeeded {
-            commands = Self.parseArgs(lines.text)
+            commands = Self.parseArgs(lines.text, names: Dictionary(listed.map { ($0.pid, $0.name) }, uniquingKeysWith: { first, _ in first }))
         }
-        processes = Self.parse(result.text).map { process in
+        processes = listed.map { process in
             var process = process
             process.args = commands[process.pid] ?? ""
             return process
@@ -111,7 +121,9 @@ final class KillProcess: StackbarPlugin {
 
     /// Every minute, so the panel's list and the numbers beside each
     /// pid follow along; a scan the palette made a moment ago is reused.
-    /// Only the minute's own reading counts toward a busy spell.
+    /// Busy spells are checked after every fresh read, whatever started it.
+    /// They are timed on the clock, so an early read (a wake, a manual
+    /// refresh) only moves where a spell was last seen and can't speed it up.
     func refresh() async throws {
         let before = loadedAt
         await load(force: Stackbar.refreshReason != .interval)
@@ -129,32 +141,39 @@ final class KillProcess: StackbarPlugin {
         }
     }
 
-    /// `ps -xwwo pid=,args=` lines: the whole command line of each pid, by pid.
-    static func parseArgs(_ output: String) -> [Int: String] {
+    /// `ps -xwwo pid=,args=` lines: the whole command line of each pid. A line
+    /// counts only for a pid in `names` whose command line still holds that
+    /// name, so a pid reused between the two `ps` calls takes no stranger's
+    /// line, and the first line for a pid wins. A line without a pid (the rest
+    /// of an argument that has a newline in it) is skipped.
+    static func parseArgs(_ output: String, names: [Int: String]) -> [Int: String] {
         var commands: [Int: String] = [:]
         for raw in output.split(separator: "\n") {
             let parts = raw.drop { $0 == " " }.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: true)
-            guard parts.count == 2, let pid = Int(parts[0]) else { continue }
-            commands[pid] = String(parts[1]).trimmingCharacters(in: .whitespaces)
+            guard parts.count == 2, let pid = Int(parts[0]), commands[pid] == nil, let name = names[pid] else { continue }
+            let args = String(parts[1]).trimmingCharacters(in: .whitespaces)
+            guard args.contains(name) else { continue }
+            commands[pid] = args
         }
         return commands
     }
 
     /// The command line without the program's own path: `/usr/local/bin/node
-    /// server.js` reads `node server.js`. The path ends at "/name" followed by
-    /// a space or the end, not at the first "/name", which can sit inside a
-    /// helper's bundle path (`Code Helper.app/…/Code Helper --type=renderer`).
+    /// server.js` reads `node server.js`. The path ends at the last "/name"
+    /// followed by a space or the end: a directory can have a space and the
+    /// name in it (`/Users/me/node projects/x/node server.js`), and a helper's
+    /// bundle path has the name twice (`Code Helper.app/…/Code Helper --type=…`).
     /// Capped at about 60 characters.
     static func shortCommand(_ name: String, _ line: String) -> String {
-        var text = line
+        var cut: String.Index?
         var search = line.startIndex..<line.endIndex
         while let range = line.range(of: "/" + name, range: search) {
             if range.upperBound == line.endIndex || line[range.upperBound] == " " {
-                text = name + String(line[range.upperBound...])
-                break
+                cut = range.upperBound
             }
             search = range.upperBound..<line.endIndex
         }
+        let text = cut.map { name + String(line[$0...]) } ?? line
         return text.count > 60 ? String(text.prefix(59)) + "…" : text
     }
 
@@ -203,19 +222,20 @@ final class KillProcess: StackbarPlugin {
             return
         }
         let line = Double(alertAbove.dropLast()) ?? 90
-        var next: [Int: Spell] = [:]
+        var next: [Watch: Spell] = [:]
         for process in processes where process.cpu >= line {
-            var spell = spells[process.pid] ?? Spell(since: now, last: now)
+            let watch = Watch(pid: process.pid, name: process.name)
+            var spell = spells[watch] ?? Spell(since: now, last: now)
             if now.timeIntervalSince(spell.last) > 90 { spell = Spell(since: now, last: now) }
             spell.last = now
-            next[process.pid] = spell
+            next[watch] = spell
         }
         spells = next
         notified.formIntersection(next.keys)
-        for (pid, spell) in next where now.timeIntervalSince(spell.since) >= 120 && !notified.contains(pid) {
-            guard let process = processes.first(where: { $0.pid == pid }) else { continue }
-            notified.insert(pid)
-            Stackbar.notify("\(Self.label(process.name)) has been busy for two minutes", body: "It is using \(Int(process.cpu))% CPU now. Show it to quit it.", actions: [NotificationAction("Show", command: "search", arguments: ["text": process.name])])
+        for (watch, spell) in next where now.timeIntervalSince(spell.since) >= 120 && !notified.contains(watch) {
+            guard let process = processes.first(where: { $0.pid == watch.pid && $0.name == watch.name }) else { continue }
+            notified.insert(watch)
+            Stackbar.notify("\(Self.label(process.name)) has been busy for two minutes", body: "It has used \(Int(process.cpu))% CPU recently. Show it to quit it.", actions: [NotificationAction("Show", command: "search", arguments: ["text": process.name])])
         }
     }
 
@@ -245,7 +265,10 @@ final class KillProcess: StackbarPlugin {
     func end(_ targets: [Proc], force: Bool) async {
         let allowed = targets.filter { !Self.isProtected(pid: $0.pid, name: $0.name) }
         guard let first = allowed.first else { return }
-        let names = await Self.commandNames(allowed.map(\.pid))
+        guard let names = await Self.commandNames(allowed.map(\.pid)) else {
+            Stackbar.hud("Couldn't check \(Self.label(first.name)); nothing was quit", isError: true)
+            return
+        }
         let ours = allowed.filter { names[$0.pid] == $0.name }
         guard !ours.isEmpty else {
             forget(Set(allowed.map(\.pid)))
@@ -257,23 +280,30 @@ final class KillProcess: StackbarPlugin {
         var alive = Set(pids)
         for _ in 0..<8 {
             try? await Task.sleep(for: .milliseconds(250))
-            let listed = await Self.commandNames(Array(alive))
+            // A check that failed says nothing, so the pids still count as alive.
+            guard let listed = await Self.commandNames(Array(alive)) else { continue }
             alive = alive.filter { listed[$0] != nil }
             if alive.isEmpty { break }
         }
         forget(Set(allowed.map(\.pid)).subtracting(alive))
+        let ended = ours.count - alive.count
         if alive.isEmpty {
-            Stackbar.hud("Ended \(pids.count - alive.count) of \(allowed.count)")
+            Stackbar.hud(ended == allowed.count ? "Ended \(ended) of \(allowed.count)" : "Ended \(ended) · \(allowed.count - ended) had already ended")
         } else {
             let refused = sent?.errorText.contains("not permitted") == true
-            Stackbar.hud("\(Self.label(first.name)) is still running" + (refused ? ": it belongs to another user" : ""), isError: true)
+            Stackbar.hud("Ended \(ended) of \(allowed.count) · \(Self.label(first.name)) is still running" + (refused ? ": it belongs to another user" : ""), isError: true)
         }
     }
 
     /// The name each of these pids runs as now, in the same columns the list
-    /// is read in, so the names compare. Pids that are gone are left out.
-    static func commandNames(_ pids: [Int]) async -> [Int: String] {
-        guard !pids.isEmpty, let result = try? await Stackbar.run("ps", ["-co", "pid=,comm=", "-p", pids.map(String.init).joined(separator: ",")], timeout: .seconds(10)) else { return [:] }
+    /// is read in, so the names compare. Pids that are gone are left out. Nil
+    /// when the check itself failed (`ps` threw, timed out or wrote an error),
+    /// which is not the same as "gone".
+    static func commandNames(_ pids: [Int]) async -> [Int: String]? {
+        guard !pids.isEmpty else { return [:] }
+        guard let result = try? await Stackbar.run("ps", ["-co", "pid=,comm=", "-p", pids.map(String.init).joined(separator: ",")], timeout: .seconds(10)), !result.timedOut else { return nil }
+        // `ps -p` exits 1 with no output when none of the pids is running.
+        if result.status != 0 && !result.errorText.isEmpty { return nil }
         var names: [Int: String] = [:]
         for line in result.text.split(separator: "\n") {
             let fields = line.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: true)
