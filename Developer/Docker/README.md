@@ -9,7 +9,7 @@ and each project with Start all, Restart and Stop.
 - **Needs:** to run `docker`, from Docker Desktop, OrbStack, Colima or
   Rancher Desktop. No network, files or secrets of its own. Open Shell
   needs to open your terminal app.
-- **Surfaces:** menu bar, panel, settings.
+- **Surfaces:** menu bar, panel, window (logs), widget, settings.
 - **How it checks:** `docker ps --all` every 15 seconds while something runs,
   every minute otherwise, and one `docker stats --no-stream` snapshot while
   anything runs.
@@ -20,18 +20,28 @@ and each project with Start all, Restart and Stop.
   error on its own), turns unhealthy or keeps restarting sends a notification,
   turns the menu bar red with a count, and gets a banner in the panel until
   it is started again or removed. Stops from the panel don't count.
-- **Settings:** show stopped containers, group by Compose project, the
-  trouble notification (on by default), and
-  Remove Stopped Containers (`docker container prune`; images and volumes
-  are left alone).
+- **Settings:** group by Compose project, the trouble notification (on by
+  default), and Remove Stopped Containers (`docker container prune`; images
+  and volumes are left alone).
 - **Commands:** Docker Containers, Docker Compose Projects, Stop All Docker
   Containers, Docker Logs (the last 200 lines of one container), Remove
-  Stopped Docker Containers.
+  Stopped Docker Containers. Stop All Docker Containers and Remove Stopped
+  Docker Containers show what they will do and act on Return.
 - **Open Shell** (⌘T on a running container) opens your terminal app in
   `docker exec -it <container>`, with bash when the image has it.
 - **Requires:** Stackbar 0.26.0 or later.
 - **Agent tool:** `containers` lists every container with its image, state,
   CPU and memory.
+
+## What's new in 1.8.0
+
+- Stop All and Remove Stopped Containers now ask first: press again within 10 seconds, or press Return on the row that says what will happen.
+- Removing a container asks for a second press, since its files are gone afterwards. Stopping one still takes a single click, because Start brings it back.
+- A notice shows while a container or project is stopping, starting or restarting.
+- Paused containers can be resumed; Start used to fail on them.
+- "Docker isn't running" now also shows for newer Docker versions and for a Docker that has stopped answering.
+- A crash notification has a Show Logs button.
+- The CPU and memory totals no longer count containers that have stopped.
 
 ## What's new in 1.7.1
 
