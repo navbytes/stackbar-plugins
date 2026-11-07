@@ -85,12 +85,26 @@ final class Homebrew: StackbarPlugin {
         let casks: [Item]
     }
 
-    /// One line of `brew services list --json`.
+    /// One line of `brew services list --json`. Each field is read on its own,
+    /// so an odd value (a null status, a code sent as text) doesn't drop the line.
     struct Service: Decodable, Equatable, Identifiable {
         let name: String
         let status: String
         let exit_code: Int?
         var id: String { name }
+        private enum K: String, CodingKey { case name, status, exit_code }
+        init(from d: Decoder) throws {
+            let c = try d.container(keyedBy: K.self)
+            name = try c.decode(String.self, forKey: .name)
+            status = (try? c.decodeIfPresent(String.self, forKey: .status)) ?? "unknown"
+            exit_code = (try? c.decodeIfPresent(Int.self, forKey: .exit_code)) ?? (try? c.decodeIfPresent(String.self, forKey: .exit_code)).flatMap { Int($0) }
+        }
+    }
+
+    /// A list entry that doesn't decode is skipped, not a reason to drop the list.
+    private struct Lossy: Decodable {
+        let value: Service?
+        init(from d: Decoder) { value = try? Service(from: d) }
     }
 
     var packages: [Package] = []
@@ -181,16 +195,22 @@ final class Homebrew: StackbarPlugin {
         return text
     }
 
-    static func failure(_ result: RunResult, doing what: String) -> String {
-        if result.timedOut { return "\(what) took too long" }
+    /// What went wrong in a run that finished, without naming what it was for.
+    static func detail(_ result: RunResult) -> String {
+        if result.timedOut { return "took too long" }
         let message = result.errorText.split(separator: "\n").last { !$0.trimmingCharacters(in: .whitespaces).isEmpty }.map(String.init)
-        return "\(what) failed (\(result.status))" + (message.map { ": \($0)" } ?? "")
+        return "failed (\(result.status))" + (message.map { ": \($0)" } ?? "")
+    }
+
+    static func failure(_ result: RunResult, doing what: String) -> String {
+        "\(what) \(detail(result))"
     }
 
     // MARK: Actions
 
     /// Formulae and casks go in separate calls, so a name that is both a
-    /// formula and a cask upgrades the right one.
+    /// formula and a cask upgrades the right one. A failure in one group
+    /// doesn't stop the other.
     func upgrade(_ packages: [Package], label: String) async throws {
         guard busy == nil else { throw HostError("\(busy!) is still running") }
         busy = label
@@ -198,15 +218,26 @@ final class Homebrew: StackbarPlugin {
         Stackbar.hud("\(label)… this can take a few minutes")
         let formulae = packages.filter { !$0.isCask }.map(\.name)
         let casks = packages.filter(\.isCask).map(\.name)
-        var failure: String?
-        for (flag, names) in [("--formula", formulae), ("--cask", casks)] where !names.isEmpty {
-            let result = try await Stackbar.run("brew", ["upgrade", flag] + names, environment: Self.quiet, timeout: .seconds(600))
-            if !result.succeeded, failure == nil { failure = Self.failure(result, doing: label) }
+        var outcomes: [String] = []
+        var failed = false
+        for (kind, flag, names) in [("formulae", "--formula", formulae), ("casks", "--cask", casks)] where !names.isEmpty {
+            do {
+                let result = try await Stackbar.run("brew", ["upgrade", flag] + names, environment: Self.quiet, timeout: .seconds(600))
+                if result.succeeded {
+                    outcomes.append("\(kind): done")
+                } else {
+                    failed = true
+                    outcomes.append("\(kind): \(Self.detail(result))")
+                }
+            } catch {
+                failed = true
+                outcomes.append("\(kind): \(Self.explain(error))")
+            }
         }
-        lastResult = failure ?? "\(label): done"
-        lastFailed = failure != nil
+        lastResult = failed ? outcomes.joined(separator: "; ") : "\(label): done"
+        lastFailed = failed
         await check()
-        if let failure { throw HostError(failure) }
+        if failed { throw HostError(lastResult!) }
     }
 
     /// Runs `brew update` and records when it worked. A background fetch
@@ -230,17 +261,18 @@ final class Homebrew: StackbarPlugin {
     }
 
     /// The background services launchd runs for formulae, like postgresql.
-    /// Reused for half a minute, so searching the view doesn't re-run brew.
+    /// Reused for half a minute, so searching the view doesn't re-run brew;
+    /// a failure is kept for that long too.
     func loadServices(force: Bool = false) async {
         if !force, let at = servicesLoadedAt, Date().timeIntervalSince(at) < 30 { return }
+        defer { servicesLoadedAt = Date() }
         do {
             let result = try await Stackbar.run("brew", ["services", "list", "--json"], environment: Self.quiet, timeout: .seconds(60))
             guard result.succeeded else {
                 servicesProblem = Self.failure(result, doing: "brew services")
                 return
             }
-            services = try JSONDecoder().decode([Service].self, from: result.stdout)
-            servicesLoadedAt = Date()
+            services = try result.stdout.isEmpty ? [] : JSONDecoder().decode([Lossy].self, from: result.stdout).compactMap(\.value)
             servicesProblem = nil
         } catch {
             servicesProblem = Self.explain(error)
@@ -378,13 +410,15 @@ final class Homebrew: StackbarPlugin {
         } else {
             row = row.action("Upgrade") { try await self.upgrade([package], label: "Upgrading \(package.name)") }
         }
-        return row
-            .action("Open Homepage", shortcut: "cmd+o") {
-                Stackbar.open("https://formulae.brew.sh/\(package.isCask ? "cask" : "formula")/\(package.name)")
-            }
-            .action("Copy Upgrade Command", shortcut: "cmd+shift+c") {
+        row = row.action("Open Homepage", shortcut: "cmd+o") {
+            Stackbar.open("https://formulae.brew.sh/\(package.isCask ? "cask" : "formula")/\(package.name)")
+        }
+        if !package.pinned {
+            row = row.action("Copy Upgrade Command", shortcut: "cmd+shift+c") {
                 Stackbar.copy("brew upgrade \(package.isCask ? "--cask " : "")\(package.name)")
             }
+        }
+        return row
     }
 
     func serviceRow(_ service: Service) -> Row {
