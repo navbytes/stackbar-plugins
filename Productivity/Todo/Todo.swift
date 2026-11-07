@@ -17,12 +17,12 @@ final class Todo: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.todo",
         name: "Todo",
-        version: "2.1.1",
+        version: "2.2.0",
         summary: "A calm to-do list that understands dates as you type them, kept in Apple Reminders so it's on all your devices.",
         surfaces: [.menuBar, .panel, .settings, .widget],
         triggers: [.launch, .every(.seconds(30)), .wake, .reminders],
         capabilities: [.reminders],
-        minimumStackbar: "0.20.0",
+        minimumStackbar: "0.26.0",
         homepage: "https://github.com/navbytes/stackbar-plugins/tree/main/Productivity/Todo",
         accent: .orange,
         symbol: "checklist"
@@ -298,6 +298,7 @@ final class Todo: StackbarPlugin {
             self.now = Date()
             return self.open.isEmpty ? "No open tasks" : self.open.map(self.describe).joined(separator: "\n")
         }
+        .optIn()
         AgentTool("add", description: "Adds a to-do task. Dates, times and repeats in the text are understood, like 'Call mum tomorrow 6pm' or 'Pay rent every month'", parameters: [ToolParameter("task", description: "The task as the user would type it")]) { arguments in
             let result = self.add(arguments.string("task") ?? "")
             await self.save()
@@ -345,6 +346,28 @@ final class Todo: StackbarPlugin {
                         Row(task.title, subtitle: self.when(task), symbol: "circle", key: task.id)
                             .action("Done") {
                                 _ = self.complete(task.id)
+                                await self.save()
+                            }
+                    }
+                }
+            }
+        Command("search", title: "Search Todos", subtitle: "Every open task", symbol: "magnifyingglass", keywords: ["todo", "task", "find", "search"])
+            .view(search: { _ in self.now = Date() }) { _ in
+                if self.open.isEmpty {
+                    ContentUnavailableView("No open tasks", symbol: "leaf", message: "Add one with Add a Todo.")
+                } else {
+                    List(self.open, searchable: true) { task in
+                        Row(task.title, subtitle: self.when(task), symbol: task.important ? "star" : "circle", key: task.id)
+                            .action("Done") {
+                                _ = self.complete(task.id)
+                                await self.save()
+                            }
+                            .action("Snooze to Tomorrow") {
+                                _ = self.snooze(task.id, until: "tomorrow")
+                                await self.save()
+                            }
+                            .action("Move to Today") {
+                                if let choice = Self.quickDates.first(where: { $0.title == "Today" }) { self.reschedule(task.id, to: choice) }
                                 await self.save()
                             }
                     }
@@ -762,7 +785,10 @@ final class Todo: StackbarPlugin {
             changed[index].reminded = true
             // Reminders alerts on every device itself, with Done and Snooze.
             guard reminders, !(syncing && task.remote != nil), now.timeIntervalSince(due) < 12 * 3600 else { continue }
-            Stackbar.notify(task.title, body: task.repeats.map { "Due now · repeats \($0.rawValue.lowercased())" } ?? "Due now")
+            Stackbar.notify(task.title, body: task.repeats.map { "Due now · repeats \($0.rawValue.lowercased())" } ?? "Due now", actions: [
+                NotificationAction("Done", command: "complete", arguments: ["task": task.id]),
+                NotificationAction("Snooze 1 Hour", command: "snooze", arguments: ["task": task.id]),
+            ])
             if sound { Stackbar.play(.glass) }
         }
         if changed != tasks { tasks = changed }
@@ -774,6 +800,8 @@ final class Todo: StackbarPlugin {
         let key = Self.format(now, fixed: "yyyy-MM-dd")
         guard lastSummary != key else { return }
         lastSummary = key
+        // A Mac opened late at night was shut all morning: the day's summary is stale by then.
+        guard calendar.component(.hour, from: now) < summaryHour + 3 else { return }
         let list = dueToday
         guard !list.isEmpty else { return }
         let names = list.prefix(3).map(\.title).joined(separator: ", ") + (list.count > 3 ? " and \(list.count - 3) more" : "")
@@ -838,7 +866,25 @@ final class Todo: StackbarPlugin {
 
     static func time(_ date: Date) -> String { format(date, template: "jmm") }
 
+    /// Made once: every date on screen is formatted several times a render,
+    /// and building a DateFormatter each time is expensive.
+    private static let templateFormatters: [String: DateFormatter] = Dictionary(uniqueKeysWithValues: ["EEEEdMMMM", "EEEE", "dMMM", "dMMMy", "jmm"].map { template in
+        let formatter = DateFormatter()
+        formatter.locale = .autoupdatingCurrent
+        formatter.timeZone = .autoupdatingCurrent
+        formatter.setLocalizedDateFormatFromTemplate(template)
+        return (template, formatter)
+    })
+    private static let fixedFormatters: [String: DateFormatter] = Dictionary(uniqueKeysWithValues: ["yyyy-MM-dd", "yyyy-MM-dd HH:mm"].map { pattern in
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = .autoupdatingCurrent
+        formatter.dateFormat = pattern
+        return (pattern, formatter)
+    })
+
     static func format(_ date: Date, template: String) -> String {
+        if let formatter = templateFormatters[template] { return formatter.string(from: date) }
         let formatter = DateFormatter()
         formatter.locale = .current
         formatter.setLocalizedDateFormatFromTemplate(template)
@@ -846,6 +892,7 @@ final class Todo: StackbarPlugin {
     }
 
     static func format(_ date: Date, fixed: String) -> String {
+        if let formatter = fixedFormatters[fixed] { return formatter.string(from: date) }
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = fixed
@@ -1001,18 +1048,31 @@ enum Phrase {
         }
         text = " " + text + " "
 
+        /// The first match of `pattern` in the text whose groups pass `accept`:
+        /// the groups ("" for a group that did not take part), and where it is.
+        func find(_ pattern: String, accept: ([String]) -> Bool = { _ in true }) -> (groups: [String], range: NSRange)? {
+            guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { return nil }
+            let string = text as NSString
+            for match in regex.matches(in: text, range: NSRange(location: 0, length: string.length)) {
+                let groups = (0..<match.numberOfRanges).map { index -> String in
+                    let range = match.range(at: index)
+                    return range.location == NSNotFound ? "" : string.substring(with: range).lowercased()
+                }
+                if accept(groups) { return (groups, match.range) }
+            }
+            return nil
+        }
+
+        func remove(_ range: NSRange) {
+            text = (text as NSString).replacingCharacters(in: range, with: " ")
+        }
+
         /// Takes the first match of `pattern` out of the text and returns
         /// its groups ("" for a group that did not take part).
         func take(_ pattern: String) -> [String]? {
-            guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { return nil }
-            let string = text as NSString
-            guard let match = regex.firstMatch(in: text, range: NSRange(location: 0, length: string.length)) else { return nil }
-            let groups = (0..<match.numberOfRanges).map { index -> String in
-                let range = match.range(at: index)
-                return range.location == NSNotFound ? "" : string.substring(with: range).lowercased()
-            }
-            text = string.replacingCharacters(in: match.range, with: " ")
-            return groups
+            guard let found = find(pattern) else { return nil }
+            remove(found.range)
+            return found.groups
         }
 
         let today = calendar.startOfDay(for: now)
@@ -1033,6 +1093,12 @@ enum Phrase {
         var exact: Date?
         var hour: Int?
         var minute = 0
+        /// "morning", "afternoon", "evening" or "night", when the text names one.
+        var partOfDay: String?
+        /// The hour came with am or pm.
+        var amPm = false
+        /// The hour came bare, like "at 8".
+        var bareHour = false
 
         if take(#"(?:^|\s)!{1,3}(?=\s|$)"#) != nil { result.important = true }
 
@@ -1080,13 +1146,29 @@ enum Phrase {
             guard let candidate = calendar.date(from: DateComponents(year: year, month: monthNumber, day: dayNumber)) else { return nil }
             return candidate < today ? calendar.date(byAdding: .year, value: 1, to: candidate) : candidate
         }
+        // "14/11" is 14 November, and so is "11/14" where the day comes second.
+        // "1/2 the book" stays text unless the numbers are led by on, by or due, or have a year.
+        func numericDate(_ groups: [String]) -> (month: Int, day: Int, year: Int?)? {
+            guard let a = Int(groups[2]), let b = Int(groups[3]) else { return nil }
+            guard a > 12 || b > 12 || !groups[1].isEmpty || !groups[4].isEmpty else { return nil }
+            let localeDayFirst = (DateFormatter.dateFormat(fromTemplate: "Md", options: 0, locale: .current) ?? "M/d").first(where: { $0 == "d" || $0 == "M" }) == "d"
+            let dayFirst = a > 12 || (b <= 12 && localeDayFirst)
+            let (month, day) = dayFirst ? (b, a) : (a, b)
+            guard (1...12).contains(month), (1...31).contains(day) else { return nil }
+            return (month, day, Int(groups[4]).map { $0 < 100 ? 2000 + $0 : $0 })
+        }
+        let numeric = #"(\b(?:on|by|due)\s+)?\b(\d{1,2})/(\d{1,2})(?:/(\d{2}|\d{4}))?\b"#
+        if date == nil, let found = find(numeric, accept: { numericDate($0) != nil }), let parts = numericDate(found.groups) {
+            remove(found.range)
+            date = monthDay(months[parts.month - 1], String(parts.day), parts.year.map { String($0) } ?? "")
+        }
         if date == nil, let groups = take(lead + #"\b"# + month + #"\.?\s+(\d{1,2})(?:st|nd|rd|th)?\b(?:,?\s+(\d{4})\b)?"#) {
             date = monthDay(groups[1], groups[2], groups[3])
         }
         if date == nil, let groups = take(lead + #"\b(?:the\s+)?(\d{1,2})(?:st|nd|rd|th)?\s+(?:of\s+)?"# + month + #"\b(?:,?\s+(\d{4})\b)?"#) {
             date = monthDay(groups[2], groups[1], groups[3])
         }
-        if date == nil, let groups = take(lead + #"\bthe\s+(\d{1,2})(?:st|nd|rd|th)\b"#), let dayNumber = Int(groups[1]), (1...31).contains(dayNumber) {
+        if date == nil, let groups = take(lead + #"(?:\bthe\s+|\bon\s+)(\d{1,2})(?:st|nd|rd|th)\b"#), let dayNumber = Int(groups[1]), (1...31).contains(dayNumber) {
             var parts = calendar.dateComponents([.year, .month], from: today)
             parts.day = dayNumber
             if let candidate = calendar.date(from: parts) {
@@ -1094,17 +1176,20 @@ enum Phrase {
             }
         }
 
-        // Day words.
+        // Day words. A part of the day said after one ("tomorrow evening") sets the hour.
         if date == nil {
-            if take(lead + #"\b(?:the\s+)?day\s+after\s+tomorrow\b"#) != nil {
+            if let groups = take(lead + #"\b(?:the\s+)?day\s+after\s+tomorrow(?:\s+(morning|afternoon|evening|night))?\b"#) {
                 date = day(2)
-            } else if take(lead + #"\b(?:tomorrow|tmrw|tmr|tmw)\b"#) != nil {
+                if !groups[1].isEmpty { partOfDay = groups[1] }
+            } else if let groups = take(lead + #"\b(?:tomorrow|tmrw|tmr|tmw)(?:\s+(morning|afternoon|evening|night))?\b"#) {
                 date = day(1)
-            } else if take(lead + #"\btoday\b"#) != nil {
+                if !groups[1].isEmpty { partOfDay = groups[1] }
+            } else if let groups = take(lead + #"\btoday(?:\s+(morning|afternoon|evening|night))?\b"#) {
                 date = today
+                if !groups[1].isEmpty { partOfDay = groups[1] }
             } else if take(#"\btonight\b"#) != nil {
                 date = today
-                hour = hour ?? 20
+                partOfDay = "night"
             } else if let groups = take(lead + #"\b(this\s+|next\s+)?weekend\b"#) {
                 let saturday = upcoming(7, includingToday: true)
                 let weekday = calendar.component(.weekday, from: today)
@@ -1115,8 +1200,9 @@ enum Phrase {
                 var parts = calendar.dateComponents([.year, .month], from: today)
                 parts.day = 1
                 date = calendar.date(from: parts).flatMap { calendar.date(byAdding: .month, value: 1, to: $0) }
-            } else if let groups = take(lead + #"\b(this\s+|next\s+)?"# + fullWeekday + #"\b"#) ?? take(lead + #"\b(this\s+|next\s+|on\s+)"# + shortWeekday + #"\b"#) {
+            } else if let groups = take(lead + #"\b(this\s+|next\s+)?"# + fullWeekday + #"(?:\s+(morning|afternoon|evening|night))?\b"#) ?? take(lead + #"\b(this\s+|next\s+|on\s+)"# + shortWeekday + #"(?:\s+(morning|afternoon|evening|night))?\b"#) {
                 let weekday = weekdayIndex(groups[2])
+                if !groups[3].isEmpty { partOfDay = groups[3] }
                 if groups[1].hasPrefix("next") {
                     // In the week after this one (weeks start on Monday).
                     let monday = upcoming(2, includingToday: false)
@@ -1128,22 +1214,38 @@ enum Phrase {
             }
         }
 
+        // A part of the day said on its own ("this evening", "in the morning").
+        if partOfDay == nil, let groups = take(#"\b(?:this\s+|in\s+the\s+)?(morning|afternoon|evening)\b"#) { partOfDay = groups[1] }
+
         // Times of day.
         if exact == nil {
             if let groups = take(#"(?:(?:\bat|\bby|@)\s*)?\b(\d{1,2})(?:[:.](\d{2}))?\s*([ap])\.?m\.?(?=\W|$)"#), let value = Int(groups[1]), (1...12).contains(value) {
                 hour = value % 12 + (groups[3] == "p" ? 12 : 0)
                 minute = Int(groups[2]) ?? 0
+                amPm = true
             } else if let groups = take(#"(?:(?:\bat|\bby|@)\s*)?\b([01]?\d|2[0-3]):([0-5]\d)\b"#) {
                 // "3:30" is half past three in the afternoon; "03:30" is not.
                 let value = Int(groups[1]) ?? 0
                 hour = groups[1].count == 1 && (1...6).contains(value) ? value + 12 : value
                 minute = Int(groups[2]) ?? 0
-            } else if let groups = take(#"(?:\bat|@)\s*(\d{1,2})\b(?![:.]?\d|\s*(?:%|st|nd|rd|th|minutes?|mins?|hours?|days?))"#), let value = Int(groups[1]), (0...23).contains(value) {
+            } else if let groups = take(#"(?:\bat|\bby|@)\s*(\d{1,2})\b(?![:.]?\d|\s*(?:%|st|nd|rd|th|minutes?|mins?|hours?|days?|kg|lbs?|km|mi(?:les?)?|pages?|people|percent|points?|x\b))"#), let value = Int(groups[1]), (0...23).contains(value) {
                 hour = (1...6).contains(value) ? value + 12 : value
+                bareHour = true
             } else if let groups = take(#"(?:\bat\s+)?\b(noon|midday)\b"#), !groups.isEmpty {
                 hour = 12
-            } else if let groups = take(#"\b(?:this\s+|in\s+the\s+)?(morning|afternoon|evening)\b"#) {
-                hour = ["morning": 9, "afternoon": 14][groups[1]] ?? 18
+            } else if take(#"(?:\b(?:at|by)\s+)?\bmidnight\b"#) != nil {
+                hour = 23
+                minute = 59
+            }
+        }
+
+        // A bare hour takes the part of the day: "7 this evening" is 7 pm.
+        // Said with am or pm, the hour is kept as it was given.
+        if let partOfDay {
+            if let h = hour {
+                if partOfDay != "morning", h < 12, !amPm { hour = h + 12 }
+            } else {
+                hour = ["morning": 9, "afternoon": 14, "evening": 18, "night": 20][partOfDay]
             }
         }
 
@@ -1154,9 +1256,15 @@ enum Phrase {
             var base = date ?? today
             var due = calendar.date(bySettingHour: hour, minute: minute, second: 0, of: base) ?? base
             if date == nil && due <= now {
-                // A time already gone today means the next one.
-                base = result.repeats == .weekdays ? nextWeekday(after: today, calendar: calendar) : day(1)
-                due = calendar.date(bySettingHour: hour, minute: minute, second: 0, of: base) ?? base
+                // A bare "at 8" that has already passed today means 8 pm, if that is still to come.
+                if bareHour, partOfDay == nil, result.repeats == nil, (7...11).contains(hour),
+                   let evening = calendar.date(bySettingHour: hour + 12, minute: minute, second: 0, of: today), evening > now {
+                    due = evening
+                } else {
+                    // A time already gone today means the next one.
+                    base = result.repeats == .weekdays ? nextWeekday(after: today, calendar: calendar) : day(1)
+                    due = calendar.date(bySettingHour: hour, minute: minute, second: 0, of: base) ?? base
+                }
             }
             result.due = due
             result.hasTime = true
@@ -1469,6 +1577,7 @@ extension Todo {
         let key = Self.format(now, fixed: "yyyy-MM-dd")
         guard lastNudge != key else { return }
         lastNudge = key
+        guard calendar.component(.hour, from: now) < nudgeHour + 4 else { return }
         guard doneToday.isEmpty, let start = smallestStart else { return }
         Stackbar.notify("One small thing?", body: start)
     }
