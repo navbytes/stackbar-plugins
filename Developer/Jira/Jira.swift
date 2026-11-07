@@ -212,7 +212,7 @@ final class Jira: StackbarPlugin {
         }
         let current = authorization + "|" + where_
         if let credentials, credentials != current {
-            me = nil; transitions = [:]; transitionsLoadedAt = [:]; keyed = [:]; keyMisses = [:]; projects = []
+            me = nil; transitions = [:]; transitionsLoadedAt = [:]; keyed = [:]; keyMisses = [:]; projects = []; found = []; foundText = nil
         }
         credentials = current
         let host = URL(string: where_)?.host ?? where_
