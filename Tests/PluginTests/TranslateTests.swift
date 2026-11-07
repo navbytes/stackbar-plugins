@@ -2,6 +2,9 @@ import Foundation
 import XCTest
 import StackbarHostCore
 import StackbarProtocol
+#if canImport(NaturalLanguage)
+@testable import Plugin_Translate
+#endif
 
 /// Only the paths that stop before a translation service is called, so no
 /// test sends text to Google or DeepL.
@@ -24,4 +27,11 @@ final class TranslateTests: XCTestCase {
         XCTAssertTrue(host.system.pasted.isEmpty, "the browser engine never pastes")
         await session.stop()
     }
+
+    #if canImport(NaturalLanguage)
+    func testLocalLanguageReadsEnglish() async {
+        let language = await Translate.localLanguage("Could you send me the signed contract by Friday?")
+        XCTAssertEqual(language, "en")
+    }
+    #endif
 }

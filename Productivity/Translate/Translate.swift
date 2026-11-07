@@ -282,7 +282,8 @@ final class Translate: StackbarPlugin {
             }
             guard self.inPlace else { return .failure("Translate and Replace needs the Automatic or DeepL engine; change it in Settings") }
             try await self.translate(text, to: invocation["to"])
-            guard let result = self.result else { return .failure("Couldn't translate it") }
+            if self.cutAt != nil { return .failure("Only the first \(Self.maxCharacters) characters can be translated; select less text") }
+            guard let result = self.result, !result.text.isEmpty else { return .failure("Couldn't translate it") }
             return .paste(result.text, cursorFromEnd: 0)
         }
         .argument("to", placeholder: "Into", required: false, options: Self.languages.map(\.name))

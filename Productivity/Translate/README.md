@@ -37,6 +37,7 @@ share its selection, it uses what you last copied.
 ## What's new in 1.7.0
 
 - Translate and Replace Selection pastes the translation straight over the text you selected.
+- Translate and Replace Selection won't replace a selection longer than 5,000 characters when Google or DeepL translates it, so nothing is lost; select less text.
 - Long texts in Chinese, Japanese, Korean and other non-Latin scripts translate with Google instead of failing with an error.
 - Text that is already in your main language goes straight to your second language, so it stays on your Mac when that pair is downloaded instead of going to Google first.
 - A DeepL key pasted with a stray space or line break now works, and a rejected key says which DeepL server it tried.
