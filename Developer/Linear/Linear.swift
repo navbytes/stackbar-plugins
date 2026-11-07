@@ -344,7 +344,7 @@ final class Linear: StackbarPlugin {
     func markAllRead() async {
         guard let armed = markAllArmed, Date().timeIntervalSince(armed) < 10 else {
             markAllArmed = Date()
-            Stackbar.hud("Press again within 10 s to mark \(unread.count) as read")
+            Stackbar.hud("Press again within 10 s to mark \(min(unread.count, 30)) as read")
             return
         }
         markAllArmed = nil
