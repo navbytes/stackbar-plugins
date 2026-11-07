@@ -57,6 +57,8 @@ final class WindowSwitcher: StackbarPlugin {
     }
 
     func refresh() async throws {
+        // A burst of app launches (.apps) would otherwise scan every window once per launch.
+        if Stackbar.refreshReason == .apps, let readAt, Date().timeIntervalSince(readAt) < 2 { return }
         await load()
     }
 
