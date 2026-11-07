@@ -13,7 +13,7 @@ final class Music: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.music",
         name: "Music",
-        version: "1.5.0",
+        version: "1.4.1",
         summary: "What's playing in Music or Spotify, with play, pause, skip and volume.",
         surfaces: [.menuBar, .panel, .widget, .settings],
         triggers: [.launch, .every(.seconds(5)), .wake],
@@ -21,9 +21,7 @@ final class Music: StackbarPlugin {
         // scripts are fixed text in this file, never built from input.
         // Album art: Spotify names its own image URL; for Music the cover
         // is looked up in the iTunes catalog by artist and album.
-        // .power is only for the list of running apps: with neither player
-        // open, nothing is run at all.
-        capabilities: [.run(commands: ["osascript"]), .power, .network("itunes.apple.com", "*.mzstatic.com", "i.scdn.co")],
+        capabilities: [.run(commands: ["osascript"]), .network("itunes.apple.com", "*.mzstatic.com", "i.scdn.co")],
         minimumStackbar: "0.21.0",
         homepage: "https://github.com/navbytes/stackbar-plugins/tree/main/Productivity/Music",
         accent: .pink,
@@ -50,8 +48,6 @@ final class Music: StackbarPlugin {
     enum Player: String, CaseIterable {
         case music = "Music"
         case spotify = "Spotify"
-
-        var bundleID: String { self == .music ? "com.apple.Music" : "com.spotify.client" }
     }
 
     struct Track: Equatable {
@@ -99,7 +95,15 @@ final class Music: StackbarPlugin {
         """
     }
 
+    /// Whether the last check found no player running, and when it ran.
+    /// Each check is two osascript launches, so with nothing open the timer
+    /// slows from every 5 seconds to every 30; a player showing up, or any
+    /// click, brings the 5 seconds back.
+    var idle = false
+    var lastCheck = Date.distantPast
+
     func refresh() async throws {
+        if idle, Stackbar.refreshReason == .interval, Date().timeIntervalSince(lastCheck) < 25 { return }
         await check()
     }
 
@@ -107,11 +111,8 @@ final class Music: StackbarPlugin {
         var tracks: [Track] = []
         var denied = false
         var failed: Player?
-        // Only ask the players that are open: an osascript launch compiles a
-        // script, which is wasted work every 5 seconds with neither running.
-        // If the list can't be read, ask both.
-        let open = (try? await Stackbar.systemStatus())?.runningApps.map(\.id)
-        for player in Player.allCases where open?.contains(player.bundleID) ?? true {
+        lastCheck = Date()
+        for player in Player.allCases {
             guard let result = try? await Stackbar.run("osascript", ["-e", Self.statusScript(for: player)], timeout: .seconds(10)) else {
                 failed = player
                 continue
@@ -127,6 +128,7 @@ final class Music: StackbarPlugin {
             }
         }
         checked = true
+        idle = tracks.isEmpty && failed == nil && !denied
         if denied && tracks.isEmpty {
             problem = "Stackbar isn't allowed to control the player. Turn it on in System Settings › Privacy & Security › Automation › Stackbar."
         } else if let failed, tracks.isEmpty {

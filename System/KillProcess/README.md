@@ -14,7 +14,7 @@ heaviest processes, by CPU or memory.
 
 ## What's new in 1.1.0
 
-- The panel's process list now refreshes every 20 seconds, and has a Refresh button, instead of showing what was running at launch.
+- The panel's process list now refreshes every minute, and has a Refresh button, instead of showing what was running at launch.
 
 ## What's new in 1.0.0
 

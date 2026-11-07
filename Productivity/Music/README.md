@@ -7,8 +7,6 @@ pause; right-click for the panel with the track, Previous, Next and volume.
   The install sheet warns that osascript can run any program; this plugin
   only sends the fixed scripts in its source. macOS asks once whether
   Stackbar may control Music or Spotify.
-  The Power permission is used only to see which apps are open, so nothing
-  runs while neither player is.
 - **Surfaces:** menu bar, panel, widget, settings.
 - **How it checks:** every 5 seconds, and only players that are already
   running; it never opens one.
@@ -19,9 +17,9 @@ pause; right-click for the panel with the track, Previous, Next and volume.
   Current Track.
 - **Agent tool:** `now_playing` describes the current track.
 
-## What's new in 1.5.0
+## What's new in 1.4.1
 
-- With neither Music nor Spotify open, nothing runs every 5 seconds any more. This needs the new Power permission, used only to see which apps are open.
+- With neither Music nor Spotify open, it checks every 30 seconds instead of every 5, and goes back to 5 as soon as a player is running or you click.
 - Dragging the volume slider sends a few values and the last one instead of one per step, so the volume no longer lags or snaps back.
 - A slow cover lookup no longer holds up play, pause and skip, and a failed one is retried after a minute.
 
