@@ -168,6 +168,13 @@ final class Ports: StackbarPlugin {
     }
 
     func stop(_ listener: Listener, force: Bool) async throws -> String {
+        // The row may be older than the process it shows: act only if the same
+        // process still holds that port.
+        await load()
+        if let problem { throw HostError("Couldn't check \(listener.process) first: \(problem)") }
+        guard listeners.contains(where: { $0.pid == listener.pid && $0.port == listener.port && $0.process == listener.process }) else {
+            throw HostError("\(listener.process) is no longer listening on :\(listener.port)")
+        }
         let result = try await Stackbar.run("kill", [force ? "-KILL" : "-TERM", "\(listener.pid)"], timeout: .seconds(10))
         guard result.succeeded else {
             let reason = result.errorText.contains("not permitted") ? "it belongs to another user" : result.errorText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -231,9 +238,11 @@ final class Ports: StackbarPlugin {
             .action("Open in Browser") { Stackbar.open("http://localhost:\(listener.port)") }
             .action("Stop Process", shortcut: "cmd+.", role: .critical) {
                 guard self.armedNow == "stop:\(listener.id)" else {
+                    let prompt = "Press Stop Process again within 10 s to stop \(listener.process) (pid \(listener.pid))"
                     self.arm("stop:\(listener.id)")
-                    self.notice = "Press Stop Process again within 10 s to stop \(listener.process) (pid \(listener.pid))"
+                    self.notice = prompt
                     self.noticeOK = false
+                    Stackbar.hud(prompt)
                     return
                 }
                 self.armed = nil
@@ -241,9 +250,11 @@ final class Ports: StackbarPlugin {
             }
             .action("Force Quit Process", shortcut: "cmd+shift+.", role: .critical) {
                 guard self.armedNow == "kill:\(listener.id)" else {
+                    let prompt = "Press Force Quit Process again within 10 s to force quit \(listener.process) (pid \(listener.pid))"
                     self.arm("kill:\(listener.id)")
-                    self.notice = "Press Force Quit Process again within 10 s to force quit \(listener.process) (pid \(listener.pid))"
+                    self.notice = prompt
                     self.noticeOK = false
+                    Stackbar.hud(prompt)
                     return
                 }
                 self.armed = nil
@@ -269,7 +280,11 @@ final class Ports: StackbarPlugin {
         Command("kill-port", title: "Kill Port", subtitle: "Stop whatever is listening on a port", symbol: "xmark.octagon", keywords: ["port", "kill", "lsof", "free"])
             .argument("port", placeholder: "3000")
             .argument("signal", required: false, default: "TERM", options: ["TERM", "KILL"])
-            .view(search: { _ in await self.loadIfStale() }) { invocation in
+            .view(search: { _ in
+                // A "Press again" from the panel doesn't belong in this view.
+                self.notice = nil
+                await self.loadIfStale()
+            }) { invocation in
                 let force = invocation["signal"] == "KILL"
                 if let notice = self.notice { Banner(notice, symbol: self.noticeOK ? "checkmark.circle.fill" : "exclamationmark.triangle.fill", theme: self.noticeOK ? .success : .warning) }
                 if let problem = self.problem {
