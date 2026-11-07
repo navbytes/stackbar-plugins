@@ -177,8 +177,11 @@ final class BrowserTabs: StackbarPlugin {
         }
     }
 
-    func loadTabs(force: Bool = false) async {
-        if !force, let tabsReadAt, Date().timeIntervalSince(tabsReadAt) < 5 { return }
+    /// False when the browsers couldn't be listed, so the tabs kept are older
+    /// than asked for.
+    @discardableResult
+    func loadTabs(force: Bool = false) async -> Bool {
+        if !force, let tabsReadAt, Date().timeIntervalSince(tabsReadAt) < 5 { return true }
         var found: [Tab] = []
         var failed: [String] = []
         let running: Set<String>
@@ -187,7 +190,7 @@ final class BrowserTabs: StackbarPlugin {
         } catch {
             problems = ["Can't see which browsers are running: \(error)"]
             tabsReadAt = Date()
-            return
+            return false
         }
         // One script per running browser, side by side: a browser stuck on a
         // dialog costs its own timeout, not everyone else's as well.
@@ -215,15 +218,31 @@ final class BrowserTabs: StackbarPlugin {
         tabs = found
         problems = failed
         tabsReadAt = Date()
+        return true
     }
 
-    /// The tab as it is now, found by its page: at the same place first, then
-    /// wherever the page moved to when tabs were rearranged.
+    /// The tab as it is now, found by its page. Closing needs a sure match: the
+    /// same slot with the same title, or the page's only tab. Switching takes
+    /// the copy nearest the old place.
     func current(_ tab: Tab, fresh: Bool) async throws -> Tab {
-        await loadTabs(force: fresh)
-        if let same = tabs.first(where: { $0.browser == tab.browser && $0.window == tab.window && $0.index == tab.index && $0.url == tab.url }) { return same }
-        if let moved = tabs.first(where: { $0.browser == tab.browser && $0.url == tab.url && $0.title == tab.title })
-            ?? tabs.first(where: { $0.browser == tab.browser && $0.url == tab.url }) { return moved }
+        let read = await loadTabs(force: fresh)
+        if fresh && !read { throw HostError("Couldn't check the tab. Try again.") }
+        let pages = tabs.filter { $0.browser == tab.browser && $0.url == tab.url }
+        let sameTitle = pages.filter { $0.title == tab.title }
+        let candidates = sameTitle.isEmpty ? pages : sameTitle
+        if fresh {
+            if let slot = pages.first(where: { $0.window == tab.window && $0.index == tab.index }), slot.title == tab.title { return slot }
+            guard let only = candidates.first, candidates.count == 1 else {
+                if candidates.isEmpty { throw HostError("That tab has closed. Search your tabs again.") }
+                throw HostError("More than one tab has that page. Close it from the browser.")
+            }
+            return only
+        }
+        // The copy in the same window nearest the old index, then any window.
+        let nearest = candidates.min { lhs, rhs in
+            (lhs.window == tab.window ? 0 : 1, abs(lhs.index - tab.index)) < (rhs.window == tab.window ? 0 : 1, abs(rhs.index - tab.index))
+        }
+        if let nearest { return nearest }
         throw HostError("That tab has closed. Search your tabs again.")
     }
 
@@ -278,7 +297,10 @@ final class BrowserTabs: StackbarPlugin {
             do {
                 result = try await Stackbar.run("cat", ["Bookmarks"], workingDirectory: profile, timeout: .seconds(10))
             } catch {
-                failed.append("Couldn't read \(browser.name)'s bookmarks: \(error)")
+                // No profile folder means the browser isn't installed: as quiet as a missing file.
+                if !"\(error)".contains("is not a folder") {
+                    failed.append("Couldn't read \(browser.name)'s bookmarks: \(error)")
+                }
                 continue
             }
             // A missing file means the browser isn't installed, so that stays quiet.
@@ -332,6 +354,14 @@ final class BrowserTabs: StackbarPlugin {
         URL(string: url)?.host.map { $0.hasPrefix("www.") ? String($0.dropFirst(4)) : $0 } ?? url
     }
 
+    /// A Markdown link to paste: brackets escaped in the title, parentheses and
+    /// spaces percent-encoded in the address, so the link holds.
+    static func markdownLink(title: String, url: String) -> String {
+        let text = title.replacingOccurrences(of: "[", with: "\\[").replacingOccurrences(of: "]", with: "\\]")
+        let address = url.replacingOccurrences(of: "(", with: "%28").replacingOccurrences(of: ")", with: "%29").replacingOccurrences(of: " ", with: "%20")
+        return "[\(text)](\(address))"
+    }
+
     /// A panel row also hides from the palette: a tab read at launch may have
     /// closed or changed title since, and its actions would still be offered.
     func row(_ tab: Tab, inPanel: Bool = false) -> Row {
@@ -339,7 +369,7 @@ final class BrowserTabs: StackbarPlugin {
             .appIcon(Self.browsers.first { $0.name == tab.browser }?.bundleID)
             .action("Switch to Tab") { try await self.focus(tab) }
             .action("Copy Link", shortcut: "cmd+shift+c") { Stackbar.copy(tab.url) }
-            .action("Copy as Markdown Link") { Stackbar.copy("[\(tab.title)](\(tab.url))") }
+            .action("Copy as Markdown Link") { Stackbar.copy(Self.markdownLink(title: tab.title, url: tab.url)) }
             .action("Close Tab", shortcut: "cmd+w", role: .critical) { try await self.close(tab) }
         return inPanel ? row.hiddenFromPalette() : row
     }
@@ -351,7 +381,7 @@ final class BrowserTabs: StackbarPlugin {
             .action("Open in \(bookmark.browser)") { try await Stackbar.open(bookmark.url, with: bundleID) }
             .action("Open in Default Browser") { Stackbar.open(bookmark.url) }
             .action("Copy Link", shortcut: "cmd+shift+c") { Stackbar.copy(bookmark.url) }
-            .action("Copy as Markdown Link") { Stackbar.copy("[\(bookmark.title)](\(bookmark.url))") }
+            .action("Copy as Markdown Link") { Stackbar.copy(Self.markdownLink(title: bookmark.title, url: bookmark.url)) }
     }
 
     // MARK: Commands
