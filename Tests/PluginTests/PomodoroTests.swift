@@ -108,6 +108,19 @@ final class PomodoroTests: XCTestCase {
         await supervisor.stop()
     }
 
+    func testAHugeLengthIsRefusedNotACrash() async throws {
+        let host = Host(self)
+        let session = try await host.session("Pomodoro")
+        guard case .failure = try await session.runCommand("start-focus", arguments: ["minutes": "1e30"]) else {
+            return XCTFail("a length beyond any session is refused")
+        }
+        // A crash would leave every later command failing, so the helper must still answer.
+        let status = try await session.callTool("status", arguments: [:])
+        XCTAssertFalse(status.isError, status.text)
+        XCTAssertTrue(status.text.hasPrefix("Idle"), status.text)
+        await session.stop()
+    }
+
     func testDailyGoalShowsInStatus() async throws {
         let host = Host(self)
         let supervisor = try await host.start("Pomodoro")

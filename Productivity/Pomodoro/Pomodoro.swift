@@ -463,13 +463,19 @@ final class Pomodoro: StackbarPlugin {
             text = text.replacingOccurrences(of: "(?<=[0-9.])" + pattern + "(?![a-z])", with: unit, options: .regularExpression)
         }
         if text.hasSuffix("m") { text.removeLast() }
-        if let value = Double(text), value.isFinite { return Int(value.rounded()) }
+        // Checked before converting: Int() traps on a value this large.
+        if let value = Double(text) {
+            guard value.isFinite, (0...1000).contains(value.rounded()) else { return nil }
+            return Int(value.rounded())
+        }
         // 1h, 1.5h, 1h30
         guard let h = text.firstIndex(of: "h"), let hours = Double(text[..<h]), hours.isFinite else { return nil }
         let rest = text[text.index(after: h)...]
         let extra = rest.isEmpty ? 0 : Double(rest) ?? -1
         guard extra >= 0 else { return nil }
-        return Int((hours * 60 + extra).rounded())
+        let total = (hours * 60 + extra).rounded()
+        guard total.isFinite, (0...1000).contains(total) else { return nil }
+        return Int(total)
     }
 
     /// What a start command does: resumes or reports a session of the same
@@ -524,11 +530,13 @@ final class Pomodoro: StackbarPlugin {
         guard option != mode else { return }
         mode = option
         session = nil
+        armedCommand = nil
     }
 
     private func setMinutes(_ minutes: Int) {
         if mode == .focus { focusMinutes = minutes } else if longBreakDue { longBreakMinutes = minutes } else { breakMinutes = minutes }
         session = nil
+        armedCommand = nil
     }
 
     private func nextTag() {
@@ -545,6 +553,7 @@ final class Pomodoro: StackbarPlugin {
     private func reset() {
         pending = nil
         session = nil
+        armedCommand = nil
     }
 
     /// Ends a session: counts a finished focus session, chimes, and moves to
@@ -581,6 +590,7 @@ final class Pomodoro: StackbarPlugin {
         mode = ended.mode == .focus ? .rest : .focus
         pending = nil
         session = nil
+        armedCommand = nil
         if autoStart && !late { toggle() }
     }
 
