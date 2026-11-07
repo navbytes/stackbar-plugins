@@ -193,10 +193,28 @@ final class ScriptCommands: StackbarPlugin {
         return program
     }
 
-    /// `{ "type": "text", "placeholder": "City", "optional": true }`.
+    /// `{ "type": "text", "placeholder": "City", "optional": true }`. A dropdown's
+    /// choices are read one at a time: a choice that doesn't decode is skipped,
+    /// and choices that can't be read at all leave a free-text argument.
     static func argument(_ json: String) -> Script.Argument? {
         struct Item: Decodable { var title: String; var value: String }
-        struct Spec: Decodable { var type: String?; var placeholder: String?; var optional: Bool?; var secure: Bool?; var data: [Item]? }
+        struct LossyItem: Decodable {
+            let value: Item?
+            init(from decoder: Decoder) throws { value = try? Item(from: decoder) }
+        }
+        struct Spec: Decodable {
+            enum Key: String, CodingKey { case type, placeholder, optional, secure, data }
+            var type: String?; var placeholder: String?; var optional: Bool?; var secure: Bool?; var data: [Item]?
+            init(from decoder: Decoder) throws {
+                let fields = try decoder.container(keyedBy: Key.self)
+                type = try fields.decodeIfPresent(String.self, forKey: .type)
+                placeholder = try fields.decodeIfPresent(String.self, forKey: .placeholder)
+                optional = try fields.decodeIfPresent(Bool.self, forKey: .optional)
+                secure = try fields.decodeIfPresent(Bool.self, forKey: .secure)
+                let choices = try? fields.decodeIfPresent([LossyItem].self, forKey: .data)
+                data = choices?.compactMap(\.value)
+            }
+        }
         guard let data = json.data(using: .utf8), let spec = try? JSONDecoder().decode(Spec.self, from: data) else { return nil }
         return Script.Argument(placeholder: spec.placeholder ?? "Argument", optional: spec.optional ?? false, secure: spec.secure ?? (spec.type == "password"),
                                choices: spec.data?.map { Script.Argument.Choice(title: $0.title, value: $0.value) } ?? [])
@@ -204,13 +222,19 @@ final class ScriptCommands: StackbarPlugin {
 
     // MARK: Running
 
-    func run(_ script: Script, arguments: [String]) async throws -> RunResult {
+    /// The interpreter a script runs with, or why it can't run.
+    static func interpreter(for script: Script) throws -> String {
         guard let interpreter = script.interpreter else {
             throw HostError("\(script.name) has no #! line naming its interpreter")
         }
-        guard Self.interpreters.contains(interpreter) else {
-            throw HostError("\(script.name) runs with \(interpreter); Script Commands runs \(Self.interpreters.joined(separator: ", "))")
+        guard interpreters.contains(interpreter) else {
+            throw HostError("\(script.name) runs with \(interpreter); Script Commands runs \(interpreters.joined(separator: ", "))")
         }
+        return interpreter
+    }
+
+    func run(_ script: Script, arguments: [String]) async throws -> RunResult {
+        let interpreter = try Self.interpreter(for: script)
         return try await Stackbar.run(interpreter, [script.file] + arguments, workingDirectory: Self.folder, timeout: .seconds(script.mode == .fullOutput ? 120 : 60))
     }
 
@@ -294,6 +318,8 @@ final class ScriptCommands: StackbarPlugin {
         Row(script.title, subtitle: [script.package, script.name].compactMap { $0 }.joined(separator: " · "), symbol: "terminal", key: script.id)
             .badge(script.interpreter ?? "no #!", role: script.interpreter.map { Self.interpreters.contains($0) } == true ? .secondary : .critical)
             .action("Run") {
+                // Refuse first, so a script that can't run says so before it asks for a second press.
+                _ = try Self.interpreter(for: script)
                 if let missing = script.arguments.first(where: { !$0.optional }) {
                     throw HostError("\(script.title) needs \(missing.placeholder); run it from the palette")
                 }
