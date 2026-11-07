@@ -75,13 +75,30 @@ final class UpNext: StackbarPlugin {
     static func meetingLink(for event: CalendarEvent) -> MeetingLink? {
         for text in [event.location, event.url, event.notes].compactMap({ $0 }) {
             for url in links(in: text) {
-                let lower = url.lowercased()
-                if let service = services.first(where: { service in service.patterns.contains { lower.contains($0) } }) {
+                if let service = service(for: url) {
                     return MeetingLink(url: url, service: service.name)
                 }
             }
         }
         return nil
+    }
+
+    /// The service a link is for. Its host must be the service's own (or a
+    /// subdomain of it) and its path must start with the service's path, so
+    /// "evil.com/?r=zoom.us/j/1" and "evilzoom.us/j/1" are not Zoom.
+    static func service(for url: String) -> Service? {
+        guard let parts = URLComponents(string: url), let scheme = parts.scheme?.lowercased(), scheme == "https" || scheme == "http", let host = parts.host?.lowercased() else { return nil }
+        let path = parts.path.lowercased()
+        return services.first { service in
+            service.patterns.contains { pattern in
+                let slash = pattern.firstIndex(of: "/") ?? pattern.endIndex
+                let domain = String(pattern[..<slash])
+                let subdomainOnly = domain.hasPrefix(".")
+                let name = subdomainOnly ? String(domain.dropFirst()) : domain
+                let inDomain = subdomainOnly ? host.hasSuffix("." + name) : (host == name || host.hasSuffix("." + name))
+                return inDomain && path.hasPrefix(String(pattern[slash...]))
+            }
+        }
     }
 
     /// Every http(s) URL in a piece of text, without trailing punctuation.
@@ -99,7 +116,8 @@ final class UpNext: StackbarPlugin {
 
     /// The link in a token: from its first http:// or https:// (whichever
     /// comes first, so a plain http link isn't skipped), else a known
-    /// service's address without a scheme.
+    /// service's address without a scheme, as the token or after a label such
+    /// as "Join:".
     private static func linkText(_ token: Substring) -> String? {
         // Every service address has a slash, and most words don't.
         guard token.contains("/") else { return nil }
@@ -107,22 +125,11 @@ final class UpNext: StackbarPlugin {
         if let start = schemes.min(by: { $0.lowerBound < $1.lowerBound }) {
             return String(token[start.lowerBound...])
         }
-        for pattern in hostPatterns {
-            guard let match = token.range(of: pattern, options: .caseInsensitive) else { continue }
-            // Back to the start of the host, so "acme.zoom.us/j/1" keeps "acme.".
-            var start = match.lowerBound
-            while start > token.startIndex, isHostCharacter(token[token.index(before: start)]) {
-                start = token.index(before: start)
-            }
-            return "https://" + token[start...]
+        for candidate in [token, token.split(separator: ":").last ?? token] {
+            let url = "https://" + String(candidate)
+            if service(for: url) != nil { return url }
         }
         return nil
-    }
-
-    private static let hostPatterns: [String] = services.flatMap(\.patterns)
-
-    private static func isHostCharacter(_ character: Character) -> Bool {
-        character.isLetter || character.isNumber || character == "-" || character == "."
     }
 
     /// The address inside a link that a mail or security scanner wrapped it
@@ -169,6 +176,8 @@ final class UpNext: StackbarPlugin {
     @Stored("menuBarHours") var menuBarHours = 0.0
     /// Meetings hidden from the countdown, reminders and auto-join, by event id.
     @Stored("hiddenEvents") var hiddenEvents: [String] = []
+    /// The last calls joined, by event id, so a restart doesn't open one again.
+    @Stored("joinedEvents") var joinedEvents: [String] = []
 
     var events: [CalendarEvent] = [] {
         didSet { eventsVersion += 1 }
@@ -212,17 +221,24 @@ final class UpNext: StackbarPlugin {
             let all = try await Stackbar.calendarEvents(from: start, to: end)
             calendars = Array(Set(all.map(\.calendar))).sorted()
             events = all
-            // A hidden meeting that has left the week is forgotten.
-            let ids = Set(all.map(\.id))
-            if hiddenEvents.contains(where: { !ids.contains($0) }) { hiddenEvents = hiddenEvents.filter(ids.contains) }
+            // Hidden meetings that have left the week are forgotten, but only
+            // once the list has grown, and never against an empty read.
+            if hiddenEvents.count > 100, !all.isEmpty {
+                let ids = Set(all.map(\.id))
+                hiddenEvents = hiddenEvents.filter(ids.contains)
+            }
             readProblem = nil
             loaded = true
         } catch {
-            let text = "\(error)"
-            readProblem = text.localizedCaseInsensitiveContains("access") || text.localizedCaseInsensitiveContains("privacy") ? .access : .other
+            readProblem = Self.isAccessProblem("\(error)") ? .access : .other
             return
         }
         remindAndJoin(now: now)
+    }
+
+    /// Whether an error's text is about permission, the one problem the panel says how to fix.
+    static func isAccessProblem(_ text: String) -> Bool {
+        text.localizedCaseInsensitiveContains("access") || text.localizedCaseInsensitiveContains("privacy")
     }
 
     private struct VisibleKey: Equatable {
@@ -297,7 +313,7 @@ final class UpNext: StackbarPlugin {
         // Every meeting due for the full-screen alert in this pass shares one.
         // The host allows one alert a minute, so one that comes sooner waits
         // for the next pass, while its meeting is still in the window.
-        if fullScreenAlert, lastAlert.map({ now.timeIntervalSince($0) >= 60 }) ?? true {
+        if fullScreenAlert, lastAlert.map({ Date().timeIntervalSince($0) >= 61 }) ?? true {
             let starting = due.filter { event in
                 let until = event.start.timeIntervalSince(now)
                 return until <= 60 && until > -60 && !alerted.contains(event.id)
@@ -305,14 +321,14 @@ final class UpNext: StackbarPlugin {
             if !starting.isEmpty {
                 postAlert(starting, now: now)
                 alerted.formUnion(starting.map(\.id))
-                lastAlert = now
+                lastAlert = Date()
             }
         }
         // Auto-join opens the meeting you're in, not every one starting together.
         if autoJoin, let event = focus(now: now), event.participation != .tentative, event.participation != .pending, Self.meetingLink(for: event) != nil {
             let until = event.start.timeIntervalSince(now)
             let joinedLately = lastJoin.map { now.timeIntervalSince($0) < 120 } ?? false
-            if until <= 30, now < event.start.addingTimeInterval(120), !joined.contains(event.id), !joinedLately {
+            if until <= 30, now < event.start.addingTimeInterval(120), !joined.contains(event.id), !joinedEvents.contains(event.id), !joinedLately {
                 join(event)
             }
         }
@@ -333,7 +349,7 @@ final class UpNext: StackbarPlugin {
         for event in starting where actions.count < 3 {
             guard let link = Self.meetingLink(for: event) else { continue }
             let label = starting.count == 1 ? "Join on \(link.service)" : "Join \(Self.clipped(event.title, 20))"
-            actions.append(NotificationAction(label, url: openInApps ? Self.appURL(for: link) : link.url))
+            actions.append(NotificationAction(label, command: "join-event", arguments: ["event": event.id]))
         }
         if actions.count < 3, let dial = starting.lazy.compactMap({ Self.dialIn(for: $0) }).first {
             actions.append(NotificationAction("Call in", url: dial.tel))
@@ -358,8 +374,9 @@ final class UpNext: StackbarPlugin {
     private var snoozedUntil: [String: Date] = [:]
 
     /// The buttons on a reminder: join the call, and snooze for five minutes.
-    func reminderActions(_ event: CalendarEvent, joinTitle: String = "Join") -> [NotificationAction] {
-        var actions = Self.meetingLink(for: event).map { [NotificationAction(joinTitle, url: openInApps ? Self.appURL(for: $0) : $0.url)] } ?? []
+    /// Join runs join-event, so the join is remembered and auto-join won't open the call again.
+    func reminderActions(_ event: CalendarEvent) -> [NotificationAction] {
+        var actions = Self.meetingLink(for: event).map { [NotificationAction("Join on \($0.service)", command: "join-event", arguments: ["event": event.id])] } ?? []
         actions.append(NotificationAction("Snooze 5 Min", command: "snooze", arguments: ["event": event.id]))
         return actions
     }
@@ -393,17 +410,21 @@ final class UpNext: StackbarPlugin {
     }
 
     /// "Lunch with Sam tomorrow 1pm for 45m", "Call Ana at 5 pm", "Standup
-    /// 10.30am", "Dentist fri 9:30", "Offsite next monday" (all day). The day,
-    /// the time and the length are taken out, with the "at" or "for" in front
-    /// of them; the rest is the title. A time already past today means
-    /// tomorrow, and an explicit weekday whose time has passed means the week
-    /// after.
+    /// 10.30am", "Dentist fri 9:30", "Offsite next monday" (all day), "Offsite
+    /// fri for 3 days" (all day, three days long). The day, the time and the
+    /// length are taken out, with the "at" or "for" in front of them; the rest,
+    /// as typed, is the title. A time already past today means tomorrow, and an
+    /// explicit weekday whose time has passed means the week after.
     static func quickAdd(_ text: String, now: Date = Date(), calendar: Calendar = .current) -> CalendarEventDraft? {
-        let words = text.split(whereSeparator: \.isWhitespace).map { word -> String in
-            var word = String(word)
+        // Matching ignores a trailing comma or dot; the title keeps the words as typed.
+        let raw = text.split(whereSeparator: \.isWhitespace).map(String.init)
+        let cleaned = raw.map { word -> String in
+            var word = word
             while let last = word.last, ",.".contains(last) { word.removeLast() }
             return word
-        }.filter { !$0.isEmpty }
+        }
+        let matchable = raw.indices.filter { !cleaned[$0].isEmpty }
+        let words = matchable.map { cleaned[$0] }
         var phrases: [Phrase] = []
         var index = 0
         while index < words.count {
@@ -414,42 +435,62 @@ final class UpNext: StackbarPlugin {
                 index += 1
             }
         }
-        // The first time and the first length are taken; a later one stays in the title.
+        // The first time, length and day count are taken; a later one stays in the title.
         var taken = Set<Int>()
-        var time: (hour: Int, minute: Int)?
+        var time: (hour: Int, minute: Int, guess: Bool)?
         var minutes: Int?
+        var days: Int?
         for phrase in phrases {
             switch phrase.kind {
-            case .time(let parsed) where time == nil:
-                time = parsed
+            case .time(let hour, let minute, let guess) where time == nil:
+                time = (hour, minute, guess)
                 taken.formUnion(phrase.words)
             case .length(let parsed) where minutes == nil:
                 minutes = parsed
                 taken.formUnion(phrase.words)
+            case .days(let count) where days == nil:
+                days = count
+                taken.formUnion(phrase.words)
             default: break
             }
         }
-        // "Sat" is a day only when it's the last word, or only time and length
-        // words follow it, so "Review sat scores" keeps it. "Tomorrow" wins.
-        let timeWords = Set(phrases.filter(\.isTimeOrLength).flatMap(\.words))
+        // "Tomorrow" beats "today" when both are written, and both leave the
+        // title. An explicit day beats a weekday. A weekday written in full counts
+        // anywhere; an abbreviation only when time, length or day words follow it,
+        // so "Review sat scores" keeps "sat".
+        let timeWords = Set(phrases.filter(\.isTimeLengthOrDays).flatMap(\.words))
         var day: Date?
         var weekdayPicked = false
-        if let explicit = phrases.first(where: \.isDayWord) {
-            taken.formUnion(explicit.words)
-            day = explicit.isTomorrow ? calendar.date(byAdding: .day, value: 1, to: now) : now
+        let explicit = phrases.filter(\.isTodayOrTomorrow)
+        if !explicit.isEmpty {
+            for phrase in explicit { taken.formUnion(phrase.words) }
+            day = explicit.contains(where: \.isTomorrow) ? calendar.date(byAdding: .day, value: 1, to: now) : now
         } else if let weekday = phrases.first(where: { phrase in
-            phrase.isWeekday && (phrase.words.upperBound..<words.count).allSatisfy { timeWords.contains($0) }
-        }), case .weekday(let number, let next) = weekday.kind {
+            phrase.isWeekday && (phrase.isFullWeekday || (phrase.words.upperBound..<words.count).allSatisfy { timeWords.contains($0) })
+        }), case .weekday(let number, let next, _) = weekday.kind {
             taken.formUnion(weekday.words)
             weekdayPicked = true
             day = next
                 ? Self.next(weekday: number, after: calendar.date(byAdding: .day, value: 1, to: now) ?? now, calendar: calendar)
                 : Self.next(weekday: number, after: now, calendar: calendar)
         }
-        let title = words.indices.filter { !taken.contains($0) }.map { words[$0] }.joined(separator: " ")
+        let title = matchable.indices.filter { !taken.contains($0) }.map { raw[matchable[$0]] }.joined(separator: " ")
+            .trimmingCharacters(in: CharacterSet(charactersIn: ",").union(.whitespaces))
         guard !title.isEmpty else { return nil }
         if let time {
-            var start = calendar.date(bySettingHour: time.hour, minute: time.minute, second: 0, of: day ?? now) ?? now
+            var hour = time.hour
+            let base = day ?? now
+            // A plain hour from 1 to 11 is the afternoon or evening: 1 to 6 always,
+            // and 7 to 11 when the morning reading has passed and the evening one hasn't.
+            if time.guess {
+                let morning = calendar.date(bySettingHour: hour, minute: time.minute, second: 0, of: base)
+                let evening = calendar.date(bySettingHour: hour + 12, minute: time.minute, second: 0, of: base)
+                let isToday = calendar.isDate(base, inSameDayAs: now)
+                if hour <= 6 || (isToday && (morning ?? .distantFuture) < now && (evening ?? .distantPast) >= now) {
+                    hour += 12
+                }
+            }
+            var start = calendar.date(bySettingHour: hour, minute: time.minute, second: 0, of: base) ?? now
             if start < now {
                 if weekdayPicked {
                     start = calendar.date(byAdding: .day, value: 7, to: start) ?? start
@@ -457,28 +498,37 @@ final class UpNext: StackbarPlugin {
                     start = calendar.date(byAdding: .day, value: 1, to: start) ?? start
                 }
             }
-            return CalendarEventDraft(title: title, start: start, end: start.addingTimeInterval(TimeInterval((minutes ?? 60) * 60)))
+            let end = days.flatMap { calendar.date(byAdding: .day, value: $0, to: start) } ?? start.addingTimeInterval(TimeInterval((minutes ?? 60) * 60))
+            return CalendarEventDraft(title: title, start: start, end: end)
         }
         let start = calendar.startOfDay(for: day ?? now)
-        return CalendarEventDraft(title: title, start: start, end: calendar.date(byAdding: .day, value: 1, to: start) ?? start, isAllDay: true)
+        let end = calendar.date(byAdding: .day, value: days ?? 1, to: start) ?? start
+        return CalendarEventDraft(title: title, start: start, end: end, isAllDay: true)
     }
 
     /// A run of words the quick add takes out of the title.
     private struct Phrase {
         enum Kind {
-            case time((hour: Int, minute: Int)), length(Int), today, tomorrow, weekday(Int, next: Bool)
+            /// `guess`: a plain hour from 1 to 11, which may be the afternoon or evening.
+            case time(hour: Int, minute: Int, guess: Bool)
+            case length(Int)
+            case days(Int)
+            case today, tomorrow
+            /// `full`: the weekday is written in full, so it counts anywhere.
+            case weekday(Int, next: Bool, full: Bool)
         }
         var words: Range<Int>
         var kind: Kind
 
-        var isTimeOrLength: Bool {
+        /// Time, length and day counts; a weekday abbreviation may be followed by these.
+        var isTimeLengthOrDays: Bool {
             switch kind {
-            case .time, .length: return true
+            case .time, .length, .days: return true
             default: return false
             }
         }
 
-        var isDayWord: Bool {
+        var isTodayOrTomorrow: Bool {
             switch kind {
             case .today, .tomorrow: return true
             default: return false
@@ -494,31 +544,40 @@ final class UpNext: StackbarPlugin {
             if case .weekday = kind { return true }
             return false
         }
+
+        var isFullWeekday: Bool {
+            if case .weekday(_, _, let full) = kind { return full }
+            return false
+        }
     }
 
-    /// "5 pm", "at 5pm", "at 12" (a bare hour after "at"), "10.30am", "15:30", "noon".
+    /// "5 pm", "at 5pm", "at 12", "at 1" (a plain hour after "at"), "10.30am", "15:30", "noon".
     private static func timePhrase(_ words: [String], at index: Int) -> Phrase? {
         func word(_ offset: Int) -> String? { index + offset < words.count ? words[index + offset] : nil }
         if word(0)?.lowercased() == "at", let next = word(1) {
             if let period = word(2).flatMap(meridiem), let parsed = clock(next + period) {
-                return Phrase(words: index..<index + 3, kind: .time(parsed))
+                return Phrase(words: index..<index + 3, kind: .time(hour: parsed.hour, minute: parsed.minute, guess: false))
             }
             if let parsed = timeAfterAt(next) {
-                return Phrase(words: index..<index + 2, kind: .time(parsed))
+                return Phrase(words: index..<index + 2, kind: .time(hour: parsed.hour, minute: parsed.minute, guess: parsed.guess))
             }
             return nil
         }
         if let period = word(1).flatMap(meridiem), let parsed = clock(words[index] + period) {
-            return Phrase(words: index..<index + 2, kind: .time(parsed))
+            return Phrase(words: index..<index + 2, kind: .time(hour: parsed.hour, minute: parsed.minute, guess: false))
         }
         if let parsed = clock(words[index]) {
-            return Phrase(words: index..<index + 1, kind: .time(parsed))
+            return Phrase(words: index..<index + 1, kind: .time(hour: parsed.hour, minute: parsed.minute, guess: false))
         }
         return nil
     }
 
-    /// "30 minutes", "1 hour", "45m", "30min", "1h30", "1.5h", each optionally after "for".
+    /// "for 3 days" (an all-day span), "30 minutes", "1 hour", "45m", "30min",
+    /// "1h30", "1.5h", each minute or hour length optionally after "for".
     private static func lengthPhrase(_ words: [String], at index: Int) -> Phrase? {
+        if words[index].lowercased() == "for", index + 2 < words.count, let count = Int(words[index + 1]), (1...366).contains(count), ["day", "days"].contains(words[index + 2].lowercased()) {
+            return Phrase(words: index..<index + 3, kind: .days(count))
+        }
         if words[index].lowercased() == "for", index + 1 < words.count, let inner = lengthPhrase(words, at: index + 1) {
             return Phrase(words: index..<inner.words.upperBound, kind: inner.kind)
         }
@@ -542,14 +601,16 @@ final class UpNext: StackbarPlugin {
             return Phrase(words: index..<index + 1, kind: .tomorrow)
         case "next":
             guard index + 1 < words.count, let weekday = weekdays[words[index + 1].lowercased()] else { return nil }
-            return Phrase(words: index..<index + 2, kind: .weekday(weekday, next: true))
+            return Phrase(words: index..<index + 2, kind: .weekday(weekday, next: true, full: fullWeekdays.contains(words[index + 1].lowercased())))
         default:
             guard let weekday = weekdays[word] else { return nil }
-            return Phrase(words: index..<index + 1, kind: .weekday(weekday, next: false))
+            return Phrase(words: index..<index + 1, kind: .weekday(weekday, next: false, full: fullWeekdays.contains(word)))
         }
     }
 
     private static let lengthUnits = ["minute", "minutes", "min", "mins", "hour", "hours", "hr", "hrs"]
+
+    private static let fullWeekdays: Set<String> = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
 
     private static let weekdays: [String: Int] = [
         "sun": 1, "sunday": 1, "mon": 2, "monday": 2, "tue": 3, "tues": 3, "tuesday": 3, "wed": 4, "wednesday": 4,
@@ -579,8 +640,9 @@ final class UpNext: StackbarPlugin {
         guard (1...2).contains(parts.count), let hour = Int(parts[0]), parts[0].count <= 2 else { return nil }
         let minute = parts.count == 2 ? Int(parts[1]) : 0
         guard let minute, (0..<60).contains(minute), parts.count == 1 || parts[1].count == 2 else { return nil }
-        // A bare number is only a time with am/pm or a colon (or a dot).
-        guard period != nil || parts.count == 2 else { return nil }
+        // A bare number is only a time with am/pm or a colon, never a dotted one like "3.14".
+        let usesDot = digits.contains(".")
+        guard period != nil || (parts.count == 2 && !usesDot) else { return nil }
         switch period {
         case "am": return (1...12).contains(hour) ? (hour % 12, minute) : nil
         case "pm": return (1...12).contains(hour) ? (hour % 12 + 12, minute) : nil
@@ -594,11 +656,15 @@ final class UpNext: StackbarPlugin {
         return text == "am" || text == "pm" ? text : nil
     }
 
-    /// The time after "at": a time, or a bare hour from 1 to 23, so "at 12" is noon.
-    static func timeAfterAt(_ word: String) -> (hour: Int, minute: Int)? {
-        if let parsed = clock(word) { return parsed }
-        guard !word.isEmpty, word.allSatisfy(\.isNumber), let hour = Int(word), (1...23).contains(hour) else { return nil }
-        return (hour, 0)
+    /// The time after "at": a time, a dotted "10.30" read as "10:30", or a bare
+    /// hour from 0 to 23, so "at 12" is noon and "at 0" midnight. A plain 1 to 11
+    /// is a `guess`: quickAdd decides whether it means the afternoon or morning.
+    static func timeAfterAt(_ word: String) -> (hour: Int, minute: Int, guess: Bool)? {
+        if let parsed = clock(word) ?? clock(word.replacingOccurrences(of: ".", with: ":")) {
+            return (parsed.hour, parsed.minute, false)
+        }
+        guard !word.isEmpty, word.allSatisfy(\.isNumber), let hour = Int(word), (0...23).contains(hour) else { return nil }
+        return (hour, 0, (1...11).contains(hour) && !word.hasPrefix("0"))
     }
 
     /// "45m", "45min", "1h", "1h30", "1h30m", "1.5h" in minutes. Days aren't a
@@ -631,37 +697,58 @@ final class UpNext: StackbarPlugin {
         return text.isEmpty ? (invocation["text"] ?? "").trimmingCharacters(in: .whitespaces) : text
     }
 
-    /// "Today 1:00 PM–1:45 PM", "Tomorrow, all day", "Fri, Nov 13 9:30 AM–10:00 AM".
+    /// "Today 1:00 PM–1:45 PM", "Tomorrow, all day", "Fri, Nov 13 – Sun, Nov 15, all day".
     static func whenText(_ draft: CalendarEventDraft) -> String {
-        let calendar = Calendar.current
-        let day = calendar.isDateInToday(draft.start) ? "Today"
-            : calendar.isDateInTomorrow(draft.start) ? "Tomorrow"
-            : draft.start.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
-        return draft.isAllDay ? "\(day), all day" : "\(day) \(time(draft.start))–\(time(draft.end))"
+        if draft.isAllDay {
+            let last = Calendar.current.date(byAdding: .day, value: -1, to: draft.end) ?? draft.end
+            let span = Calendar.current.isDate(last, inSameDayAs: draft.start) ? "" : " – \(dayName(last))"
+            return "\(dayName(draft.start))\(span), all day"
+        }
+        return "\(dayName(draft.start)) \(time(draft.start))–\(time(draft.end))"
     }
 
-    /// Adds the event to `calendar`, then says so and reads the calendars again.
+    private static func dayName(_ date: Date) -> String {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date) { return "Today" }
+        if calendar.isDateInTomorrow(date) { return "Tomorrow" }
+        return date.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
+    }
+
+    /// Adds the event to `calendar`, then says what was added and reads the
+    /// calendars again. A second press, or a row from an earlier query, finds
+    /// no draft and adds nothing.
     func save(_ draft: CalendarEventDraft, to calendar: CalendarInfo) async {
-        var draft = draft
-        draft.calendarID = calendar.id
+        guard addDraft == draft else { return }
+        addDraft = nil
+        var request = draft
+        request.calendarID = calendar.id
         do {
-            let saved = try await Stackbar.saveCalendarEvent(draft)
-            Stackbar.hud("Added \(saved.title) to \(calendar.title)")
+            let saved = try await Stackbar.saveCalendarEvent(request)
+            let message = "Added \(saved.title) to \(calendar.title)"
+            addedText = message
+            Stackbar.hud(message)
             try? await refresh()
         } catch {
-            Stackbar.hud("Couldn't add \(draft.title)", isError: true)
+            addDraft = addDraft ?? draft
+            Stackbar.hud(Self.isAccessProblem("\(error)") ? "Up Next can't add to your calendar: allow Calendar access in System Settings" : "Couldn't add \(draft.title)", isError: true)
         }
     }
 
     func join(_ event: CalendarEvent) {
         if let link = Self.meetingLink(for: event) {
-            joined.insert(event.id)
+            markJoined(event.id)
             lastJoin = Date()
             Stackbar.open(openInApps ? Self.appURL(for: link) : link.url)
         } else if let url = event.url {
             lastJoin = Date()
             Stackbar.open(url)
         }
+    }
+
+    /// Remembers a join, in memory and on disk, so no later pass or restart opens the same call again.
+    private func markJoined(_ id: String) {
+        joined.insert(id)
+        joinedEvents = Array((joinedEvents.filter { $0 != id } + [id]).suffix(50))
     }
 
     /// A phone dial-in from the event: a `tel:` link, or a number starting
@@ -1185,9 +1272,12 @@ final class UpNext: StackbarPlugin {
 
     // MARK: Commands
 
-    /// What the add-event view parsed from its text, the calendars it can add to, and why it can't.
+    /// What the add-event view parsed from its text, what it last added, the
+    /// calendars it can add to (read at most every 30 seconds), and why it can't.
     private var addDraft: CalendarEventDraft?
+    private var addedText: String?
     private var addCalendars: [CalendarInfo] = []
+    private var addCalendarsRead: Date?
     private var addProblem: (any Error)?
 
     var commands: [Command] {
@@ -1207,16 +1297,25 @@ final class UpNext: StackbarPlugin {
             .argument("text", placeholder: "Lunch with Sam tomorrow 1pm", required: false)
             .view(search: { invocation in
                 self.addDraft = Self.quickAdd(Self.typed(invocation))
-                do {
-                    self.addCalendars = try await Stackbar.writableCalendars()
-                    self.addProblem = nil
-                } catch {
-                    self.addCalendars = []
-                    self.addProblem = error
+                self.addedText = nil
+                // The calendars don't change between keystrokes, so they're read at most every 30 seconds.
+                if self.addCalendarsRead.map({ Date().timeIntervalSince($0) > 30 }) ?? true {
+                    do {
+                        self.addCalendars = try await Stackbar.writableCalendars()
+                        self.addCalendarsRead = Date()
+                        self.addProblem = nil
+                    } catch {
+                        self.addCalendars = []
+                        self.addProblem = error
+                    }
                 }
             }) { invocation in
                 if let addProblem = self.addProblem {
                     ContentUnavailableView(addProblem)
+                } else if self.addCalendars.isEmpty {
+                    ContentUnavailableView("No calendar to add to", symbol: "calendar.badge.exclamationmark", message: "Turn on a calendar in Calendar.app.")
+                } else if let addedText = self.addedText {
+                    ContentUnavailableView(addedText, symbol: "checkmark.circle")
                 } else if let draft = self.addDraft {
                     let calendars = self.addCalendars.filter(\.isDefault) + self.addCalendars.filter { !$0.isDefault }
                     List(calendars) { calendar in
@@ -1227,6 +1326,22 @@ final class UpNext: StackbarPlugin {
                     ContentUnavailableView(Self.typed(invocation).isEmpty ? "Add a calendar event" : "Give it a title and a time", symbol: "calendar.badge.plus", message: "Like \"Lunch with Sam tomorrow 1pm for 45m\"")
                 }
             }
+        // The Join button of a reminder or alert runs this, so the join counts
+        // and auto-join won't open the call again.
+        Command("join-event", title: "Join Meeting", subtitle: "From a reminder or alert", symbol: "video") { invocation in
+            let event: CalendarEvent?
+            if let id = invocation["event"] {
+                event = self.events.first { $0.id == id }
+            } else {
+                event = self.focus()
+            }
+            guard let event else { return .failure("That meeting is no longer on your calendar") }
+            guard Self.meetingLink(for: event) != nil || event.url != nil else { return .failure("\(event.title) has no call link") }
+            self.join(event)
+            return .done
+        }
+        .argument("event", required: false)
+        .stackbarOnly()
         Command("snooze", title: "Snooze Meeting Reminder", subtitle: "Remind again in five minutes", symbol: "zzz", keywords: ["meeting", "remind", "snooze", "later"]) { invocation in
             self.snooze(invocation["event"])
         }

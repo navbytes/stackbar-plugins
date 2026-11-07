@@ -20,7 +20,8 @@ you when it starts.
   calendar) and Snooze Meeting Reminder. Give them a hotkey or an alias in
   Stackbar's Settings, or run them from Spotlight, Shortcuts or a `stackbar://`
   link.
-- **Reminders** have Join and Snooze 5 Min buttons.
+- **Reminders and alerts** have Join and Snooze 5 Min buttons. A Join from
+  either counts as joining, so auto-join won't open that call again.
 - **Hide from countdown:** a meeting's row action keeps it out of the
   countdown, reminders and auto-join, and Show Again brings it back.
 - **Agent tools:** `next_meeting`, `agenda` and `join_next`, off until you turn
@@ -50,15 +51,18 @@ A widget keeps what's next in view without opening anything.
 ## What's new in 1.7.0
 
 - Join on time opens only the meeting you're in, in the Zoom or Teams app if you chose that, and never a tentative one.
-- Add Calendar Event understands "at 5 pm", "at 12", "for 30 minutes" and "10.30am", and shows the event before adding it, with a choice of calendar.
+- Joining from a reminder or alert counts, so auto-join won't open that call again, even after a restart.
+- Add Calendar Event understands "at 5 pm", "at 1" (1 pm), "at 12", "for 30 minutes", "for 3 days" (an all-day event spanning them), "10.30am" and "friday" anywhere in the text. It shows the event before adding it, with a choice of calendar, and adds it once.
 - ⌃⌥J joins the next call.
 - Agent tools are off until you allow them.
 - Two meetings at once get one full-screen alert.
 - Waking or launching just before a meeting gives one reminder, not two.
-- Join buttons for Outlook Safe Links and for meeting links written without https.
-- Today's Meetings: faster search that also matches calendar and place.
+- Join buttons only for real meeting-service addresses (Zoom, Meet, Teams, Webex and the rest), matched by host and path, so a look-alike link gets none. Outlook Safe Links and meeting links written without https work too.
+- Today's Meetings: faster search that also matches calendar and place, and timed meetings are listed before all-day ones.
 - A Join button on the widget.
 - Hide a meeting from the countdown, and show it again from its row.
+- Snoozing a meeting that's no longer on your calendar says so, instead of snoozing another one.
+- Clearer messages when Up Next can't read or add to your calendar: a permission problem says which setting to change.
 - Fixes for daylight-saving days and meetings past midnight.
 
 ## What's new in 1.6.1

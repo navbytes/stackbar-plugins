@@ -2,6 +2,7 @@ import Foundation
 import XCTest
 import StackbarHostCore
 import StackbarProtocol
+@testable import Plugin_UpNext
 
 final class UpNextTests: XCTestCase {
     func testFindsTheMeetingAndItsLink() async throws {
@@ -29,7 +30,8 @@ final class UpNextTests: XCTestCase {
         let supervisor = try await host.start("UpNext")
         let posted = await waitUntil(5) { !host.notifications.all.isEmpty }
         XCTAssertTrue(posted, "a meeting in 90 seconds is reminded about")
-        XCTAssertEqual(host.notifications.all.first?.actions.map(\.url), ["https://meet.google.com/abc-defg-hij", ""])
+        // Join runs join-event, so the join is counted and auto-join won't open it again.
+        XCTAssertEqual(host.notifications.all.first?.actions.first, NotificationAction("Join on Google Meet", command: "join-event", arguments: ["event": "soon"]))
         XCTAssertEqual(host.notifications.all.first?.actions.last, NotificationAction("Snooze 5 Min", command: "snooze", arguments: ["event": "soon"]))
         await supervisor.stop()
     }
@@ -80,7 +82,11 @@ final class UpNextTests: XCTestCase {
         let shown = await waitUntil(5) { !host.alerts.all.isEmpty }
         XCTAssertTrue(shown, "a meeting starting within a minute covers the screen")
         XCTAssertEqual(host.alerts.all.first?.title, "Board call")
-        XCTAssertEqual(host.alerts.all.first?.actions.map(\.url), ["zoommtg://acme.zoom.us/join?action=join&confno=123456789", dial], "join in the Zoom app, then call in")
+        XCTAssertEqual(host.alerts.all.first?.actions.first, NotificationAction("Join on Zoom", command: "join-event", arguments: ["event": "z"]))
+        XCTAssertEqual(host.alerts.all.first?.actions.last?.url, dial, "then call in")
+        // The alert's Join runs join-event, which opens the Zoom app.
+        _ = await supervisor.runCommand("join-event", arguments: ["event": "z"], source: .palette)
+        XCTAssertTrue(host.opened.all.contains { $0.url == "zoommtg://acme.zoom.us/join?action=join&confno=123456789" }, "\(host.opened.all)")
         await supervisor.stop()
     }
 
@@ -128,78 +134,6 @@ final class UpNextTests: XCTestCase {
 
     // MARK: Add event
 
-    func testAddEventReadsTimesAndTheirWords() async throws {
-        let now = Date()
-        let system = SimulatedSystem(events: [])
-        let session = try await Host(self, system: system).session("UpNext")
-        let cases: [(text: String, title: String, start: Date, minutes: Double)] = [
-            ("Call with Ana at 5 pm", "Call with Ana", nextAt(17, 0, from: now), 60),
-            ("Lunch at 12", "Lunch", nextAt(12, 0, from: now), 60),
-            ("Lunch at 13", "Lunch", nextAt(13, 0, from: now), 60),
-            ("Standup 10.30am", "Standup", nextAt(10, 30, from: now), 60),
-            ("Dentist 12/11 9:30am", "Dentist 12/11", nextAt(9, 30, from: now), 60),
-            ("Call Ana at 9:30 for 2 hrs", "Call Ana", nextAt(9, 30, from: now), 120),
-            ("Call at the office tomorrow 3pm", "Call at the office", at(15, 0, day: 1, from: now), 60),
-            ("3D printing review tomorrow 3pm", "3D printing review", at(15, 0, day: 1, from: now), 60),
-        ]
-        for (text, title, start, minutes) in cases {
-            assertAdded(try await addFromView(text, session, system), title, start, minutes: minutes, text)
-        }
-        let untitled = try await addFromView("tomorrow 3pm", session, system)
-        XCTAssertNil(untitled, "\"tomorrow 3pm\" has no title")
-    }
-
-    func testAddEventReadsLengths() async throws {
-        let now = Date()
-        let system = SimulatedSystem(events: [])
-        let session = try await Host(self, system: system).session("UpNext")
-        let cases: [(text: String, title: String, start: Date, minutes: Double)] = [
-            ("Sync tomorrow 3pm for 30 minutes", "Sync", at(15, 0, day: 1, from: now), 30),
-            ("Workshop tomorrow 9am for 1h30", "Workshop", at(9, 0, day: 1, from: now), 90),
-            ("Call Ana tomorrow 2pm 45 min", "Call Ana", at(14, 0, day: 1, from: now), 45),
-            ("Call tomorrow 2pm for 1 hour", "Call", at(14, 0, day: 1, from: now), 60),
-            ("Demo tomorrow 4pm for 1.5 hours", "Demo", at(16, 0, day: 1, from: now), 90),
-            ("Call tomorrow 2pm 30min", "Call", at(14, 0, day: 1, from: now), 30),
-            ("Lunch with Sam tomorrow 1pm for 45m", "Lunch with Sam", at(13, 0, day: 1, from: now), 45),
-        ]
-        for (text, title, start, minutes) in cases {
-            assertAdded(try await addFromView(text, session, system), title, start, minutes: minutes, text)
-        }
-    }
-
-    func testAddEventDayWordsCountOnlyAtTheEndOfThePhrase() async throws {
-        let now = Date()
-        let system = SimulatedSystem(events: [])
-        let session = try await Host(self, system: system).session("UpNext")
-
-        // "sat" is in the title here: "tomorrow" is the day.
-        assertAdded(try await addFromView("Review sat scores tomorrow 9am", session, system), "Review sat scores", at(9, 0, day: 1, from: now), minutes: 60, "Review sat scores tomorrow 9am")
-        assertAdded(try await addFromView("Dentist fri 9:30", session, system), "Dentist", nextWeekday(6, 9, 30, from: now), minutes: 60, "Dentist fri 9:30")
-        assertAdded(try await addFromView("Lunch fri at 12 for 30 minutes", session, system), "Lunch", nextWeekday(6, 12, 0, from: now), minutes: 30, "Lunch fri at 12 for 30 minutes")
-
-        let offsite = try await addFromView("Offsite fri", session, system)
-        XCTAssertEqual(offsite?.isAllDay, true)
-        XCTAssertEqual(offsite?.start, Calendar.current.startOfDay(for: weekdayDay(6, from: now)), "all day on that Friday")
-
-        let next = try await addFromView("Offsite next monday", session, system)
-        XCTAssertEqual(next?.isAllDay, true)
-        XCTAssertEqual(next.map { Calendar.current.component(.weekday, from: $0.start) }, 2, "a Monday")
-        XCTAssertGreaterThan(next?.start ?? now, now)
-    }
-
-    func testAWeekdayWhoseTimeHasPassedRollsAWeekForward() async throws {
-        let now = Date()
-        let calendar = Calendar.current
-        let system = SimulatedSystem(events: [])
-        let session = try await Host(self, system: system).session("UpNext")
-        // Today's weekday, at an hour that has already passed.
-        let names = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
-        let today = names[calendar.component(.weekday, from: now) - 1]
-        let past = max(0, calendar.component(.hour, from: now) - 1)
-        let added = try await addFromView("Dentist \(today) \(past):00", session, system)
-        assertAdded(added, "Dentist", at(past, 0, day: 7, from: now), minutes: 60, "Dentist \(today) \(past):00")
-    }
-
     func testAddEventShowsEachCalendarDefaultFirstAndSavesToThePickedOne() async throws {
         let now = Date()
         let system = SimulatedSystem(events: [])
@@ -214,11 +148,45 @@ final class UpNextTests: XCTestCase {
         XCTAssertEqual(saved?.calendar, "Home", "the row's calendar gets the event")
     }
 
-    func testTheAddEventViewReadsTheTextFromALink() async throws {
-        let session = try await Host(self, system: SimulatedSystem(events: [])).session("UpNext")
+    func testTheAddEventViewReadsTheTextFromALinkAndSavesNothingYet() async throws {
+        let system = SimulatedSystem(events: [])
+        let session = try await Host(self, system: system).session("UpNext")
         // An old link passes its text as an argument, not as typed text.
         let opened = try await session.openView("add-event", query: CommandQuery(arguments: ["text": "Dentist tomorrow 9am"]))
         XCTAssertEqual(opened.root?.rows.first?.title.hasPrefix("Dentist — Tomorrow "), true, "the link's text is previewed")
+        let from = Date().addingTimeInterval(-86_400)
+        let to = Date().addingTimeInterval(60 * 86_400)
+        let saved = try await system.calendarEvents(from: from, to: to)
+        XCTAssertTrue(saved.isEmpty, "opening the view saves nothing until a row is chosen")
+        await session.closeView(opened.session)
+    }
+
+    func testTheAddViewSaysWhenThereIsNoCalendar() async throws {
+        let system = SimulatedSystem(events: [])
+        system.simulatedCalendars = []
+        let session = try await Host(self, system: system).session("UpNext")
+        let opened = try await session.openView("add-event", query: CommandQuery(text: "Lunch tomorrow 1pm"))
+        XCTAssertEqual(opened.root?.rows.count, 0, "no row without a calendar to add to")
+        XCTAssertEqual(emptyTitles(opened.root), ["No calendar to add to"])
+        await session.closeView(opened.session)
+    }
+
+    func testASecondAddDoesNotRepeatTheEvent() async throws {
+        let system = SimulatedSystem(events: [])
+        let session = try await Host(self, system: system).session("UpNext")
+        let opened = try await session.openView("add-event", query: CommandQuery(text: "Lunch tomorrow 1pm"))
+        let add = try XCTUnwrap(opened.root?.rows.first?.actions.first?.id)
+        try await session.event(add)
+        let shown = await session.commandView(opened.session)
+        XCTAssertEqual(emptyTitles(shown), ["Added Lunch to Work"], "the view says what was added")
+        do {
+            try await session.event(add)
+            XCTFail("the row is gone once it has added the event")
+        } catch {}
+        let from = Date().addingTimeInterval(-86_400)
+        let to = Date().addingTimeInterval(60 * 86_400)
+        let saved = try await system.calendarEvents(from: from, to: to).filter { $0.title == "Lunch" }
+        XCTAssertEqual(saved.count, 1, "one event, however often Return is pressed")
         await session.closeView(opened.session)
     }
 
@@ -267,6 +235,39 @@ final class UpNextTests: XCTestCase {
         await supervisor.stop()
     }
 
+    func testAJoinFromAReminderCountsAsJoined() async throws {
+        let now = Date()
+        let host = Host(self, system: SimulatedSystem(events: [
+            CalendarEvent(id: "soon", title: "Sync", start: now.addingTimeInterval(10), end: now.addingTimeInterval(1800), location: "https://acme.zoom.us/j/111222333", calendar: "Work", participation: .accepted, attendees: 3),
+        ]))
+        let supervisor = try await host.start("UpNext")
+        // A reminder's Join button runs join-event.
+        guard case .message = await supervisor.runCommand("join-event", arguments: ["event": "soon"], source: .palette) else {
+            return XCTFail("join-event joins the meeting")
+        }
+        XCTAssertEqual(host.opened.all.map(\.url), ["zoommtg://acme.zoom.us/join?action=join&confno=111222333"])
+        try await turnOn(supervisor, "Open the call when it starts")
+        await reread(supervisor)
+        XCTAssertEqual(host.opened.all.count, 1, "auto-join doesn't open a call that was already joined")
+        await supervisor.stop()
+    }
+
+    func testARestartDoesNotOpenACallAgain() async throws {
+        let now = Date()
+        let host = Host(self, system: SimulatedSystem(events: [
+            CalendarEvent(id: "soon", title: "Sync", start: now.addingTimeInterval(10), end: now.addingTimeInterval(1800), location: "https://acme.zoom.us/j/111222333", calendar: "Work", participation: .accepted, attendees: 3),
+        ]))
+        let first = try await host.start("UpNext")
+        _ = await first.runCommand("join-event", arguments: ["event": "soon"], source: .palette)
+        try await turnOn(first, "Open the call when it starts")
+        await first.stop()
+        // A new process reads the saved joins, so auto-join leaves that call alone.
+        let second = try await host.start("UpNext")
+        await reread(second)
+        XCTAssertEqual(host.opened.all.count, 1, "the call joined before the restart isn't opened again")
+        await second.stop()
+    }
+
     // MARK: Alerts, reminders and links
 
     func testMeetingsStartingTogetherShareOneFullScreenAlert() async throws {
@@ -284,7 +285,10 @@ final class UpNextTests: XCTestCase {
         XCTAssertEqual(host.alerts.all.first?.title, "2 meetings starting")
         let body = host.alerts.all.first?.body ?? ""
         XCTAssertTrue(body.contains("Board call") && body.contains("Design review"), "the body lists each meeting: \(body)")
-        XCTAssertEqual(host.alerts.all.first?.actions.map(\.url), ["zoommtg://acme.zoom.us/join?action=join&confno=444", "https://meet.google.com/abc-defg-hij"], "a Join for each")
+        XCTAssertEqual(host.alerts.all.first?.actions, [
+            NotificationAction("Join Board call", command: "join-event", arguments: ["event": "a"]),
+            NotificationAction("Join Design review", command: "join-event", arguments: ["event": "b"]),
+        ], "a Join for each, named by its meeting")
         await supervisor.stop()
     }
 
@@ -456,6 +460,177 @@ final class UpNextTests: XCTestCase {
         XCTAssertTrue(tools.allSatisfy(\.optIn), "agents only get them once the user allows it")
     }
 
+    // MARK: Parsing, at a fixed moment
+
+    /// The calendar and the moments the quick-add tests use, so they parse the
+    /// same on every day. 9 November 2026 is a Monday.
+    private let utc: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC") ?? .current
+        return calendar
+    }()
+
+    /// November 2026 at the time, in UTC.
+    private func moment(_ day: Int, _ hour: Int, _ minute: Int = 0) -> Date {
+        utc.date(from: DateComponents(year: 2026, month: 11, day: day, hour: hour, minute: minute)) ?? Date(timeIntervalSince1970: 0)
+    }
+
+    /// Parses `text` as the add-event view does, at `now`.
+    @MainActor private func parse(_ text: String, now: Date) throws -> CalendarEventDraft {
+        try XCTUnwrap(UpNext.quickAdd(text, now: now, calendar: utc), "no event from \"\(text)\"")
+    }
+
+    @MainActor func testAnHourWithoutAMeridiemTakesTheWayTheDayIsGoing() throws {
+        let cases: [(text: String, now: Date, start: Date)] = [
+            ("Call at 1", moment(9, 8), moment(9, 13)),
+            ("Call at 3", moment(9, 8), moment(9, 15)),
+            ("Call at 9", moment(9, 8), moment(9, 9)),
+            ("Call at 9", moment(9, 10), moment(9, 21)),
+            ("Call at 9", moment(9, 22), moment(10, 9)),
+            ("Call tomorrow at 9", moment(9, 8), moment(10, 9)),
+            ("Call at 12", moment(9, 8), moment(9, 12)),
+            ("Call at 0", moment(8, 22), moment(9, 0)),
+            ("Call at 08:00", moment(9, 7), moment(9, 8)),
+            ("Call at 10.30", moment(9, 8), moment(9, 10, 30)),
+            ("Call at 1", moment(9, 14), moment(10, 13)),
+        ]
+        for (text, now, start) in cases {
+            let draft = try parse(text, now: now)
+            XCTAssertEqual(draft.title, "Call", text)
+            XCTAssertEqual(draft.start, start, "\(text), with now \(now)")
+        }
+    }
+
+    @MainActor func testEverydayTimesAreTakenOutOfTheTitle() throws {
+        let now = moment(9, 8)
+        let cases: [(text: String, title: String, start: Date)] = [
+            ("Call with Ana at 5 pm", "Call with Ana", moment(9, 17)),
+            ("Call Ana at 5pm", "Call Ana", moment(9, 17)),
+            ("Lunch at 12", "Lunch", moment(9, 12)),
+            ("Standup 10.30am", "Standup", moment(9, 10, 30)),
+            ("Dentist 12/11 9:30am", "Dentist 12/11", moment(9, 9, 30)),
+            ("Call at the office tomorrow 3pm", "Call at the office", moment(10, 15)),
+            ("Dentist fri 9:30", "Dentist", moment(13, 9, 30)),
+        ]
+        for (text, title, start) in cases {
+            let draft = try parse(text, now: now)
+            XCTAssertEqual(draft.title, title, text)
+            XCTAssertEqual(draft.start, start, text)
+        }
+    }
+
+    @MainActor func testLengthsAreMinutesAndHours() throws {
+        let now = moment(9, 8)
+        let cases: [(text: String, title: String, start: Date, minutes: Double)] = [
+            ("Sync tomorrow 3pm for 30 minutes", "Sync", moment(10, 15), 30),
+            ("Workshop tomorrow 9am for 1h30", "Workshop", moment(10, 9), 90),
+            ("Call Ana tomorrow 2pm 45 min", "Call Ana", moment(10, 14), 45),
+            ("Call tomorrow 2pm for 1 hour", "Call", moment(10, 14), 60),
+            ("Demo tomorrow 4pm for 1.5 hours", "Demo", moment(10, 16), 90),
+            ("Call tomorrow 2pm 30min", "Call", moment(10, 14), 30),
+            ("Lunch with Sam tomorrow 1pm for 45m", "Lunch with Sam", moment(10, 13), 45),
+            ("Call Ana at 9:30 for 2 hrs", "Call Ana", moment(9, 9, 30), 120),
+            ("3D printing review tomorrow 3pm", "3D printing review", moment(10, 15), 60),
+            ("Lunch fri at 12 for 30 minutes", "Lunch", moment(13, 12), 30),
+        ]
+        for (text, title, start, minutes) in cases {
+            let draft = try parse(text, now: now)
+            XCTAssertEqual(draft.title, title, text)
+            XCTAssertEqual(draft.start, start, text)
+            XCTAssertEqual(draft.end.timeIntervalSince(draft.start), minutes * 60, text)
+            XCTAssertFalse(draft.isAllDay, text)
+        }
+    }
+
+    @MainActor func testForDaysMakesAnAllDayEventThatSpansThem() throws {
+        let draft = try parse("Offsite fri for 3 days", now: moment(9, 8))
+        XCTAssertEqual(draft.title, "Offsite")
+        XCTAssertTrue(draft.isAllDay)
+        XCTAssertEqual(draft.start, moment(13, 0), "the Friday, from midnight")
+        XCTAssertEqual(draft.end, moment(16, 0), "three days on, the Monday")
+        XCTAssertTrue(UpNext.whenText(draft).contains("–") && UpNext.whenText(draft).hasSuffix("all day"), "the preview shows the span")
+    }
+
+    @MainActor func testFullWeekdayNamesCountAnywhereButShortOnesOnlyAtTheEnd() throws {
+        let now = moment(9, 8)
+        let friday = try parse("Lunch friday with Sam at 1", now: now)
+        XCTAssertEqual(friday.title, "Lunch with Sam")
+        XCTAssertEqual(friday.start, moment(13, 13), "Friday at one in the afternoon")
+        let scores = try parse("Review sat scores tomorrow 9am", now: now)
+        XCTAssertEqual(scores.title, "Review sat scores")
+        XCTAssertEqual(scores.start, moment(10, 9))
+        let saturday = try parse("Dentist sat 9am", now: now)
+        XCTAssertEqual(saturday.title, "Dentist")
+        XCTAssertEqual(saturday.start, moment(14, 9))
+        let next = try parse("Offsite next friday", now: now)
+        XCTAssertEqual(next.title, "Offsite")
+        XCTAssertTrue(next.isAllDay)
+        XCTAssertEqual(next.start, moment(13, 0))
+    }
+
+    @MainActor func testTomorrowWinsOverToday() throws {
+        let draft = try parse("Call today tomorrow 3pm", now: moment(9, 8))
+        XCTAssertEqual(draft.title, "Call")
+        XCTAssertEqual(draft.start, moment(10, 15))
+    }
+
+    @MainActor func testANumberWithADotIsNotATimeWithoutAMeridiem() throws {
+        let draft = try parse("Review 3.14 tomorrow 3pm", now: moment(9, 8))
+        XCTAssertEqual(draft.title, "Review 3.14")
+        XCTAssertEqual(draft.start, moment(10, 15))
+    }
+
+    @MainActor func testTheTitleKeepsItsWordsAsTyped() throws {
+        let doctor = try parse("Dr. Lee checkup tomorrow 3pm", now: moment(9, 8))
+        XCTAssertEqual(doctor.title, "Dr. Lee checkup")
+        let comma = try parse("Call Ana, tomorrow 3pm", now: moment(9, 8))
+        XCTAssertEqual(comma.title, "Call Ana")
+    }
+
+    @MainActor func testAWeekdayWhoseTimeHasPassedRollsAWeekForward() throws {
+        let draft = try parse("Dentist mon 9am", now: moment(9, 10))
+        XCTAssertEqual(draft.start, moment(16, 9), "Monday's nine has passed, so the Monday after")
+    }
+
+    @MainActor func testOnlyARealMeetingHostMakesAJoinLink() {
+        func service(_ location: String) -> String? {
+            UpNext.meetingLink(for: CalendarEvent(id: "x", title: "x", start: Date(), end: Date(), location: location))?.service
+        }
+        let genuine: [(url: String, service: String)] = [
+            ("https://acme.zoom.us/j/123456789?pwd=abc", "Zoom"),
+            ("https://zoom.us/my/room", "Zoom"),
+            ("https://meet.google.com/abc-defg-hij", "Google Meet"),
+            ("https://teams.microsoft.com/l/meetup-join/19%3ameeting_abc/0", "Teams"),
+            ("https://teams.live.com/meet/9876543210", "Teams"),
+            ("https://acme.webex.com/meet/jane", "Webex"),
+            ("https://acme.webex.com/join/jane", "Webex"),
+            ("https://app.slack.com/huddle/T1/C1", "Slack huddle"),
+            ("https://facetime.apple.com/join#v=1", "FaceTime"),
+            ("https://chime.aws/1234", "Chime"),
+            ("https://meet.goto.com/123", "GoTo Meeting"),
+            ("https://whereby.com/room", "Whereby"),
+            ("https://meet.jit.si/Room", "Jitsi"),
+            ("https://bluejeans.com/123", "BlueJeans"),
+            ("https://around.co/abc", "Around"),
+            ("https://tuple.app/c/abc", "Tuple"),
+            ("https://app.gather.town/app/x", "Gather"),
+            ("https://join.skype.com/abc", "Skype"),
+            ("https://discord.gg/abc", "Discord"),
+            ("https://meeting.zoho.com/join?key=1", "Zoho Meeting"),
+            ("https://app.livestorm.co/x/event", "Livestorm"),
+        ]
+        for (url, name) in genuine {
+            XCTAssertEqual(service(url), name, url)
+        }
+        // Look-alikes: the service's name sits in the query, or in a host that only ends the same way.
+        for url in ["https://evil.com/?r=zoom.us/j/1", "https://evilzoom.us/j/1", "https://zoom.us.evil.com/j/1", "https://evil.com/x.zoom.us/j/1"] {
+            XCTAssertNil(service(url), url)
+        }
+        // Wrapped in a Safe Link, the look-alike still gets nothing, and a real Zoom link still joins.
+        XCTAssertNil(service("https://nam04.safelinks.protection.outlook.com/?url=https%3A%2F%2Fevil.com%2F%3Fr%3Dzoom.us%2Fj%2F1&data=05"))
+        XCTAssertEqual(service("https://nam04.safelinks.protection.outlook.com/?url=https%3A%2F%2Facme.zoom.us%2Fj%2F1&data=05"), "Zoom")
+    }
+
     // MARK: Helpers
 
     /// Adds `text` through the add-event view as the palette does: the row's
@@ -487,25 +662,6 @@ final class UpNextTests: XCTestCase {
         return calendar.date(bySettingHour: hour, minute: minute, second: 0, of: day) ?? now
     }
 
-    /// A bare time as the add-event view picks it: today if still ahead, else tomorrow.
-    private func nextAt(_ hour: Int, _ minute: Int, from now: Date) -> Date {
-        let today = at(hour, minute, from: now)
-        return today >= now ? today : at(hour, minute, day: 1, from: now)
-    }
-
-    /// The next `weekday` (1 is Sunday) at the time, today included while it's still ahead.
-    private func nextWeekday(_ weekday: Int, _ hour: Int, _ minute: Int, from now: Date) -> Date {
-        let ahead = (weekday - Calendar.current.component(.weekday, from: now) + 7) % 7
-        let candidate = at(hour, minute, day: ahead, from: now)
-        return candidate >= now ? candidate : at(hour, minute, day: ahead + 7, from: now)
-    }
-
-    /// The day of the next `weekday`, today included.
-    private func weekdayDay(_ weekday: Int, from now: Date) -> Date {
-        let ahead = (weekday - Calendar.current.component(.weekday, from: now) + 7) % 7
-        return Calendar.current.date(byAdding: .day, value: ahead, to: now) ?? now
-    }
-
     /// Switches on the settings toggle whose title contains `text`.
     private func turnOn(_ supervisor: PluginSupervisor, _ text: String) async throws {
         let toggle = await supervisor.views[.settings]?.toggles.first { $0.title.contains(text) }
@@ -518,6 +674,14 @@ final class UpNextTests: XCTestCase {
         let node = try XCTUnwrap(rows.first { $0.title == row }, "no row \(row) in the panel")
         let action = try XCTUnwrap(node.actions.first { $0.title == title }, "no \(title) action on \(row)")
         await supervisor.press(action.id)
+    }
+
+    /// The titles of the empty states in a view: how a view says there's nothing to show.
+    private func emptyTitles(_ root: ViewNode?) -> [String] {
+        (root?.tree ?? []).compactMap { node in
+            if case .empty(let title, _, _) = node { return title }
+            return nil
+        }
     }
 
     /// Reads the calendar again and waits until the plugin has handled it.
