@@ -48,6 +48,14 @@ requests, issues or Actions, copy a clone URL, or start a new issue.
 A widget keeps the review queue in view.
 <!-- preview: widget -->
 
+## What's new in 1.8.1
+
+- Mentions in your inbox are announced even when the inbox was empty before.
+- Clicks wait less behind a slow GitHub: refresh requests give up after 10 seconds.
+- Assigned issues load past the first page (up to 300), and a failed repository search says so instead of showing nothing.
+- The repository and issue lists, and pull request search, no longer ask GitHub again on every keystroke.
+- Mark all as seen saves once instead of once per pull request.
+
 ## What's new in 1.8.0
 
 - GitHub Enterprise Server: turn it on in Settings and enter your server's address. Pull requests, issues, the inbox and search all come from it.

@@ -25,6 +25,12 @@ first.
   and the default project for new issues.
 - **Agent tool:** `assigned` lists your open issues.
 
+## What's new in 1.5.1
+
+- Your assigned and done lists load past the first 50 issues (up to 200).
+- Typing in My Jira Issues, Change Status and Jira Issue by Key no longer asks Jira again on every keystroke; a lookup that failed says why.
+- Changing the site, email or JQL no longer announces the new list as freshly assigned.
+
 ## What's new in 1.5.0
 
 - Change an issue's status, comment on it, assign it to yourself or watch it, from its row.
