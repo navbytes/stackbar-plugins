@@ -153,7 +153,7 @@ final class ClipboardTests: XCTestCase {
         let host = Host(self)
         let id = "io.navbytes.stackbar.clipboard"
         try await host.services.storage.set("order", "\"Most used\"", for: id)
-        try await host.services.storage.set("history", #"[{"id":"a","kind":"text","text":"often","files":[],"firstCopied":0,"lastCopied":100,"count":9,"pinned":false},{"id":"b","kind":"text","text":"latest","files":[],"firstCopied":0,"lastCopied":200,"count":1,"pinned":false}]"#, for: id)
+        try await host.services.storage.set("history", #"[{"id":"a","kind":"text","text":"often","files":[],"firstCopied":0,"lastCopied":100,"count":9,"pinned":false},{"id":"b","kind":"text","text":"latest","files":[],"firstCopied":0,"lastCopied":200,"count":1,"pinned":false},{"id":"c","kind":"text","text":"pinned","files":[],"firstCopied":0,"lastCopied":300,"count":1,"pinned":true}]"#, for: id)
         let session = try await host.session("Clipboard")
         _ = try await session.runCommand("paste-plain")
         XCTAssertEqual(host.system.pasted.last, .text("latest"))

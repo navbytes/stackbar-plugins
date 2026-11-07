@@ -799,7 +799,8 @@ final class Clipboard: StackbarPlugin {
         // What you copied shows in the palette's results as you type.
         if inPalette { search.rootSearch() } else { search }
         Command("paste-plain", title: "Paste Last Copy as Plain Text", symbol: "doc.plaintext", keywords: ["clipboard", "format"]) { _ in
-            guard let latest = self.newestFirst.first else { return .message("Nothing copied yet") }
+            // Pinned items move to the top when they are used again, so skip them: this is the last copy you made.
+            guard let latest = self.newestFirst.first(where: { !$0.pinned }) ?? self.newestFirst.first else { return .message("Nothing copied yet") }
             await self.use(latest, paste: true, plain: true)
             if let error = self.lastError { return .failure(error) }
             return .done
