@@ -122,6 +122,8 @@ final class RecentProjects: StackbarPlugin {
             guard parts.count >= 2, parts[0] == "Users" else { return path }
             return "~/" + parts.dropFirst(2).joined(separator: "/")
         }
+        /// What Show in Finder opens: a folder itself, or a workspace's folder.
+        var folder: String { kind == .workspace ? (path as NSString).deletingLastPathComponent : path }
     }
 
     var projects: [Project] = []
@@ -140,7 +142,7 @@ final class RecentProjects: StackbarPlugin {
 
     /// VS Code is installed but its list wasn't found where this version
     /// looks: it moved the list in 1.118.
-    var vsCodeMoved: Bool { installed.contains("com.microsoft.VSCode") && !found.contains("VS Code") }
+    var vsCodeMoved: Bool { installed.contains("com.microsoft.VSCode") && !found.contains("VS Code") && !problems.contains { $0.hasPrefix("VS Code") } }
 
     // MARK: Reading
 
@@ -287,7 +289,7 @@ final class RecentProjects: StackbarPlugin {
             row = row.action("Open in \(other.name)") { await self.open(project, in: other) }
         }
         return row
-            .action("Show in Finder", shortcut: "cmd+shift+f") { try await Stackbar.open(project.path, with: "com.apple.finder") }
+            .action("Show in Finder", shortcut: "cmd+shift+f") { try await Stackbar.open(project.folder, with: "com.apple.finder") }
             .action("Copy Path", shortcut: "cmd+shift+c") { Stackbar.copy(project.path) }
             .badge(project.editor, role: .secondary)
     }
