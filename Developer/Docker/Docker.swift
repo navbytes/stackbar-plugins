@@ -298,17 +298,25 @@ final class Docker: StackbarPlugin {
         await load()
     }
 
-    /// Stops every running container at once.
-    func stopAll() async throws -> String {
-        let ids = running.map(\.id)
+    /// The ids a confirm row showed, if each one still qualifies after a fresh
+    /// read. Nil when the list has changed, and the row then does nothing.
+    func stillListed(_ shown: [String], among now: () -> [Container]) async throws -> [String]? {
+        await load()
+        if let problem { throw HostError(problem) }
+        let current = Set(now().map(\.id))
+        return shown.allSatisfy(current.contains) ? shown : nil
+    }
+
+    /// Stops the given containers at once.
+    func stopAll(_ ids: [String]) async throws -> String {
         guard !ids.isEmpty else { return "Nothing is running" }
         busyText = "Stopping \(ids.count) container\(ids.count == 1 ? "" : "s")…"
         Stackbar.hud(busyText ?? "")
         stopping.formUnion(ids)
         defer { busyText = nil; stopping.subtract(ids) }
         let result = try await Stackbar.run("docker", ["stop"] + ids, timeout: .seconds(180))
-        guard result.succeeded else { throw HostError(Self.explain(result)) }
         await load()
+        guard result.succeeded else { throw HostError(Self.explain(result)) }
         return "Stopped \(ids.count) container\(ids.count == 1 ? "" : "s")"
     }
 
@@ -625,23 +633,31 @@ final class Docker: StackbarPlugin {
         }
         Section("Cleanup") {
             if armedNow == "prune" {
-                Button("Click Again to Remove Stopped Containers", symbol: "trash", role: .critical, key: "prune") {
+                let shown = prunable.map(\.id)
+                Button("Click Again to Remove \(shown.count) Stopped Containers", symbol: "trash", role: .critical, key: "prune") {
                     guard self.armedNow == "prune" else { return self.arm("prune") }
                     self.armed = nil
-                    Stackbar.hud(try await self.prune())
+                    guard let ids = try await self.stillListed(shown, among: { self.prunable }) else {
+                        Stackbar.hud("The list changed; open it again")
+                        return
+                    }
+                    Stackbar.hud(try await self.prune(ids))
                 }
             } else {
                 Button("Remove Stopped Containers", symbol: "trash", role: .critical, key: "prune") { self.arm("prune") }
             }
-            Text("Runs docker container prune. Images and volumes are left alone.").style(.caption)
+            Text("Removes stopped containers with docker rm. Images and volumes are left alone.").style(.caption)
         }
     }
 
-    func prune() async throws -> String {
-        let result = try await Stackbar.run("docker", ["container", "prune", "--force"], timeout: .seconds(120))
-        guard result.succeeded else { throw HostError(Self.explain(result)) }
+    /// Removes the given stopped containers with `docker rm`, which refuses one
+    /// that is still running.
+    func prune(_ ids: [String]) async throws -> String {
+        guard !ids.isEmpty else { return "No stopped containers" }
+        let result = try await Stackbar.run("docker", ["rm"] + ids, timeout: .seconds(120))
         await load()
-        return result.text.split(separator: "\n").last.map(String.init) ?? "Removed stopped containers"
+        guard result.succeeded else { throw HostError(Self.explain(result)) }
+        return "Removed \(ids.count) stopped container\(ids.count == 1 ? "" : "s")"
     }
 
     // MARK: Commands
@@ -696,9 +712,16 @@ final class Docker: StackbarPlugin {
                 } else if self.running.isEmpty {
                     ContentUnavailableView("Nothing is running", symbol: "moon.zzz")
                 } else {
+                    let shown = self.running
                     List {
-                        Row("Stop \(self.running.count) container\(self.running.count == 1 ? "" : "s") now", subtitle: self.running.map(\.name).joined(separator: ", "), symbol: "stop.circle", key: "confirm")
-                            .action("Stop All", role: .critical) { Stackbar.hud(try await self.stopAll()) }
+                        Row("Stop \(shown.count) container\(shown.count == 1 ? "" : "s") now", subtitle: shown.map(\.name).joined(separator: ", "), symbol: "stop.circle", key: "confirm")
+                            .action("Stop All", role: .critical) {
+                                guard let ids = try await self.stillListed(shown.map(\.id), among: { self.running }) else {
+                                    Stackbar.hud("The list changed; open it again")
+                                    return
+                                }
+                                Stackbar.hud(try await self.stopAll(ids))
+                            }
                     }
                 }
             }
@@ -709,9 +732,16 @@ final class Docker: StackbarPlugin {
                 } else if self.prunable.isEmpty {
                     ContentUnavailableView("No stopped containers", symbol: "trash")
                 } else {
+                    let shown = self.prunable
                     List {
-                        Row("Remove \(self.prunable.count) stopped container\(self.prunable.count == 1 ? "" : "s") now", subtitle: self.prunable.map(\.name).joined(separator: ", "), symbol: "trash", key: "confirm")
-                            .action("Remove", role: .critical) { Stackbar.hud(try await self.prune()) }
+                        Row("Remove \(shown.count) stopped container\(shown.count == 1 ? "" : "s") now", subtitle: shown.map(\.name).joined(separator: ", "), symbol: "trash", key: "confirm")
+                            .action("Remove", role: .critical) {
+                                guard let ids = try await self.stillListed(shown.map(\.id), among: { self.prunable }) else {
+                                    Stackbar.hud("The list changed; open it again")
+                                    return
+                                }
+                                Stackbar.hud(try await self.prune(ids))
+                            }
                     }
                 }
             }

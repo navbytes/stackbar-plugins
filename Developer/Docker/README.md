@@ -21,12 +21,14 @@ and each project with Start all, Restart and Stop.
   turns the menu bar red with a count, and gets a banner in the panel until
   it is started again or removed. Stops from the panel don't count.
 - **Settings:** group by Compose project, the trouble notification (on by
-  default), and Remove Stopped Containers (`docker container prune`; images
-  and volumes are left alone).
+  default), and Remove Stopped Containers (press again within 10 seconds;
+  it removes the stopped containers with `docker rm`, and images and volumes
+  are left alone).
 - **Commands:** Docker Containers, Docker Compose Projects, Stop All Docker
   Containers, Docker Logs (the last 200 lines of one container), Remove
   Stopped Docker Containers. Stop All Docker Containers and Remove Stopped
-  Docker Containers show what they will do and act on Return.
+  Docker Containers each show the containers they will act on, and act when
+  you press Return on that row.
 - **Open Shell** (⌘T on a running container) opens your terminal app in
   `docker exec -it <container>`, with bash when the image has it.
 - **Requires:** Stackbar 0.26.0 or later.
@@ -35,7 +37,7 @@ and each project with Start all, Restart and Stop.
 
 ## What's new in 1.8.0
 
-- Stop All and Remove Stopped Containers now ask first: press again within 10 seconds, or press Return on the row that says what will happen.
+- Stop All Docker Containers: press Return on the row that says what it will stop. Remove Stopped Docker Containers: press Return on the row that says what it will remove. Remove Stopped Containers in Settings asks for a second press within 10 seconds.
 - Removing a container asks for a second press, since its files are gone afterwards. Stopping one still takes a single click, because Start brings it back.
 - A notice shows while a container or project is stopping, starting or restarting.
 - Paused containers can be resumed; Start used to fail on them.
