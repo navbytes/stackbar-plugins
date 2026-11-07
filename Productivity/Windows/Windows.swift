@@ -264,7 +264,7 @@ final class Windows: StackbarPlugin {
         Snap(id: "almost-maximize", title: "Almost Maximize", symbol: "rectangle.inset.filled", group: "Screen", keywords: ["fill", "large"], unit: (0.05, 0.05, 0.9, 0.9)),
         Snap(id: "center", title: "Center", symbol: "rectangle.center.inset.filled", group: "Screen", keywords: ["middle"]),
         Snap(id: "next-display", title: "Next Display", symbol: "rectangle.portrait.and.arrow.forward", group: "Screen", keywords: ["monitor", "screen", "move"]),
-        Snap(id: "previous-display", title: "Previous Display", symbol: "rectangle.portrait.and.arrow.forward", group: "Screen", keywords: ["monitor", "screen", "move", "back"]),
+        Snap(id: "previous-display", title: "Previous Display", symbol: "arrow.left.to.line", group: "Screen", keywords: ["monitor", "screen", "move", "back"]),
         Snap(id: "undo-snap", title: "Undo Snap", symbol: "arrow.uturn.backward", group: "Screen", keywords: ["restore", "undo", "back"]),
     ]
 
@@ -402,7 +402,10 @@ final class Windows: StackbarPlugin {
             return .failure("Couldn't move the window: \(error)")
         }
         if snap.id != "undo-snap", !continuesCycle(snap, key: key, window: window.frame) {
-            if previous.count >= 100 { previous.removeAll() }
+            if previous.count >= 100 {
+                previous.removeAll()
+                placed.removeAll()
+            }
             previous[key] = window.frame
         }
         if placed.count >= 100 { placed.removeAll() }
