@@ -197,11 +197,13 @@ final class PRCockpitTests: XCTestCase {
         XCTAssertFalse(stub.requests.all.contains { $0.hasPrefix("PUT ") }, "the first press only asks")
         try await session.event(markAll)
         XCTAssertEqual(stub.requests.all.filter { $0.hasPrefix("PUT /api/v3/notifications ") }.count, 1)
+        let put = stub.requests.all.first { $0.hasPrefix("PUT ") } ?? ""
+        XCTAssertTrue(put.contains("\"last_read_at\""), "only what was fetched is marked: \(put)")
         await session.stop()
     }
 
-    /// Approve posts an approving review, then the lists refresh.
-    func testApproveSendsAReview() async throws {
+    /// Approve asks for a second press within 10 seconds, then posts an approving review.
+    func testApproveSendsAReviewOnlyOnTheSecondPress() async throws {
         let answers = Locked(Answers(review: ["Bearer A": [1]]))
         let stub = try GitHubStub { method, path, auth, _ in gitHub(method, path, auth, answers.current) }
         let host = Host(self)
@@ -211,6 +213,8 @@ final class PRCockpitTests: XCTestCase {
 
         let panel = await supervisor.views[.panel]
         let approve = try XCTUnwrap(panel?.rows.first?.actions.first { $0.title == "Approve" }?.id)
+        await supervisor.press(approve)
+        XCTAssertFalse(stub.requests.all.contains { $0.hasPrefix("POST /api/v3/repos/") }, "the first press only asks: \(stub.requests.all)")
         await supervisor.press(approve)
         XCTAssertTrue(stub.requests.all.contains("POST /api/v3/repos/o/r/pulls/1/reviews Bearer A {\"event\":\"APPROVE\"}"), "\(stub.requests.all)")
         await supervisor.stop()
@@ -251,6 +255,8 @@ final class PRCockpitTests: XCTestCase {
         let supervisor = try await host.start("PRCockpit")
         let review = await supervisor.callTool("review_queue").text
         XCTAssertTrue(review.contains("GitHub token"), review)
+        let issues = await supervisor.callTool("my_issues").text
+        XCTAssertTrue(issues.contains("GitHub token"), issues)
         await supervisor.stop()
     }
 

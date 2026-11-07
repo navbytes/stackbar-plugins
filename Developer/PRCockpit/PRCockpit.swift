@@ -316,6 +316,9 @@ final class PRCockpit: StackbarPlugin {
     /// Read was first pressed (the second press within 10 s does it).
     var inboxFetched: Date?
     var markAllArmed: Date?
+    /// The approval a first press asked for ("approve:<id>"), and when.
+    var approveArmed: String?
+    var approveArmedAt = Date.distantPast
     var recentlyClosed: [PullRequest] = []
     var issues: [Issue] = []
     var issuesError: String?
@@ -499,22 +502,28 @@ final class PRCockpit: StackbarPlugin {
         inboxFetched = Date()
     }
 
-    /// Marks every notification as read on GitHub. The first press only asks
-    /// for a second one within 10 seconds, as the other bulk actions do.
+    /// Marks notifications as read on GitHub, up to the last fetch: GitHub
+    /// marks the whole account unless told otherwise, and anything that arrived
+    /// since would be marked read unseen. The first press only asks for a second
+    /// one within 10 seconds, as the other bulk actions do.
     func markAllRead() async {
         guard let armed = markAllArmed, Date().timeIntervalSince(armed) < 10 else {
             markAllArmed = Date()
-            Stackbar.hud("Press again within 10 s to mark \(inbox.count) as read")
+            // The inbox loads up to 40, so 40 may be only some of them.
+            let scope = inbox.count >= 40 ? "all your GitHub notifications" : "\(inbox.count)"
+            Stackbar.hud("Press again within 10 s to mark \(scope) as read")
             return
         }
         markAllArmed = nil
         let count = inbox.count
         do {
             guard let token = try await Stackbar.secret("GITHUB_TOKEN"), !token.isEmpty else { throw HostError("Add a GitHub token first") }
+            let stamp = ISO8601DateFormatter().string(from: inboxFetched ?? updatedAt ?? Date())
+            let body = try JSONSerialization.data(withJSONObject: ["read": true, "last_read_at": stamp])
             let response = try await Stackbar.http(HTTPRequest(url: apiBase + "/notifications", method: "PUT", headers: [
                 "Authorization": "Bearer \(token)", "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28",
                 "Content-Type": "application/json",
-            ], body: Data(#"{"read":true}"#.utf8), timeout: Self.refreshTimeout))
+            ], body: body, timeout: Self.refreshTimeout))
             guard response.status == 202 || response.status == 205 else { throw HostError("GitHub answered \(response.status)") }
             inbox = []
             Stackbar.hud("Marked \(count) as read")
@@ -672,7 +681,17 @@ final class PRCockpit: StackbarPlugin {
     }
 
     /// Approves a pull request, then refreshes the lists so it leaves the queue.
+    /// The first press only asks for a second one within 10 seconds, as the
+    /// other bulk actions do, so a stray click doesn't approve anything.
     func approve(_ pr: PullRequest) async {
+        let id = "approve:\(pr.id)"
+        guard approveArmed == id, Date().timeIntervalSince(approveArmedAt) < 10 else {
+            approveArmed = id
+            approveArmedAt = Date()
+            Stackbar.hud("Press Approve again within 10 s to approve \(pr.id)")
+            return
+        }
+        approveArmed = nil
         do {
             _ = try await rest("/repos/\(pr.repo)/pulls/\(pr.number)/reviews", method: "POST", body: JSONSerialization.data(withJSONObject: ["event": "APPROVE"]), timeout: Self.refreshTimeout)
             Stackbar.hud("Approved \(pr.id)")
@@ -926,7 +945,7 @@ final class PRCockpit: StackbarPlugin {
             .action("Snooze until it changes", shortcut: "cmd+s") { self.snoozed[pr.url] = pr.updatedAt }
             .action("Hide \(pr.repo)") { if !self.hiddenRepos.contains(pr.repo) { self.hiddenRepos.append(pr.repo) } }
             .action("Copy link") { Stackbar.copy(pr.url) }
-        if showAuthor {
+        if toReview.contains(where: { $0.id == pr.id }) {
             row = row.action("Approve", shortcut: "cmd+shift+a") { await self.approve(pr) }
         }
         if let branch = pr.headRefName {
@@ -1017,10 +1036,10 @@ final class PRCockpit: StackbarPlugin {
                     }
                 } else if currentTab == .mine {
                     list(shownMine, showAuthor: false, empty: ("Nothing of yours open", "Pull requests you open show up here."))
-                    if mineTotal > mine.count { Text("Showing the 40 most recently updated of \(mineTotal).").style(.caption).role(.secondary) }
+                    if mineTotal > 40 { Text("Showing the 40 most recently updated of \(mineTotal).").style(.caption).role(.secondary) }
                 } else {
                     list(shownReview, showAuthor: true, empty: ("No reviews waiting", "Pull requests that ask for your review show up here."))
-                    if reviewTotal > toReview.count { Text("Showing the 40 most recently updated of \(reviewTotal).").style(.caption).role(.secondary) }
+                    if reviewTotal > 40 { Text("Showing the 40 most recently updated of \(reviewTotal).").style(.caption).role(.secondary) }
                 }
                 if hiddenCount > 0 || !hiddenRepos.isEmpty {
                     ActionButton("Show \(hiddenCount) hidden", symbol: "eye", theme: theme, key: "unhide") {
@@ -1403,7 +1422,7 @@ final class PRCockpit: StackbarPlugin {
         }
         AgentTool("my_issues", description: "Open GitHub issues assigned to me, one per line") { _ in
             if !self.loaded { try await self.refresh() }
-            if self.issues.isEmpty, let problem = self.issuesError { return problem }
+            if self.issues.isEmpty, !self.issuesLoaded, let problem = self.issuesError ?? self.lastError { return problem }
             return self.issues.isEmpty ? "No open issues are assigned to you." : self.issues.map { "\($0.reference) \($0.title) (\($0.html_url))" }.joined(separator: "\n")
         }
         AgentTool("my_pull_requests", description: "My open pull requests with their checks and review state, one per line") { _ in

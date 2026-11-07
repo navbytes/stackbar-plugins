@@ -59,7 +59,8 @@ A widget keeps the review queue in view.
 
 - GitHub Inbox in the palette, and Mark All as Read there and in the panel's Inbox tab (press twice to confirm).
 - Approve a pull request straight from your review queue.
-- Switching to another GitHub token or server no longer announces everything on the new account as new, and its repositories replace the old ones at once.
+- Approve asks for a second press within 10 seconds, so a stray click doesn't approve anything.
+- Switching to another GitHub token no longer announces everything on the new account as new, and its repositories replace the old ones at once.
 - Many merges or mentions at once arrive as one notification instead of a burst.
 - The window shows how to connect GitHub instead of empty lists, and a failed Mark as Read says so.
 - The review and Mine lists say when they show only the 40 most recent.
