@@ -3,6 +3,9 @@ import XCTest
 import StackbarHostCore
 import StackbarProtocol
 
+#if os(macOS)
+/// Drives a real `nc` listener through lsof and kill, which is the Mac's job;
+/// like Kill Process's process tests, it runs on the macOS job only.
 final class PortsTests: XCTestCase {
     /// Kill Port shows what holds the port and stops it only on Return.
     func testKillPortAsksBeforeStopping() async throws {
@@ -38,3 +41,4 @@ final class PortsTests: XCTestCase {
         await session.stop()
     }
 }
+#endif

@@ -513,7 +513,7 @@ final class UpNextTests: XCTestCase {
         try XCTUnwrap(UpNext.quickAdd(text, now: now, calendar: utc), "no event from \"\(text)\"")
     }
 
-    @MainActor func testAnHourWithoutAMeridiemTakesTheWayTheDayIsGoing() throws {
+    @MainActor func testAnHourWithoutAMeridiemTakesTheWayTheDayIsGoing() async throws {
         let cases: [(text: String, now: Date, start: Date)] = [
             ("Call at 1", moment(9, 8), moment(9, 13)),
             ("Call at 3", moment(9, 8), moment(9, 15)),
@@ -534,7 +534,7 @@ final class UpNextTests: XCTestCase {
         }
     }
 
-    @MainActor func testEverydayTimesAreTakenOutOfTheTitle() throws {
+    @MainActor func testEverydayTimesAreTakenOutOfTheTitle() async throws {
         let now = moment(9, 8)
         let cases: [(text: String, title: String, start: Date)] = [
             ("Call with Ana at 5 pm", "Call with Ana", moment(9, 17)),
@@ -552,7 +552,7 @@ final class UpNextTests: XCTestCase {
         }
     }
 
-    @MainActor func testLengthsAreMinutesAndHours() throws {
+    @MainActor func testLengthsAreMinutesAndHours() async throws {
         let now = moment(9, 8)
         let cases: [(text: String, title: String, start: Date, minutes: Double)] = [
             ("Sync tomorrow 3pm for 30 minutes", "Sync", moment(10, 15), 30),
@@ -575,7 +575,7 @@ final class UpNextTests: XCTestCase {
         }
     }
 
-    @MainActor func testForDaysMakesAnAllDayEventThatSpansThem() throws {
+    @MainActor func testForDaysMakesAnAllDayEventThatSpansThem() async throws {
         let draft = try parse("Offsite fri for 3 days", now: moment(9, 8))
         XCTAssertEqual(draft.title, "Offsite")
         XCTAssertTrue(draft.isAllDay)
@@ -584,7 +584,7 @@ final class UpNextTests: XCTestCase {
         XCTAssertTrue(UpNext.whenText(draft).contains("–") && UpNext.whenText(draft).hasSuffix("all day"), "the preview shows the span")
     }
 
-    @MainActor func testFullWeekdayNamesCountAnywhereButShortOnesOnlyAtTheEnd() throws {
+    @MainActor func testFullWeekdayNamesCountAnywhereButShortOnesOnlyAtTheEnd() async throws {
         let now = moment(9, 8)
         let friday = try parse("Lunch friday with Sam at 1", now: now)
         XCTAssertEqual(friday.title, "Lunch with Sam")
@@ -601,31 +601,31 @@ final class UpNextTests: XCTestCase {
         XCTAssertEqual(next.start, moment(13, 0))
     }
 
-    @MainActor func testTomorrowWinsOverToday() throws {
+    @MainActor func testTomorrowWinsOverToday() async throws {
         let draft = try parse("Call today tomorrow 3pm", now: moment(9, 8))
         XCTAssertEqual(draft.title, "Call")
         XCTAssertEqual(draft.start, moment(10, 15))
     }
 
-    @MainActor func testANumberWithADotIsNotATimeWithoutAMeridiem() throws {
+    @MainActor func testANumberWithADotIsNotATimeWithoutAMeridiem() async throws {
         let draft = try parse("Review 3.14 tomorrow 3pm", now: moment(9, 8))
         XCTAssertEqual(draft.title, "Review 3.14")
         XCTAssertEqual(draft.start, moment(10, 15))
     }
 
-    @MainActor func testTheTitleKeepsItsWordsAsTyped() throws {
+    @MainActor func testTheTitleKeepsItsWordsAsTyped() async throws {
         let doctor = try parse("Dr. Lee checkup tomorrow 3pm", now: moment(9, 8))
         XCTAssertEqual(doctor.title, "Dr. Lee checkup")
         let comma = try parse("Call Ana, tomorrow 3pm", now: moment(9, 8))
         XCTAssertEqual(comma.title, "Call Ana")
     }
 
-    @MainActor func testAWeekdayWhoseTimeHasPassedRollsAWeekForward() throws {
+    @MainActor func testAWeekdayWhoseTimeHasPassedRollsAWeekForward() async throws {
         let draft = try parse("Dentist mon 9am", now: moment(9, 10))
         XCTAssertEqual(draft.start, moment(16, 9), "Monday's nine has passed, so the Monday after")
     }
 
-    @MainActor func testThePreviewShowsTheDayATimedEventEnds() {
+    @MainActor func testThePreviewShowsTheDayATimedEventEnds() async {
         // Two moments a minute apart share a day, and two days apart never do, in any time zone.
         let sameDay = CalendarEventDraft(title: "Call", start: moment(13, 0), end: moment(13, 1))
         XCTAssertTrue(UpNext.whenText(sameDay).contains("–") && !UpNext.whenText(sameDay).contains(" – "), UpNext.whenText(sameDay))
@@ -633,7 +633,7 @@ final class UpNextTests: XCTestCase {
         XCTAssertTrue(UpNext.whenText(overnight).contains(" – "), "the end's day is shown: \(UpNext.whenText(overnight))")
     }
 
-    @MainActor func testOnlyARealMeetingHostMakesAJoinLink() {
+    @MainActor func testOnlyARealMeetingHostMakesAJoinLink() async {
         func service(_ location: String) -> String? {
             UpNext.meetingLink(for: CalendarEvent(id: "x", title: "x", start: Date(), end: Date(), location: location))?.service
         }

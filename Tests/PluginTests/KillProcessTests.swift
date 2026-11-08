@@ -10,57 +10,57 @@ import StackbarProtocol
 final class KillProcessTests: XCTestCase {
     // MARK: Parsing
 
-    @MainActor func testShortCommandDropsTheProgramPath() {
+    @MainActor func testShortCommandDropsTheProgramPath() async {
         XCTAssertEqual(KillProcess.shortCommand("node", "/usr/local/bin/node server.js"), "node server.js")
         XCTAssertEqual(KillProcess.shortCommand("sleep", "/bin/sleep 31337"), "sleep 31337")
     }
 
-    @MainActor func testShortCommandCutsAtTheLastProgramPath() {
+    @MainActor func testShortCommandCutsAtTheLastProgramPath() async {
         // The directory has a space and the name in it; the program is the last one.
         XCTAssertEqual(KillProcess.shortCommand("node", "/Users/me/node projects/x/node server.js"), "node server.js")
     }
 
-    @MainActor func testShortCommandKeepsAHelpersArguments() {
+    @MainActor func testShortCommandKeepsAHelpersArguments() async {
         let line = "/Applications/Code.app/Contents/Frameworks/Code Helper.app/Contents/MacOS/Code Helper --type=renderer"
         XCTAssertEqual(KillProcess.shortCommand("Code Helper", line), "Code Helper --type=renderer")
     }
 
-    @MainActor func testShortCommandLeavesABareCommandAndNoArgumentsAlone() {
+    @MainActor func testShortCommandLeavesABareCommandAndNoArgumentsAlone() async {
         XCTAssertEqual(KillProcess.shortCommand("node", "node server.js"), "node server.js")
         XCTAssertEqual(KillProcess.shortCommand("node", ""), "", "with no arguments the row shows the pid instead")
     }
 
-    @MainActor func testShortCommandCapsAboutSixtyCharacters() {
+    @MainActor func testShortCommandCapsAboutSixtyCharacters() async {
         let short = KillProcess.shortCommand("node", String(repeating: "x", count: 200))
         XCTAssertEqual(short.count, 60)
         XCTAssertTrue(short.hasSuffix("…"))
     }
 
-    @MainActor func testParseArgsReadsEachPidsLine() {
+    @MainActor func testParseArgsReadsEachPidsLine() async {
         let output = "  48211 node server.js\n     77 /bin/sleep 31337\n"
         XCTAssertEqual(KillProcess.parseArgs(output, names: [48211: "node", 77: "sleep"]), [48211: "node server.js", 77: "/bin/sleep 31337"])
     }
 
-    @MainActor func testParseArgsIsEmptyWithoutLinesOrWithoutArguments() {
+    @MainActor func testParseArgsIsEmptyWithoutLinesOrWithoutArguments() async {
         XCTAssertEqual(KillProcess.parseArgs("", names: [1: "a"]), [:])
         XCTAssertEqual(KillProcess.parseArgs("  555\n", names: [555: "a"]), [:], "a pid with no arguments has no entry")
     }
 
-    @MainActor func testParseArgsKeepsTheFirstLineOfAMultilineArgument() {
+    @MainActor func testParseArgsKeepsTheFirstLineOfAMultilineArgument() async {
         // An argument with a newline in it comes out as two lines; the second has no pid.
         XCTAssertEqual(KillProcess.parseArgs("  100 node -e 'a\nb'\n", names: [100: "node"]), [100: "node -e 'a"])
     }
 
-    @MainActor func testParseArgsIgnoresAPidWhoseCommandNoLongerHasItsName() {
+    @MainActor func testParseArgsIgnoresAPidWhoseCommandNoLongerHasItsName() async {
         // Pid 10 was node when it was listed; by the second call it is something else.
         XCTAssertEqual(KillProcess.parseArgs("  10 sleep 31337\n", names: [10: "node"]), [:])
     }
 
-    @MainActor func testParseArgsKeepsTheFirstLineForAPid() {
+    @MainActor func testParseArgsKeepsTheFirstLineForAPid() async {
         XCTAssertEqual(KillProcess.parseArgs("  10 node a\n  10 node b\n", names: [10: "node"]), [10: "node a"])
     }
 
-    @MainActor func testParseNeverListsProtectedProcessesOrThisOne() {
+    @MainActor func testParseNeverListsProtectedProcessesOrThisOne() async {
         let own = Int(ProcessInfo.processInfo.processIdentifier)
         let output = "  1 0.0 100 launchd\n  2 0.0 100 Dock\n  3 1.5 2000 node\n  \(own) 0.1 300 xctest\n"
         XCTAssertEqual(KillProcess.parse(output).map(\.name), ["node"])
