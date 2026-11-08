@@ -40,11 +40,12 @@ A widget keeps your cities on the desktop.
 
 ## What's new in 1.6.0
 
-- Type the cities people actually say: Mumbai, Bangalore, San Francisco, Beijing, São Paulo, and in "time in …" also NYC, SF, PST or UTC. A question mark at the end is fine.
+- Type the cities people actually say: Mumbai, Bangalore, San Francisco, Beijing, São Paulo, and in "time in …" also NYC, SF, PST or UTC. A question mark at the end is fine, and so is the curly apostrophe in "what’s the time in".
+- A name typed in full wins: "time in ist" shows India and "time in la" Los Angeles first, ahead of cities that only start with those letters.
 - A city added by its own name keeps that name, so Mumbai shows as Mumbai.
 - Settings tells you when it can't find a city, or when it's already in your list.
 - Copy times: one click copies every city's time at the slider's time, ready to paste into an invite. Also a Copy My Cities' Times command.
-- Removing the city shown in the menu bar now moves the menu bar to your next city.
+- Removing the city shown in the menu bar now moves the menu bar to your next city, and so does a city this Mac no longer recognises, instead of an empty menu bar.
 - Lighter on redraws: each clock no longer rebuilds its date formatter.
 
 ## What's new in 1.5.1

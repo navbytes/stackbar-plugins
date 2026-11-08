@@ -74,4 +74,27 @@ final class WorldClockTests: XCTestCase {
         XCTAssertTrue(text.contains("London") && text.contains("here"), text)
         await session.stop()
     }
+
+    func testAWholeNameRanksAheadOfCitiesThatStartWithIt() async throws {
+        let host = Host(self)
+        // Your own cities usually come first; these are ones that only start with what's typed.
+        try await host.services.storage.set("zones", #"["Europe/Istanbul","America/La_Paz"]"#, for: "io.navbytes.stackbar.plugins.world-clock")
+        let session = try await host.session("WorldClock")
+        for (query, zone) in [("time in ist", "Asia/Kolkata"), ("time in la", "America/Los_Angeles"), ("what’s the time in tokyo", "Asia/Tokyo")] {
+            let opened = try await session.openView("time-in", query: CommandQuery(text: query))
+            XCTAssertEqual(opened.root?.rows.first?.key, zone, query)
+        }
+        await session.stop()
+    }
+
+    func testAMenuBarCityThisMacDoesNotKnowFallsBackToTheFirstCity() async throws {
+        let host = Host(self)
+        let id = "io.navbytes.stackbar.plugins.world-clock"
+        try await host.services.storage.set("zones", #"["Mars/Olympus_Mons","Asia/Tokyo"]"#, for: id)
+        try await host.services.storage.set("menuBarZone", #""Mars/Olympus_Mons""#, for: id)
+        let supervisor = try await host.start("WorldClock")
+        let bar = await supervisor.views[.menuBar].map { TreeTextRenderer.render($0) } ?? ""
+        XCTAssertTrue(bar.contains("Tokyo"), "the first city this Mac knows takes the menu bar: \(bar)")
+        await supervisor.stop()
+    }
 }

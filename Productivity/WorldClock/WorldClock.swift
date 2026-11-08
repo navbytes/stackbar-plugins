@@ -60,7 +60,10 @@ final class WorldClock: StackbarPlugin {
     let theme = Theme.violet
 
     /// The city in the menu bar: the one picked, or the first city once that one is removed.
-    var shownZone: TimeZone? { zones.contains(menuBarZone) ? TimeZone(identifier: menuBarZone) : validZones.first }
+    /// A picked city this Mac no longer knows falls back to the first one it does.
+    var shownZone: TimeZone? {
+        validZones.first { $0.identifier == menuBarZone } ?? validZones.first
+    }
 
     var menuBar: ViewContent {
         if let zone = shownZone {
@@ -293,7 +296,7 @@ final class WorldClock: StackbarPlugin {
     func zones(named query: String) -> [TimeZone] {
         var text = Self.fold(query)
         var prefix = false
-        for lead in ["time in ", "what time is it in ", "what's the time in "] where text.hasPrefix(lead) {
+        for lead in ["time in ", "what time is it in ", "what's the time in ", "what’s the time in "] where text.hasPrefix(lead) {
             text = String(text.dropFirst(lead.count)).trimmingCharacters(in: .whitespaces)
             prefix = true
         }
@@ -307,8 +310,11 @@ final class WorldClock: StackbarPlugin {
         if prefix, let identifier = Self.shortNames[text] { found.append(identifier) }
         found += Self.cityIndex.filter { prefix ? $0.key.hasPrefix(text) : $0.key == text }.map(\.identifier)
         if prefix { found += Self.aliases.filter { $0.key.hasPrefix(text) }.map(\.value) }
+        // A name said in full ("ist", "la") beats a city that only starts with it.
+        let exact = Set([Self.aliases[text], prefix ? Self.shortNames[text] : nil].compactMap { $0 })
         let mine = Set(zones)
-        return Array(Set(found)).sorted { (mine.contains($0) ? 0 : 1, $0) < (mine.contains($1) ? 0 : 1, $1) }.compactMap(TimeZone.init(identifier:))
+        func rank(_ zone: String) -> (Int, Int, String) { (exact.contains(zone) ? 0 : 1, mine.contains(zone) ? 0 : 1, zone) }
+        return Array(Set(found)).sorted { rank($0) < rank($1) }.compactMap(TimeZone.init(identifier:))
     }
 
     /// Full city names people say, and the zone each one is in. These match
