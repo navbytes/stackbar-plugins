@@ -386,12 +386,13 @@ final class PRCockpitTests: XCTestCase {
 
     /// View Diff lists the files with each one's patch beside the list.
     func testViewDiffListsTheFilesWithTheirPatches() async throws {
-        let (_, session) = try await mineSession(Locked(Answers(mine: ["Bearer A": [5]])))
+        let (stub, session) = try await mineSession(Locked(Answers(mine: ["Bearer A": [5]])))
         _ = await action(session, "Open in browser")
         let opened = try await session.openView("files", query: CommandQuery(arguments: ["url": "https://github.example/o/r/pull/5"]))
         _ = await waitUntil { (await session.commandView(opened.session)?.rows.count ?? 0) == 2 }
         let rows = await session.commandView(opened.session)?.rows ?? []
-        XCTAssertEqual(rows.map(\.title), ["Checkout.swift", "logo.png"])
+        let shown = await session.commandView(opened.session).map { TreeTextRenderer.render($0) } ?? "(no view)"
+        XCTAssertEqual(rows.map(\.title), ["Checkout.swift", "logo.png"], "\(shown)\n\(stub.requests.all.filter { $0.contains("/files") })")
         XCTAssertEqual(rows.first?.subtitle, "Sources/App · +3 −1")
         XCTAssertEqual(rows.first?.preview?.text, "@@ -1 +1,3 @@\n-old\n+new")
         await session.stop()
