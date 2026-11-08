@@ -166,6 +166,65 @@ final class TodoTests: XCTestCase {
         }
         let remaining = await supervisor.callTool("tasks").text
         XCTAssertEqual(remaining, "No open tasks")
+
+        // A button for a task that has since gone says so, rather than showing its id.
+        let gone = await supervisor.runCommand("complete", arguments: ["task": UUID().uuidString], source: .palette)
+        XCTAssertEqual(gone, .failure("That task is no longer open"))
+        await supervisor.stop()
+    }
+
+    func testByCountsOnlyAtTheEndOfATask() async throws {
+        let host = Host(self)
+        let supervisor = try await host.start("Todo")
+        for text in ["Divide by 2", "Written by 3 authors", "Finish report by 5"] {
+            _ = await supervisor.runCommand("add", arguments: ["task": text], source: .palette)
+        }
+        let lines = await taskLines(supervisor)
+        XCTAssertTrue(lines.contains("- Divide by 2"), "a sum is not a time: \(lines)")
+        XCTAssertTrue(lines.contains("- Written by 3 authors"), "\(lines)")
+        let fivePM = calendar.date(bySettingHour: 17, minute: 0, second: 0, of: Date())!
+        XCTAssertTrue(isDue(lines, "Finish report", day(Date() < fivePM ? 0 : 1, hour: 17)), "\(lines)")
+        await supervisor.stop()
+    }
+
+    func testNumbersThatAreNotDates() async throws {
+        let host = Host(self)
+        let supervisor = try await host.start("Todo")
+        for text in ["Gym 24/7 support", "PR #12/13", "Pay 31/4"] {
+            _ = await supervisor.runCommand("add", arguments: ["task": text], source: .palette)
+        }
+        let lines = await taskLines(supervisor)
+        XCTAssertTrue(lines.contains("- Gym 24/7 support"), "24/7 means always: \(lines)")
+        XCTAssertTrue(lines.contains("- PR #12/13"), "a reference is not a date: \(lines)")
+        XCTAssertTrue(lines.contains("- Pay 31/4"), "April has no 31st, and the date is not rolled into May: \(lines)")
+        await supervisor.stop()
+    }
+
+    func testTonightAndEveningHoursAfterMidnight() async throws {
+        let host = Host(self)
+        let supervisor = try await host.start("Todo")
+        for text in ["Party tonight at 12", "Call the bank tonight at 1am", "Gym every evening at 7"] {
+            _ = await supervisor.runCommand("add", arguments: ["task": text], source: .palette)
+        }
+        let lines = await taskLines(supervisor)
+        // Tonight at 12 is the midnight at the end of today.
+        XCTAssertTrue(isDue(lines, "Party", day(1, hour: 0)), "\(lines)")
+        // Tonight at 1am is tomorrow's 1 am once today's has passed.
+        let oneAM = calendar.date(bySettingHour: 1, minute: 0, second: 0, of: Date())!
+        XCTAssertTrue(isDue(lines, "Call the bank", day(Date() < oneAM ? 0 : 1, hour: 1)), "\(lines)")
+        // A repeat with an explicit time keeps the part of the day: every evening at 7 is 7 pm.
+        let sevenPM = calendar.date(bySettingHour: 19, minute: 0, second: 0, of: Date())!
+        XCTAssertTrue(isDue(lines, "Gym", day(Date() < sevenPM ? 0 : 1, hour: 19)) && lines.contains { $0.hasPrefix("- Gym") && $0.hasSuffix("repeats daily)") }, "\(lines)")
+        await supervisor.stop()
+    }
+
+    func testAPartOfTheDayStaysInTheTitleUnlessItIsUsed() async throws {
+        let host = Host(self)
+        let supervisor = try await host.start("Todo")
+        _ = await supervisor.runCommand("add", arguments: ["task": "Evening class at 6"], source: .palette)
+        let lines = await taskLines(supervisor)
+        let sixPM = calendar.date(bySettingHour: 18, minute: 0, second: 0, of: Date())!
+        XCTAssertTrue(isDue(lines, "Evening class", day(Date() < sixPM ? 0 : 1, hour: 18)), "the title keeps evening: \(lines)")
         await supervisor.stop()
     }
 

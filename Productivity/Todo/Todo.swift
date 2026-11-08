@@ -322,7 +322,7 @@ final class Todo: StackbarPlugin {
         .fallback()
         Command("complete", title: "Mark a Todo Done", symbol: "checkmark.circle", keywords: ["todo", "task", "done", "complete", "tick"]) { invocation in
             self.now = Date()
-            guard let task = self.find(invocation["task"] ?? "") else { return .failure("No open task called \(invocation["task"] ?? "that")") }
+            guard let task = self.find(invocation["task"] ?? "") else { return self.notOpen(invocation["task"]) }
             let message = self.complete(task.id)
             await self.save()
             return .message(message)
@@ -330,7 +330,7 @@ final class Todo: StackbarPlugin {
         .argument("task", placeholder: "Item", options: open.prefix(20).map(\.title))
         Command("snooze", title: "Snooze a Todo", subtitle: "To a time you type, or an hour or a day later", symbol: "moon.zzz", keywords: ["todo", "task", "snooze", "later", "postpone"]) { invocation in
             self.now = Date()
-            guard let task = self.find(invocation["task"] ?? "") else { return .failure("No open task called \(invocation["task"] ?? "that")") }
+            guard let task = self.find(invocation["task"] ?? "") else { return self.notOpen(invocation["task"]) }
             let result = self.snooze(task.id, until: invocation["until"])
             await self.save()
             return result
@@ -761,6 +761,14 @@ final class Todo: StackbarPlugin {
         tasks[index] = task
     }
 
+    /// What a command says when no open task matches. A notification's button
+    /// names its task by id, so an id that matches nothing means the task has
+    /// been finished or deleted since the notice went out.
+    private func notOpen(_ text: String?) -> CommandResult {
+        if let text, UUID(uuidString: text) != nil { return .failure("That task is no longer open") }
+        return .failure("No open task called \(text ?? "that")")
+    }
+
     /// An open task by id, exact title, or a title that starts with or
     /// contains the words.
     private func find(_ words: String) -> Item? {
@@ -1106,9 +1114,9 @@ enum Phrase {
         if let groups = take(#"\bevery\s+(day|night|morning|evening|weekday|week|month|year|\#(fullWeekday)|\#(shortWeekday))\b"#) {
             switch groups[1] {
             case "day": result.repeats = .daily
-            case "night": result.repeats = .daily; hour = 21
-            case "morning": result.repeats = .daily; hour = 9
-            case "evening": result.repeats = .daily; hour = 18
+            case "night": result.repeats = .daily; hour = 21; partOfDay = "night"
+            case "morning": result.repeats = .daily; hour = 9; partOfDay = "morning"
+            case "evening": result.repeats = .daily; hour = 18; partOfDay = "evening"
             case "weekday": result.repeats = .weekdays
             case "week": result.repeats = .weekly
             case "month": result.repeats = .monthly
@@ -1148,19 +1156,24 @@ enum Phrase {
         }
         // "14/11" is 14 November, and so is "11/14" where the day comes second.
         // "1/2 the book" stays text unless the numbers are led by on, by or due, or have a year.
-        func numericDate(_ groups: [String]) -> (month: Int, day: Int, year: Int?)? {
+        // "24/7" means always, and "#12/13" is a reference, so neither is a date.
+        func numericDate(_ groups: [String]) -> Date? {
             guard let a = Int(groups[2]), let b = Int(groups[3]) else { return nil }
-            guard a > 12 || b > 12 || !groups[1].isEmpty || !groups[4].isEmpty else { return nil }
+            guard a > 12 || b > 12 || !groups[1].isEmpty || !groups[4].isEmpty, !(a == 24 && b == 7) else { return nil }
             let localeDayFirst = (DateFormatter.dateFormat(fromTemplate: "Md", options: 0, locale: .current) ?? "M/d").first(where: { $0 == "d" || $0 == "M" }) == "d"
             let dayFirst = a > 12 || (b <= 12 && localeDayFirst)
             let (month, day) = dayFirst ? (b, a) : (a, b)
             guard (1...12).contains(month), (1...31).contains(day) else { return nil }
-            return (month, day, Int(groups[4]).map { $0 < 100 ? 2000 + $0 : $0 })
+            let year = Int(groups[4]).map { $0 < 100 ? 2000 + $0 : $0 }
+            // Checked against the calendar, so a day the month lacks ("31/4") is not rolled into May.
+            guard let date = monthDay(months[month - 1], String(day), year.map { String($0) } ?? ""),
+                  calendar.component(.month, from: date) == month, calendar.component(.day, from: date) == day else { return nil }
+            return date
         }
-        let numeric = #"(\b(?:on|by|due)\s+)?\b(\d{1,2})/(\d{1,2})(?:/(\d{2}|\d{4}))?\b"#
-        if date == nil, let found = find(numeric, accept: { numericDate($0) != nil }), let parts = numericDate(found.groups) {
+        let numeric = #"(\b(?:on|by|due)\s+)?(?<![#\w])(\d{1,2})/(\d{1,2})(?:/(\d{2}|\d{4}))?\b"#
+        if date == nil, let found = find(numeric, accept: { numericDate($0) != nil }) {
             remove(found.range)
-            date = monthDay(months[parts.month - 1], String(parts.day), parts.year.map { String($0) } ?? "")
+            date = numericDate(found.groups)
         }
         if date == nil, let groups = take(lead + #"\b"# + month + #"\.?\s+(\d{1,2})(?:st|nd|rd|th)?\b(?:,?\s+(\d{4})\b)?"#) {
             date = monthDay(groups[1], groups[2], groups[3])
@@ -1187,9 +1200,9 @@ enum Phrase {
             } else if let groups = take(lead + #"\btoday(?:\s+(morning|afternoon|evening|night))?\b"#) {
                 date = today
                 if !groups[1].isEmpty { partOfDay = groups[1] }
-            } else if take(#"\btonight\b"#) != nil {
+            } else if let groups = take(#"\btonight(?:\s+(morning|afternoon|evening|night))?\b"#) {
                 date = today
-                partOfDay = "night"
+                partOfDay = groups[1].isEmpty ? "night" : groups[1]
             } else if let groups = take(lead + #"\b(this\s+|next\s+)?weekend\b"#) {
                 let saturday = upcoming(7, includingToday: true)
                 let weekday = calendar.component(.weekday, from: today)
@@ -1214,8 +1227,12 @@ enum Phrase {
             }
         }
 
-        // A part of the day said on its own ("this evening", "in the morning").
-        if partOfDay == nil, let groups = take(#"\b(?:this\s+|in\s+the\s+)?(morning|afternoon|evening)\b"#) { partOfDay = groups[1] }
+        // A part of the day comes out of the title only where it is used as one: after this,
+        // in the, tomorrow, tonight or a weekday, or as the last word. "Evening class at 6"
+        // keeps its title. The day words above take their own part of the day.
+        if partOfDay == nil, let groups = take(#"\b(?:this|in\s+the|tomorrow|tonight|monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tues?|wed|thu(?:rs?)?|fri|sat|sun)\s+(morning|afternoon|evening)\b|\b(morning|afternoon|evening)\s*$"#) {
+            partOfDay = groups[1].isEmpty ? groups[2] : groups[1]
+        }
 
         // Times of day.
         if exact == nil {
@@ -1228,7 +1245,10 @@ enum Phrase {
                 let value = Int(groups[1]) ?? 0
                 hour = groups[1].count == 1 && (1...6).contains(value) ? value + 12 : value
                 minute = Int(groups[2]) ?? 0
-            } else if let groups = take(#"(?:\bat|\bby|@)\s*(\d{1,2})\b(?![:.]?\d|\s*(?:%|st|nd|rd|th|minutes?|mins?|hours?|days?|kg|lbs?|km|mi(?:les?)?|pages?|people|percent|points?|x\b))"#), let value = Int(groups[1]), (0...23).contains(value) {
+            } else if let groups = take(#"(?:\bat|@)\s*(\d{1,2})\b(?![:.]?\d|\s*(?:%|st|nd|rd|th|minutes?|mins?|hours?|days?|kg|lbs?|km|mi(?:les?)?|pages?|people|percent|points?|x\b))"#)
+                        // "by 5" is a time only at the end of a task, and not after a verb that makes it an operator.
+                        ?? take(#"(?<!divide )(?<!divided )(?<!multiply )(?<!multiplied )(?<!split )(?<!group )(?<!sort )(?<!scale )\bby\s*(\d{1,2})\b(?=\s*$)"#),
+                      let value = Int(groups[1]), (0...23).contains(value) {
                 hour = (1...6).contains(value) ? value + 12 : value
                 bareHour = true
             } else if let groups = take(#"(?:\bat\s+)?\b(noon|midday)\b"#), !groups.isEmpty {
@@ -1239,11 +1259,13 @@ enum Phrase {
             }
         }
 
-        // A bare hour takes the part of the day: "7 this evening" is 7 pm.
-        // Said with am or pm, the hour is kept as it was given.
+        // An hour with no am or pm takes the part of the day: "at 7 this evening" is 7 pm.
+        // A part of the day with no hour takes its usual hour. Said with am or pm, the hour is kept.
         if let partOfDay {
             if let h = hour {
                 if partOfDay != "morning", h < 12, !amPm { hour = h + 12 }
+                // "tonight at 12" is midnight, the end of the evening, so it is the next one.
+                else if h == 12, !amPm, partOfDay == "night" || partOfDay == "evening" { hour = 0 }
             } else {
                 hour = ["morning": 9, "afternoon": 14, "evening": 18, "night": 20][partOfDay]
             }
@@ -1255,7 +1277,9 @@ enum Phrase {
         } else if let hour {
             var base = date ?? today
             var due = calendar.date(bySettingHour: hour, minute: minute, second: 0, of: base) ?? base
-            if date == nil && due <= now {
+            // "tonight at 1am" is after midnight, so once that 1 am has passed it is tomorrow's.
+            let afterMidnight = (partOfDay == "night" || partOfDay == "evening") && hour < 6
+            if (date == nil || afterMidnight) && due <= now {
                 // A bare "at 8" that has already passed today means 8 pm, if that is still to come.
                 if bareHour, partOfDay == nil, result.repeats == nil, (7...11).contains(hour),
                    let evening = calendar.date(bySettingHour: hour + 12, minute: minute, second: 0, of: today), evening > now {
