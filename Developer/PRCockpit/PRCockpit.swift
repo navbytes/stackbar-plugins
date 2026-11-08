@@ -1136,11 +1136,13 @@ final class PRCockpit: StackbarPlugin {
         return "\(Int(seconds / 86400))d"
     }
 
-    func row(_ pr: PullRequest, showAuthor: Bool, palette: Bool = false) -> Row {
+    /// `place` keeps the window's copy of a row apart from the panel's, so
+    /// each one's actions (and their confirmations) have ids of their own.
+    func row(_ pr: PullRequest, showAuthor: Bool, palette: Bool = false, place: String = "") -> Row {
         let size = pr.additions.map { "+\($0) −\(pr.deletions ?? 0)" }
         let comments = (pr.comments?.totalCount ?? 0) >= 5 ? "\(pr.comments?.totalCount ?? 0) comments" : nil
         let subtitle = [pr.id, showAuthor ? pr.author.map { "by \($0.login)" } : nil, size, comments, Self.ago(pr.updatedAt)].compactMap { $0 }.joined(separator: " · ")
-        var row = Row(pr.title, subtitle: subtitle, symbol: isNew(pr) ? "circle.fill" : pr.isDraft ? "pencil.circle" : "arrow.triangle.pull", key: pr.url)
+        var row = Row(pr.title, subtitle: subtitle, symbol: isNew(pr) ? "circle.fill" : pr.isDraft ? "pencil.circle" : "arrow.triangle.pull", key: place + pr.url)
         for badge in badges(pr, mine: !showAuthor).prefix(2) { row = row.badge(badge.text, role: badge.role) }
         if clickShowsChecks && !palette {
             row = row.action(expanded == pr.url ? "Hide checks" : "Show checks") { await self.toggleChecks(pr) }
@@ -1381,10 +1383,10 @@ final class PRCockpit: StackbarPlugin {
         if let lastError { Banner(lastError) }
         List(searchable: true) {
             Section("Waiting on your review (\(shownReview.count))") {
-                ForEach(shownReview) { pr in rowWithChecks(pr, showAuthor: true) }
+                ForEach(shownReview) { pr in rowWithChecks(pr, showAuthor: true, place: "window-") }
             }
             Section("Yours (\(shownMine.count))") {
-                ForEach(shownMine) { pr in rowWithChecks(pr, showAuthor: false) }
+                ForEach(shownMine) { pr in rowWithChecks(pr, showAuthor: false, place: "window-") }
             }
         }
         if !recentlyClosed.isEmpty {
@@ -2157,8 +2159,8 @@ extension PRCockpit {
     }
 
     /// A pull request's row, with its checks under it while it is open.
-    @ViewBuilder func rowWithChecks(_ pr: PullRequest, showAuthor: Bool) -> ViewContent {
-        row(pr, showAuthor: showAuthor)
+    @ViewBuilder func rowWithChecks(_ pr: PullRequest, showAuthor: Bool, place: String = "") -> ViewContent {
+        row(pr, showAuthor: showAuthor, place: place)
         if expanded == pr.url { checkRows(pr.url) }
     }
 
