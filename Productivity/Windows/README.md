@@ -24,12 +24,21 @@ can uninstall it from its page in Settings.
 - **Settings:** the gap left around snapped windows, bring back the starred
   layout when displays change, open apps that aren't running, cycle sizes on
   repeated halves, and the menu bar icon.
-- **Commands:** one per snap, Save Window Layout, Restore Window Layout, and
+- **Commands:** one per snap, Save Window Layout (optionally only some
+  apps), Restore Window Layout, Edit Window Layout, Export and Import Window
+  Layouts, and
   one Restore command per layout, so each layout can have its own hotkey or
   alias.
 - **Agent tools:** `snap`, `layouts`, `save_layout` and `restore_layout`.
 - **Not covered:** windows in full screen and on other Spaces, and browser
   tabs.
+
+## What's new in 2.4.0
+
+- Save Window Layout can keep only some apps: fill in "apps" with `Xcode, Safari` and only their windows are saved.
+- Edit Window Layout lists a layout's windows so you can take one out.
+- Export and Import Window Layouts keep your layouts in a file, for a backup or another Mac.
+- On Stackbar 0.36.0 and later, two identical monitors keep their own layouts when they are reconnected in a different order.
 
 ## What's new in 2.3.0
 

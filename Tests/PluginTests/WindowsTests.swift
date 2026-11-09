@@ -232,4 +232,25 @@ final class WindowsTests: XCTestCase {
         let shrunk = Windows.frame(smaller, window: WindowRect(x: 100, y: 100, width: 200, height: 160), visible: visible)
         XCTAssertEqual(shrunk?.width, 200, "never smaller than a fifth")
     }
+
+    func testALayoutCanKeepOnlySomeAppsAndLoseAWindow() async throws {
+        let host = Host(self)
+        let supervisor = try await host.start("Windows")
+        let desk = host.system.currentWindows
+        let first = desk.windows[0]
+        guard case .message(let saved) = await supervisor.runCommand("save", arguments: ["name": "Code", "apps": first.appName], source: .palette) else { return XCTFail("save saves") }
+        let count = desk.windows.filter { $0.appID == first.appID }.count
+        XCTAssertTrue(saved?.contains(count == 1 ? "1 window" : "\(count) windows") == true, saved ?? "")
+        guard case .failure = await supervisor.runCommand("save", arguments: ["name": "None", "apps": "No Such App"], source: .palette) else { return XCTFail("nothing to save") }
+        await supervisor.stop()
+    }
+
+    @MainActor
+    func testAppNamesMatchByNameOrBundleID() {
+        let placement = WindowPlacement(appID: "com.apple.Safari", appName: "Safari", frame: WindowRect(x: 0, y: 0, width: 1, height: 1))
+        XCTAssertTrue(Windows.matches(placement, Windows.appNames(" xcode , SAFARI")))
+        XCTAssertTrue(Windows.matches(placement, Windows.appNames("com.apple.safari")))
+        XCTAssertFalse(Windows.matches(placement, Windows.appNames("Xcode")))
+        XCTAssertTrue(Windows.matches(placement, []))
+    }
 }
