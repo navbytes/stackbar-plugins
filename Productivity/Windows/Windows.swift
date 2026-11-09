@@ -17,7 +17,7 @@ final class Windows: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.workspaces",
         name: "Windows",
-        version: "2.2.0",
+        version: "2.3.0",
         summary: "Snap the front window to halves, thirds or quarters, and save where your windows go for each monitor setup.",
         surfaces: [.menuBar, .panel, .settings],
         triggers: [.launch, .wake, .displays],
@@ -261,6 +261,8 @@ final class Windows: StackbarPlugin {
         Snap(id: "center", title: "Center", symbol: "rectangle.center.inset.filled", group: "Screen", keywords: ["middle"]),
         Snap(id: "next-display", title: "Next Display", symbol: "rectangle.portrait.and.arrow.forward", group: "Screen", keywords: ["monitor", "screen", "move"]),
         Snap(id: "previous-display", title: "Previous Display", symbol: "arrow.left.to.line", group: "Screen", keywords: ["monitor", "screen", "move", "back"]),
+        Snap(id: "make-larger", title: "Make Larger", symbol: "arrow.up.left.and.arrow.down.right", group: "Screen", keywords: ["grow", "bigger", "resize"]),
+        Snap(id: "make-smaller", title: "Make Smaller", symbol: "arrow.down.right.and.arrow.up.left", group: "Screen", keywords: ["shrink", "resize"]),
         Snap(id: "undo-snap", title: "Undo Snap", symbol: "arrow.uturn.backward", group: "Screen", keywords: ["restore", "undo", "back"]),
     ]
 
@@ -282,6 +284,15 @@ final class Windows: StackbarPlugin {
                 height: (area.height * unit.height - top - bottom).rounded()
             )
         }
+        if snap.id == "make-larger" || snap.id == "make-smaller" {
+            // A tenth of the screen at a time, from the window's middle, kept on screen.
+            let sign = snap.id == "make-larger" ? 1.0 : -1.0
+            let width = min(max(frame.width + sign * area.width / 10, area.width / 5), area.width)
+            let height = min(max(frame.height + sign * area.height / 10, area.height / 5), area.height)
+            let x = min(max(frame.midX - width / 2, area.x), area.x + area.width - width)
+            let y = min(max(frame.midY - height / 2, area.y), area.y + area.height - height)
+            return WindowRect(x: x.rounded(), y: y.rounded(), width: width.rounded(), height: height.rounded())
+        }
         if snap.id == "center" {
             let width = min(frame.width, area.width)
             let height = min(frame.height, area.height)
@@ -290,20 +301,24 @@ final class Windows: StackbarPlugin {
         return nil
     }
 
-    /// The same place, relative to its display, on `next`.
+    /// The same place and size, relative to its display, on `next`: a half
+    /// on the laptop is a half on the big display.
     static func moved(_ frame: WindowRect, from current: WindowRect, to next: WindowRect) -> WindowRect {
-        let width = min(frame.width, next.width)
-        let height = min(frame.height, next.height)
-        let fx = current.width > width ? (frame.x - current.x) / (current.width - width) : 0
-        let fy = current.height > height ? (frame.y - current.y) / (current.height - height) : 0
         let clamp = { (value: Double) in min(max(value, 0), 1) }
+        let width = min(next.width * clamp(frame.width / max(current.width, 1)), next.width)
+        let height = min(next.height * clamp(frame.height / max(current.height, 1)), next.height)
+        let fx = current.width > frame.width ? (frame.x - current.x) / (current.width - frame.width) : 0
+        let fy = current.height > frame.height ? (frame.y - current.y) / (current.height - frame.height) : 0
         return WindowRect(
             x: (next.x + clamp(fx) * (next.width - width)).rounded(),
             y: (next.y + clamp(fy) * (next.height - height)).rounded(),
-            width: width,
-            height: height
+            width: width.rounded(),
+            height: height.rounded()
         )
     }
+
+    /// Snaps that are commands only, to keep the panel's grid to one row.
+    static let commandOnly: Set<String> = ["previous-display", "make-larger", "make-smaller"]
 
     /// The four halves: the snaps that cycle through two thirds and one third.
     static let halfIDs: Set<String> = ["left-half", "right-half", "top-half", "bottom-half"]
@@ -444,7 +459,7 @@ final class Windows: StackbarPlugin {
         }
         Card("Snap the front window", spacing: Space.xs, padding: Space.s) {
             Grid(columns: 9, spacing: Space.xs) {
-                ForEach(Self.snaps.filter { $0.id != "previous-display" }) { snap in
+                ForEach(Self.snaps.filter { !Self.commandOnly.contains($0.id) }) { snap in
                     IconButton(snap.symbol, label: snap.title, theme: theme, key: "snap-\(snap.id)") {
                         switch await self.apply(snap) {
                         case .failure(let text):
