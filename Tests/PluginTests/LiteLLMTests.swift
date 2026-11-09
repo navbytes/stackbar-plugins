@@ -179,11 +179,11 @@ final class LiteLLMTests: XCTestCase {
         try host.services.secrets.setSecret("http://127.0.0.1:\(stub.port)", for: "LITELLM_PROXY_URL")
         try host.services.secrets.setSecret("k", for: "LITELLM_API_KEY")
         let supervisor = try await host.start("LiteLLM")
-        _ = await waitUntil { await self.panelText(supervisor).contains("Today by model") }
+        _ = await waitUntil { await self.panelText(supervisor).contains("TODAY BY MODEL") }
         let panel = await panelText(supervisor)
-        XCTAssertTrue(panel.contains("Today by model"), panel)
-        XCTAssertTrue(panel.contains("$0.06 · 600.0K tokens"), panel)
-        XCTAssertTrue(panel.contains("$0.04 · 400.0K tokens"), panel)
+        XCTAssertTrue(panel.contains("TODAY BY MODEL"), panel)
+        XCTAssertTrue(panel.contains("$0.06 · 600K tokens"), panel)
+        XCTAssertTrue(panel.contains("$0.04 · 400K tokens"), panel)
         let sonnet = panel.range(of: "claude-sonnet")?.lowerBound, mini = panel.range(of: "gpt-mini")?.lowerBound
         XCTAssertTrue(sonnet != nil && mini != nil && sonnet! < mini!, panel)
         await supervisor.stop()
