@@ -10,7 +10,7 @@ final class ColorPicker: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.color-picker",
         name: "Color Picker",
-        version: "1.2.0",
+        version: "1.3.0",
         summary: "Pick a color from anywhere on screen and copy it as hex, RGB or HSL.",
         surfaces: [.panel, .settings],
         triggers: [.launch],
@@ -80,7 +80,14 @@ final class ColorPicker: StackbarPlugin {
     func row(_ picked: Picked) -> Row {
         guard let color = PickedColor(hex: picked.hex) else { return Row(picked.hex) }
         var row = Row(Self.text(color, as: chosenFormat), subtitle: Format.allCases.filter { $0 != chosenFormat }.map { Self.text(color, as: $0) }.joined(separator: " · "), symbol: "circle.fill", key: picked.hex)
-            .preview(text: "\(color.hex)\n\(color.rgb)\n\(color.hsl)", caption: picked.at.formatted(date: .abbreviated, time: .shortened))
+            .preview(text: "\(color.hex)\n\(color.rgb)\n\(color.hsl)", caption: picked.at.formatted(date: .abbreviated, time: .shortened)) {
+                // The color itself, then each way to write it. Older hosts show the text.
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(.hex(color.hex))
+                    .stroke(.hex("#0000001A", dark: "#FFFFFF26"))
+                    .frame(height: 120, fillWidth: true)
+                ForEach(Format.allCases) { format in Metadata(format.rawValue, Self.text(color, as: format)) }
+            }
         // The chosen format first, so Return copies it. ⌘1 to ⌘9 belong to the host (they pick a row), so these use ⌘⇧ letters.
         let shortcuts: [Format: String] = [.hex: "cmd+shift+x", .rgb: "cmd+shift+r", .hsl: "cmd+shift+l", .swiftUI: "cmd+shift+s"]
         for format in [chosenFormat] + Format.allCases.filter({ $0 != chosenFormat }) {

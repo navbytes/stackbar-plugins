@@ -13,6 +13,18 @@ final class ColorPickerTests: XCTestCase {
         await session.stop()
     }
 
+    func testPickedColorsPreviewASwatch() async throws {
+        let host = Host(self)
+        try await host.services.storage.set("history", ##"[{"hex":"#0A60C8","at":0}]"##, for: "io.navbytes.stackbar.plugins.color-picker")
+        let session = try await host.session("ColorPicker")
+        let opened = try await session.openView("history")
+        let row = (await session.commandView(opened.session)?.rows ?? opened.root?.rows ?? []).first
+        let preview = try XCTUnwrap(row?.preview)
+        XCTAssertNotNil(preview.shownView, "a swatch, within the host's budget")
+        XCTAssertTrue(preview.text?.contains("#0A60C8") ?? false, "search and older hosts keep the text")
+        await session.stop()
+    }
+
     func testPickedRowsDontClaimCommandDigits() async throws {
         let session = try await Host(self).session("ColorPicker")
         _ = try await session.runCommand("pick")
