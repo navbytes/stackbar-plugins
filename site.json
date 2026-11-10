@@ -1312,6 +1312,52 @@
       ],
       "version": "1.5.0"
     },
+    "io.navbytes.stackbar.plugins.notes": {
+      "changes": [
+        {
+          "notes": [
+            "First release: a floating note pad with live Markdown, checklists, pins, search, Recently Deleted and Markdown export."
+          ],
+          "version": "1.0.0"
+        }
+      ],
+      "description": "A floating Markdown note pad on a hotkey, like Raycast Notes. Press \u2303\u2325N, or\nclick the menu-bar icon, and a small window floats over whatever you are\ndoing with the note you were last in. Press it again to put it away.",
+      "facts": [
+        {
+          "label": "Writing",
+          "text": "Markdown is styled as you type: headings, **bold**, *italic*, ~~strikethrough~~, `code`, quotes, links, lists and checklists. \u2318B, \u2318I, \u21e7\u2318X, \u2318E and \u2318K format the selection; Return continues a list and Tab indents it; \u2318Return or a click on the box ticks a task. The first line is the note's title."
+        },
+        {
+          "label": "Saving",
+          "text": "every word is saved as you type, even when you close the window mid-sentence. Notes stay on this Mac."
+        },
+        {
+          "label": "Finding",
+          "text": "the list button shows every note, pinned ones first, with checklist progress. \"Search Notes\" in the palette (alias `notes`) finds a note by any word in it. Back and Forward step through the notes you opened."
+        },
+        {
+          "label": "Getting notes out",
+          "text": "copy a note as Markdown, save it as a `.md` file, or ask Ask AI about it."
+        },
+        {
+          "label": "Deleting",
+          "text": "a deleted note waits in Recently Deleted for 30 days."
+        },
+        {
+          "label": "Needs",
+          "text": "64 MB of storage. Stackbar 0.38.0 or later."
+        },
+        {
+          "label": "Surfaces",
+          "text": "menu bar (a click shows or hides the pad; right-click for the list), panel, window. The window floats until you unpin it with the pin in its title bar."
+        },
+        {
+          "label": "Commands",
+          "text": "Notes (show or hide the pad, \u2303\u2325N), Create Note, Search Notes."
+        }
+      ],
+      "version": "1.0.0"
+    },
     "io.navbytes.stackbar.plugins.openrouter": {
       "changes": [
         {
@@ -3989,6 +4035,18 @@
         }
       }
     },
+    "io.navbytes.stackbar.plugins.notes": {
+      "1.0.0": {
+        "menuBar": {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.notes/1.0.0/dark/menuBar.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.notes/1.0.0/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.notes/1.0.0/dark/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.notes/1.0.0/light/panel.png"
+        }
+      }
+    },
     "io.navbytes.stackbar.plugins.openrouter": {
       "1.0.0": {
         "menuBar": {
@@ -6600,6 +6658,31 @@
           "name": "widget",
           "surface": "widget",
           "title": "Now playing, on your desktop"
+        }
+      ]
+    },
+    "io.navbytes.stackbar.plugins.notes": {
+      "1.0.0": [
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.notes/1.0.0/dark/previews/hero/window.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.notes/1.0.0/light/previews/hero/window.png",
+          "name": "hero",
+          "surface": "window",
+          "title": "A note pad that floats over your work"
+        },
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.notes/1.0.0/dark/previews/all-notes/window.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.notes/1.0.0/light/previews/all-notes/window.png",
+          "name": "all-notes",
+          "surface": "window",
+          "title": "Every note, pinned ones first"
+        },
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.notes/1.0.0/dark/previews/panel/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.notes/1.0.0/light/previews/panel/panel.png",
+          "name": "panel",
+          "surface": "panel",
+          "title": "Your notes from the menu bar"
         }
       ]
     },
