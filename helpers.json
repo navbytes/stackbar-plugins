@@ -1420,6 +1420,19 @@
     },
     {
       "arch": "arm64",
+      "id": "io.navbytes.stackbar.clipboard",
+      "protocol": 27,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "ba4e0076f606c87be631ddf9ed9bdf67ebb31dae6663cd982c7aa05fae14e359",
+      "signature": "mYvXQLtjpwlvs4vuG3FQH1lwMlRkSvIiJRI5p0hLGdhRzj0TnuHRnbihS7+xSGwfVYlViCwPWoBAO/lpJX0zCw==",
+      "size": 6116712,
+      "sourceDigest": "e20a2b7c44201ff738f1edd18939a92708b6ee4dd03062cc7687e9c9ca92aa8f",
+      "stackbarKit": "e2b141a0f16a523d6dd15c86b8e74ed93ad042cefb736916dcfad43400ef5bec",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-e2b141a0f16a523d/Clipboard-e20a2b7c4420",
+      "version": "1.15.0"
+    },
+    {
+      "arch": "arm64",
       "id": "io.navbytes.stackbar.plugins.color-picker",
       "protocol": 27,
       "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
@@ -1482,6 +1495,19 @@
       "stackbarKit": "e2b141a0f16a523d6dd15c86b8e74ed93ad042cefb736916dcfad43400ef5bec",
       "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-e2b141a0f16a523d/FileSearch-c9b5d7c3bd59",
       "version": "1.0.2"
+    },
+    {
+      "arch": "arm64",
+      "id": "io.navbytes.stackbar.plugins.git-sync",
+      "protocol": 27,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "83155a4eb4e3164fe44966c089dc012edc89c29601c2f12cde470da07e0fbc4c",
+      "signature": "k5nVuwYna9d4tgHQJURl3UjIKgK/ineqqIP3sGIHuiiaJzS/2ZyF6/wH0nGDJFAe5YawEnWvT+/lnZxZK4JGBA==",
+      "size": 6558072,
+      "sourceDigest": "4f443080d4d5be3e40e5ccc05a93178a2ce6de996ae4ed2bb2d0089b9fb9720e",
+      "stackbarKit": "e2b141a0f16a523d6dd15c86b8e74ed93ad042cefb736916dcfad43400ef5bec",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-e2b141a0f16a523d/GitSync-4f443080d4d5",
+      "version": "1.2.0"
     },
     {
       "arch": "arm64",
@@ -1605,6 +1631,19 @@
       "id": "io.navbytes.stackbar.pr-cockpit",
       "protocol": 27,
       "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "0f20e1ebef9767506f0a10a18ce6483c070402af740eaa07e85d572658c32ed2",
+      "signature": "gabg0G5w809saDhV0StgbqeGmhqOXqZHmeuEYJW+F7HAxtDyB7VldHFgUZP5R6K22TbPN/HXAb8EGgn6pUwRBg==",
+      "size": 7423560,
+      "sourceDigest": "88c81008f8db0c08569452d0031ae75655158ce92f48271c0e4f92f0b8330e88",
+      "stackbarKit": "e2b141a0f16a523d6dd15c86b8e74ed93ad042cefb736916dcfad43400ef5bec",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-e2b141a0f16a523d/PRCockpit-88c81008f8db",
+      "version": "1.15.0"
+    },
+    {
+      "arch": "arm64",
+      "id": "io.navbytes.stackbar.pr-cockpit",
+      "protocol": 27,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
       "sha256": "061773e67cacf875c42c86baa21d2348a90d1db12358432f19d9d97bed0cb8b8",
       "signature": "M6DVc4UbYgvqqKXAWwLcmapbTY/vJhO1J5CST3ki3JgDeZZCu6f1KYqTsQant+1qIrysNqxk0RpFSTZuqRaqDg==",
       "size": 7423560,
@@ -1664,6 +1703,19 @@
       "stackbarKit": "e2b141a0f16a523d6dd15c86b8e74ed93ad042cefb736916dcfad43400ef5bec",
       "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-e2b141a0f16a523d/RecentProjects-3bf8b08fa7a3",
       "version": "1.4.0"
+    },
+    {
+      "arch": "arm64",
+      "id": "io.navbytes.stackbar.plugins.recent-projects",
+      "protocol": 27,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "1daa0a67aeddaf37d60e5bf53a7c54b2b18e1afb0bbd3d91405a2f2480c1e980",
+      "signature": "AL9FYfBpmK5nwizDy0c9W4DOWmN1GsiytVH3S81951/yidjk2uoxOf4QVKiCOrfEpJMaY94r6Cl/8FcxnIViBQ==",
+      "size": 5965040,
+      "sourceDigest": "5d599a4dd36006397433836ca146ee1fa9316353885eb1d2ccbe8e72489976cd",
+      "stackbarKit": "e2b141a0f16a523d6dd15c86b8e74ed93ad042cefb736916dcfad43400ef5bec",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-e2b141a0f16a523d/RecentProjects-5d599a4dd360",
+      "version": "1.5.0"
     },
     {
       "arch": "arm64",
