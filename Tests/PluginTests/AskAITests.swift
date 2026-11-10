@@ -134,20 +134,25 @@ final class AskAITests: XCTestCase {
         try host.services.secrets.setSecret("http://127.0.0.1:\(stub.port)/", for: "LITELLM_PROXY_URL")
         try host.services.secrets.setSecret("sk-lite", for: "LITELLM_API_KEY")
         let supervisor = try await host.start("AskAI")
-        func settings() async -> String { await supervisor.views[.settings].map { TreeTextRenderer.render($0) } ?? "" }
 
         await supervisor.press("picker/Ask", value: .text("LiteLLM"))
-        let listed = await waitUntil { await settings().contains("gpt-5-mini") }
-        XCTAssertTrue(listed, await settings())
+        let listed = await waitUntil { await self.text(supervisor, .settings).contains("gpt-5-mini") }
+        let shown = await self.text(supervisor, .settings)
+        XCTAssertTrue(listed, shown)
         XCTAssertTrue(stub.requests.all.contains { $0.hasPrefix("GET /v1/models Bearer sk-lite") }, "\(stub.requests.all)")
 
         await supervisor.press("picker/litellm-model", value: .text("gpt-5-mini"))
         await supervisor.press("field/Ask anything, then Return", value: .text("2+2?"))
-        let answered = await waitUntil { await supervisor.views[.panel].map { TreeTextRenderer.render($0) }?.contains("Four") ?? false }
-        XCTAssertTrue(answered, await supervisor.views[.panel].map { TreeTextRenderer.render($0) } ?? "")
+        let answered = await waitUntil { await self.text(supervisor, .panel).contains("Four") }
+        let panelText = await self.text(supervisor, .panel)
+        XCTAssertTrue(answered, panelText)
         let asked = stub.requests.all.first { $0.hasPrefix("POST /v1/chat/completions") } ?? ""
         XCTAssertTrue(asked.contains("Bearer sk-lite") && asked.contains(#""model":"gpt-5-mini""#), asked)
         await supervisor.stop()
+    }
+
+    private func text(_ supervisor: PluginSupervisor, _ surface: Surface) async -> String {
+        await supervisor.views[surface].map { TreeTextRenderer.render($0) } ?? ""
     }
     #endif
 }
