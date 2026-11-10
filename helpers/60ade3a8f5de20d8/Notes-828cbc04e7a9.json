@@ -1,0 +1,13 @@
+{
+  "arch" : "arm64",
+  "id" : "io.navbytes.stackbar.plugins.notes",
+  "protocol" : 29,
+  "publicKey" : "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+  "sha256" : "12ab7f3f0ad5639a52006d9ce8aef61df364cc1bf7eb2680f6bf962d6da537b9",
+  "signature" : "qEWrB5gW3nKE7ZqkAdY52pmrNyeWx5pIV9MuTxHfKfz5TtvBpgY7PaXSnjL1dC5xBswwW049VCShzXtiqjzhDw==",
+  "size" : 6138216,
+  "sourceDigest" : "828cbc04e7a9ceeaf7af0d607779fa25c971ecbfee9f0b245a7ba8c67ae717ff",
+  "stackbarKit" : "60ade3a8f5de20d8a043c16d253285345bd81b5d686e024a28da0657d4d29425",
+  "url" : "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-60ade3a8f5de20d8/Notes-828cbc04e7a9",
+  "version" : "1.0.0"
+}

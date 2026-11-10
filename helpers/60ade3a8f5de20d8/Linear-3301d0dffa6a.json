@@ -1,0 +1,13 @@
+{
+  "arch" : "arm64",
+  "id" : "io.navbytes.stackbar.plugins.linear",
+  "protocol" : 29,
+  "publicKey" : "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+  "sha256" : "b21a69e7353a4c3ce373c399154c0ff6e853544312764e2fd9f33888b47c28e2",
+  "signature" : "wPGsHkJWmpfXIlnfys4FGsXlZk9N+1nKyeOLEL3DoSlE7NDvVBd9XtVLEmvckKdkde/Pua4vukxFR9V2k9oYBg==",
+  "size" : 6924360,
+  "sourceDigest" : "3301d0dffa6abc6f3014c98a020ce57b67d2258c12b68b99b6688a879f552214",
+  "stackbarKit" : "60ade3a8f5de20d8a043c16d253285345bd81b5d686e024a28da0657d4d29425",
+  "url" : "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-60ade3a8f5de20d8/Linear-3301d0dffa6a",
+  "version" : "1.8.0"
+}

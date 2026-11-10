@@ -1,0 +1,13 @@
+{
+  "arch" : "arm64",
+  "id" : "io.navbytes.stackbar.plugins.music",
+  "protocol" : 29,
+  "publicKey" : "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+  "sha256" : "bfeea17ac4f7a5f7bcc5a346627cb479707b58c7902fded1294e1aaf90d7f48d",
+  "signature" : "vRnqGTRo4B4BZdAu6GWBG9bZh7UjMRkY1raTSBzxDQwc2Y14iat5L29K3XJUXEpT0B1JyPYy3KgVztkpodAnCA==",
+  "size" : 6159992,
+  "sourceDigest" : "5a6cc66a6b7a3aff3a8e2cfe141b4d00bbe4f11ad117ea27df78c5019a5ca025",
+  "stackbarKit" : "60ade3a8f5de20d8a043c16d253285345bd81b5d686e024a28da0657d4d29425",
+  "url" : "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-60ade3a8f5de20d8/Music-5a6cc66a6b7a",
+  "version" : "1.5.0"
+}
