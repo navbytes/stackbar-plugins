@@ -55,6 +55,7 @@ An update that asks for something new waits for your approval.
 | [Emoji](Productivity/Emoji) | Productivity | Search every emoji by name in a grid, and paste it where you were typing. |
 | [File Search](Productivity/FileSearch) | Productivity | Find files and folders by name from the command palette, most recently used first. |
 | [Music](Productivity/Music) | Productivity | What's playing in Music or Spotify, with play, pause, skip and volume. |
+| [Notes](Productivity/Notes) | Productivity | A floating Markdown note pad on a hotkey, with checklists, pins and search. |
 | [Pomodoro](Productivity/Pomodoro) | Productivity | A focus timer with presets, a progress ring, tags, long breaks and a week of focus in a chart. |
 | [Quicklinks](Productivity/Quicklinks) | Productivity | Open links and folders by name, with placeholders filled in. |
 | [Snippets](Productivity/Snippets) | Productivity | Paste text by name, with placeholders filled in. |
