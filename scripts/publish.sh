@@ -7,10 +7,17 @@
 # <site dir> is a checkout of the gh-pages branch. Published bundles are never
 # rewritten: a version that is already there with different source fails, so
 # a change must raise the plugin's version.
+#
+# The store's name, publisher, homepage and website, and the plugins it leaves
+# out, come from store.json (and an organization's store.override.json).
 set -eu
 SITE=$1
 KEY=$2
 cd "$(dirname "$0")/.."
+NAME=$(python3 scripts/store_config.py get name)
+PUBLISHER=$(python3 scripts/store_config.py get publisher)
+HOMEPAGE=$(python3 scripts/store_config.py get homepage)
+WEBSITE=$(python3 scripts/store_config.py get website)
 
 swift build -c release --product stackbarctl
 CTL="$(swift build -c release --show-bin-path)/stackbarctl"
@@ -84,6 +91,10 @@ PY
 for source in */*/*.swift Community/*/*/*.swift; do
     [ -f "$source" ] || continue
     case "$source" in scripts/*|.build/*|Tests/*) continue ;; esac
+    if python3 scripts/store_config.py excluded "$(dirname "$source")"; then
+        echo "left out (store config): $source"
+        continue
+    fi
     category=${source%%/*}
     first=$("$CTL" manifest "$source" | head -1)          # "Name 1.2.0 (io.navbytes...)"
     id=$(echo "$first" | sed -n 's/.*(\(.*\))$/\1/p')
@@ -106,7 +117,7 @@ PY
         render_demo "$category" "$id" "$version" "$source"
         continue
     fi
-    "$CTL" sign "$source" --publisher navbytes --key "$KEY" -o "$bundle"
+    "$CTL" sign "$source" --publisher "$PUBLISHER" --key "$KEY" -o "$bundle"
     render_shots "$category" "$id" "$version" "$source"
     render_demo "$category" "$id" "$version" "$source"
     shots="$SITE/$category/shots/$id/$version/light"
@@ -116,8 +127,8 @@ PY
     echo "published: $id $version"
 done
 
-"$CTL" index build "$SITE" --name "Stackbar Plugins by navbytes" \
-    --homepage https://github.com/navbytes/stackbar-plugins \
+"$CTL" index build "$SITE" --name "$NAME" \
+    --homepage "$HOMEPAGE" \
     --revoked revoked.json --key "$KEY"
 touch "$SITE/.nojekyll"
 
@@ -239,12 +250,23 @@ with open(os.path.join(site, "site.json"), "w") as out:
     out.write("\n")
 PY
 
-# People who open the store's address get the store's pages.
-cat > "$SITE/index.html" <<'HTML'
+# People who open the store's address get the store's pages, when it has a
+# website; otherwise a plain page that names the store.
+if [ -n "$WEBSITE" ]; then
+    PAGES="${WEBSITE%/}/plugins/"
+    cat > "$SITE/index.html" <<HTML
 <!doctype html>
 <meta charset="utf-8">
 <title>Stackbar Plugins</title>
-<link rel="canonical" href="https://stackbar.app/plugins/">
-<meta http-equiv="refresh" content="0; url=https://stackbar.app/plugins/">
-<p><a href="https://stackbar.app/plugins/">Stackbar Plugins</a></p>
+<link rel="canonical" href="$PAGES">
+<meta http-equiv="refresh" content="0; url=$PAGES">
+<p><a href="$PAGES">Stackbar Plugins</a></p>
 HTML
+else
+    cat > "$SITE/index.html" <<HTML
+<!doctype html>
+<meta charset="utf-8">
+<title>$NAME</title>
+<p>$NAME: a Stackbar plugin store. Add <code>index.json</code> from this address in Stackbar's settings.</p>
+HTML
+fi

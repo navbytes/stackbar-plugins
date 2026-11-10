@@ -99,6 +99,11 @@ Up Next and PR Cockpit) live in the Stackbar repository and update with the app.
 - `revoked.json` withdraws a published version; Stackbar removes it from Macs
   that installed it.
 - A nightly canary builds everything against Stackbar's `main`.
+- The store's name, publisher, website, accepted id prefixes and the Stackbar
+  it builds against are in `store.json` (`scripts/store_config.py`). A
+  company's private copy adds `store.override.json` and edits nothing else;
+  see Stackbar's
+  [docs/self-hosting.md](https://github.com/navbytes/stackbar/blob/main/docs/self-hosting.md).
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) to add a plugin.
 

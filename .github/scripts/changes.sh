@@ -20,7 +20,9 @@ else
             # what only the publish, helpers and canary workflows run.
             *.md|LICENSE|.gitignore|revoked.json \
             |.github/workflows/publish.yml|.github/workflows/canary.yml|.github/workflows/helpers.yml \
-            |scripts/publish.sh|scripts/helpers.sh|scripts/push-signed.py|scripts/lint.py) ;;
+            |.github/workflows/sync-upstream.yml \
+            |scripts/publish.sh|scripts/helpers.sh|scripts/push-signed.py|scripts/lint.py \
+            |scripts/export-store.sh) ;;
             *) macos=true ;;
         esac
     done

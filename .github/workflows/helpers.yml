@@ -23,11 +23,18 @@ concurrency:
 
 jobs:
   helpers:
-    runs-on: macos-26
+    runs-on: ${{ vars.MACOS_RUNNER || 'macos-26' }}
     timeout-minutes: 180
     environment: release
+    env:
+      STACKBAR_REPO_TOKEN: ${{ secrets.STACKBAR_REPO_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      # An organization's copy whose Stackbar repository is private
+      # (stackbar's docs/self-hosting.md); upstream has no such secret.
+      - name: Private Stackbar copy
+        if: env.STACKBAR_REPO_TOKEN != ''
+        run: scripts/fetch-stackbar.sh .stackbar >> "$GITHUB_ENV"
       - name: Check out gh-pages
         run: |
           git fetch --depth 1 origin gh-pages

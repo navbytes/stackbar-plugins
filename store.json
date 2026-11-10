@@ -1,0 +1,10 @@
+{
+  "name": "Stackbar Plugins by navbytes",
+  "publisher": "navbytes",
+  "homepage": "https://github.com/navbytes/stackbar-plugins",
+  "website": "https://stackbar.app",
+  "stackbar": "https://github.com/navbytes/stackbar",
+  "idPrefixes": ["io.navbytes.stackbar.plugins."],
+  "exclude": [],
+  "helpersURL": null
+}
