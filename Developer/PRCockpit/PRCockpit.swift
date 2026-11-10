@@ -12,23 +12,24 @@ import Foundation
 /// running refresh, so keeping it short keeps switching tabs quick. A setting
 /// limits the lists to what changed in the last few days. It tells you when
 /// someone asks for your review, and when one of your own PRs is approved, gets changes requested,
-/// or its checks fail. The token is a `GITHUB_TOKEN` secret the host keeps in
-/// the Keychain (a fine-grained token with read access to pull requests,
-/// issues and metadata covers everything but creating issues, which needs
-/// write access to issues), and every request goes through the host to the
-/// one declared domain. For GitHub Enterprise Server, turn it on in Settings
+/// or its checks fail. It signs in one of two ways, chosen on the Settings
+/// page: a `GITHUB_TOKEN` secret pasted in the panel or on the Settings page
+/// (the default), or the gh command-line tool (the host runs
+/// `gh auth token`, kept for five minutes, not once per request). Only the
+/// chosen one is read. Every request goes through the host to the one
+/// declared domain. For GitHub Enterprise Server, turn it on in Settings
 /// and enter the server as `GITHUB_ENTERPRISE_URL`: requests then go to that
-/// server and no other.
+/// server and no other, with a token for that server.
 @main
 final class PRCockpit: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.pr-cockpit",
         name: "PR Cockpit",
-        version: "1.15.0",
+        version: "1.16.0",
         summary: "Your pull requests, reviews and issues with CI and review state, and your repositories a keystroke away.",
         surfaces: [.menuBar, .panel, .window, .widget, .settings],
         triggers: [.launch, .every(.seconds(20)), .wake],
-        capabilities: [.network("api.github.com"), .secret(name: "GITHUB_TOKEN"), .userServer(secret: "GITHUB_ENTERPRISE_URL")],
+        capabilities: [.network("api.github.com"), .secret(name: "GITHUB_TOKEN"), .run(commands: ["gh"]), .userServer(secret: "GITHUB_ENTERPRISE_URL")],
         minimumStackbar: "0.37.0",
         homepage: "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/PRCockpit",
         accent: .violet,
@@ -343,6 +344,11 @@ final class PRCockpit: StackbarPlugin {
     @Stored("showInbox") var showInbox = false
     /// GitHub Enterprise Server instead of github.com.
     @Stored("enterprise") var enterprise = false
+    /// How the plugin signs in: a pasted `GITHUB_TOKEN` (the default) or the
+    /// gh command-line tool. Only the chosen source is read, so a gh user
+    /// isn't asked for a secret and a pasted read-only token is never
+    /// swapped for gh's broader one.
+    @Stored("useGh") var useGh = false
     /// The Enterprise server, `https://github.example.com`, from GITHUB_ENTERPRISE_URL.
     var enterpriseServer: String?
     /// Only pull requests and issues updated in this many days; 0 for any age.
@@ -435,7 +441,80 @@ final class PRCockpit: StackbarPlugin {
         searchResults = []; searchedText = nil; repoSearches = [:]; repoResults = []
         repos = []; reposLoaded = nil; history = []; seenStarted = false; seen = [:]; snoozed = [:]; announced = [:]
         details = [:]; detailErrors = [:]; checksStamp = [:]; expanded = nil
+        ghAnswer = nil
     }
+
+    // MARK: Sign-in: a pasted GITHUB_TOKEN, or the gh command-line tool when chosen
+
+    /// The gh command-line tool's answer for one host, and when it was
+    /// asked: the token it printed, or why it couldn't. Kept five minutes,
+    /// a failure too, so a refresh with its parallel requests, and a
+    /// search's typing, run gh once per stretch of requests instead of once
+    /// per request. An explicit refresh (Try Again, the Refresh command)
+    /// forgets it, so signing in takes effect at once.
+    var ghAnswer: (token: String?, problem: String?, host: String, at: Date)?
+    static let tokenTTL: TimeInterval = 300
+
+    /// Why gh can't serve a token (it isn't installed, or isn't signed in),
+    /// while gh is the chosen sign-in. Nil otherwise.
+    var tokenProblem: String?
+
+    /// True when the chosen sign-in has no token, so the problem state says
+    /// how to connect instead of showing empty lists.
+    var tokenMissing = false
+
+    /// What a 401 says: the token in use is no longer accepted.
+    var refusedHelp: String {
+        useGh ? "GitHub rejected gh's token (401); run gh auth login in Terminal, then refresh"
+            : "GitHub rejected the token (401); paste a fresh GITHUB_TOKEN, then refresh"
+    }
+
+    /// What the panel says when the chosen sign-in has no token.
+    var connectMessage: String {
+        if useGh {
+            let why = tokenProblem.map { "Can't use gh: \($0). " } ?? ""
+            return why + "Run gh auth login in Terminal, then Try Again, or paste a GITHUB_TOKEN instead by turning off Sign in with gh on the Settings page."
+        }
+        return "Paste a GITHUB_TOKEN: a fine-grained token with read access to pull requests, issues and metadata. Already signed in to the gh command-line tool (gh auth login)? Turn on Sign in with gh on the Settings page instead."
+    }
+
+    /// The token to call GitHub with, from the chosen sign-in only: the
+    /// `GITHUB_TOKEN` secret, read fresh so a token pasted over an old one
+    /// takes effect at once, or, with Sign in with gh on, the signed-in gh
+    /// command-line tool (the host runs `gh auth token`, which prints it
+    /// without asking anything; for an Enterprise server, the token for
+    /// that server's host). Nil when the chosen source has none;
+    /// `tokenProblem` says why gh can't serve.
+    func accessToken() async -> String? {
+        guard useGh else {
+            tokenProblem = nil
+            let stored = (try? await Stackbar.secret("GITHUB_TOKEN")) ?? nil
+            tokenMissing = stored?.isEmpty ?? true
+            return tokenMissing ? nil : stored
+        }
+        // The answer is kept five minutes, a failure too, so a refresh with
+        // its parallel requests, and a search's typing, run gh once per
+        // stretch of requests instead of once per request.
+        let host = enterprise ? URL(string: enterpriseServer ?? "")?.host ?? "" : "github.com"
+        if let kept = ghAnswer, kept.host == host, Date().timeIntervalSince(kept.at) < Self.tokenTTL {
+            tokenProblem = kept.problem
+        } else {
+            do {
+                let result = try await Stackbar.run("gh", ["auth", "token", "--hostname", host], timeout: .seconds(10))
+                let token = result.status == 0 && !result.truncated ? result.text.trimmingCharacters(in: .whitespacesAndNewlines) : ""
+                ghAnswer = token.isEmpty ? (nil, "gh isn't signed in", host, Date()) : (token, nil, host, Date())
+            } catch {
+                ghAnswer = (nil, "gh isn't installed or can't be run", host, Date())
+            }
+            tokenProblem = ghAnswer?.problem
+        }
+        tokenMissing = ghAnswer?.token == nil
+        return ghAnswer?.token
+    }
+
+    /// Forgets gh's answer after GitHub refuses its token (401): the user
+    /// may have signed in again since, so the next request asks gh again.
+    func tokenRefused() { ghAnswer = nil }
 
     /// Seconds a refresh request may take. The plugin handles one message at a
     /// time, so a slow GitHub holds up every click behind the refresh; a
@@ -443,6 +522,14 @@ final class PRCockpit: StackbarPlugin {
     static let refreshTimeout = 20.0
 
     func refresh() async throws {
+        try await refresh(retryGh: false)
+    }
+
+    /// Runs a full refresh. `retryGh` forgets gh's answer first, so an
+    /// explicit refresh (Try Again, the Refresh command) picks up a fresh
+    /// sign-in instead of the five-minute memory of a failure.
+    func refresh(retryGh: Bool) async throws {
+        if retryGh { ghAnswer = nil }
         // The 20-second timer follows open checks; the lists every two minutes.
         if Stackbar.refreshReason == .interval, let listsFetched, Date().timeIntervalSince(listsFetched) < 115 {
             await followOpenChecks()
@@ -454,8 +541,8 @@ final class PRCockpit: StackbarPlugin {
             lastError = "Enter your GitHub Enterprise server (https://github.example.com) as GITHUB_ENTERPRISE_URL."
             return
         }
-        guard let token = try await Stackbar.secret("GITHUB_TOKEN"), !token.isEmpty else {
-            lastError = "Add a GitHub token to see your pull requests."
+        guard let token = await accessToken() else {
+            lastError = connectMessage
             return
         }
         noteCredentials(token)
@@ -489,7 +576,8 @@ final class PRCockpit: StackbarPlugin {
             ], body: body, timeout: Self.refreshTimeout))
             guard (200..<300).contains(response.status) else {
                 let text = String(decoding: response.body.prefix(200), as: UTF8.self)
-                throw HostError(response.status == 401 ? "GitHub rejected the token (401); set a new GITHUB_TOKEN"
+                if response.status == 401 { tokenRefused() }
+                throw HostError(response.status == 401 ? self.refusedHelp
                     : response.status == 403 ? Self.refusal(403, message: text) : "GitHub answered \(response.status): \(text)")
             }
             let decoder = JSONDecoder()
@@ -521,16 +609,19 @@ final class PRCockpit: StackbarPlugin {
 
     func isRecent(_ date: Date) -> Bool { recentCutoff.map { date >= $0 } ?? true }
 
-    /// GitHub's notifications inbox. The REST API takes a classic token with
-    /// the `notifications` scope; fine-grained tokens can't read it.
+    /// GitHub's notifications inbox. The REST API takes a token with the
+    /// `notifications` scope, which gh's sign-in doesn't include until asked
+    /// for (`gh auth refresh -s notifications`).
     func refreshInbox(token: String) async {
         do {
             let response = try await Stackbar.http(HTTPRequest(url: apiBase + "/notifications?per_page=40", headers: [
                 "Authorization": "Bearer \(token)", "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28",
             ], timeout: Self.refreshTimeout))
             guard (200..<300).contains(response.status) else {
-                throw HostError(response.status == 403 || response.status == 404
-                    ? "GitHub won't share notifications with this token. The inbox needs a classic token with the notifications scope."
+                if response.status == 401 { tokenRefused() }
+                throw HostError(response.status == 401 ? self.refusedHelp
+                    : response.status == 403 || response.status == 404
+                    ? "The inbox needs the notifications scope: gh auth refresh -s notifications, or a classic token pasted as GITHUB_TOKEN."
                     : "GitHub answered \(response.status) for notifications")
             }
             let decoder = JSONDecoder()
@@ -564,8 +655,8 @@ final class PRCockpit: StackbarPlugin {
             inboxFetched = Date()
             return
         }
-        guard let token = try? await Stackbar.secret("GITHUB_TOKEN"), !token.isEmpty else {
-            inboxError = "Add a GitHub token first"
+        guard let token = await accessToken() else {
+            inboxError = connectMessage
             return
         }
         noteCredentials(token)
@@ -585,14 +676,17 @@ final class PRCockpit: StackbarPlugin {
     func markAllRead() async {
         let count = inbox.count
         do {
-            guard let token = try await Stackbar.secret("GITHUB_TOKEN"), !token.isEmpty else { throw HostError("Add a GitHub token first") }
+            guard let token = await accessToken() else { throw HostError(connectMessage) }
             let stamp = ISO8601DateFormatter().string(from: inboxFetched ?? updatedAt ?? Date())
             let body = try JSONSerialization.data(withJSONObject: ["read": true, "last_read_at": stamp])
             let response = try await Stackbar.http(HTTPRequest(url: apiBase + "/notifications", method: "PUT", headers: [
                 "Authorization": "Bearer \(token)", "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28",
                 "Content-Type": "application/json",
             ], body: body, timeout: Self.refreshTimeout))
-            guard response.status == 202 || response.status == 205 else { throw HostError("GitHub answered \(response.status)") }
+            guard response.status == 202 || response.status == 205 else {
+                if response.status == 401 { tokenRefused() }
+                throw HostError(response.status == 401 ? self.refusedHelp : "GitHub answered \(response.status)")
+            }
             inbox = []
             Stackbar.hud("Marked \(count) as read")
         } catch {
@@ -602,11 +696,14 @@ final class PRCockpit: StackbarPlugin {
 
     func markRead(_ item: InboxItem) async {
         do {
-            guard let token = try await Stackbar.secret("GITHUB_TOKEN"), !token.isEmpty else { throw HostError("Add a GitHub token first") }
+            guard let token = await accessToken() else { throw HostError(connectMessage) }
             let response = try await Stackbar.http(HTTPRequest(url: apiBase + "/notifications/threads/\(item.id)", method: "PATCH", headers: [
                 "Authorization": "Bearer \(token)", "Accept": "application/vnd.github+json",
             ], timeout: Self.refreshTimeout))
-            guard (200..<300).contains(response.status) else { throw HostError("GitHub answered \(response.status)") }
+            guard (200..<300).contains(response.status) else {
+                if response.status == 401 { tokenRefused() }
+                throw HostError(response.status == 401 ? self.refusedHelp : "GitHub answered \(response.status)")
+            }
             inbox.removeAll { $0.id == item.id }
         } catch {
             Stackbar.hud("Couldn't mark it as read: \(error)", isError: true)
@@ -824,15 +921,16 @@ final class PRCockpit: StackbarPlugin {
     /// Runs one GraphQL mutation, turning GitHub's errors into a message.
     func mutate(_ field: String) async throws {
         guard try await loadEnterpriseServer() else { throw HostError("Enter your GitHub Enterprise server as GITHUB_ENTERPRISE_URL") }
-        guard let token = try await Stackbar.secret("GITHUB_TOKEN"), !token.isEmpty else {
-            throw HostError("Add a GitHub token (GITHUB_TOKEN) first")
+        guard let token = await accessToken() else {
+            throw HostError(connectMessage)
         }
         let body = try JSONEncoder().encode(["query": "mutation { \(field) }"])
         let response = try await Stackbar.http(HTTPRequest(url: graphqlURL, method: "POST", headers: [
             "Authorization": "Bearer \(token)", "Content-Type": "application/json", "Accept": "application/json",
         ], body: body, timeout: Self.refreshTimeout))
         guard (200..<300).contains(response.status) else {
-            throw HostError(response.status == 401 ? "GitHub rejected the token (401); set a new GITHUB_TOKEN" : "GitHub answered \(response.status)")
+            if response.status == 401 { tokenRefused() }
+            throw HostError(response.status == 401 ? self.refusedHelp : "GitHub answered \(response.status)")
         }
         struct Reply: Decodable {
             struct Problem: Decodable { let message: String }
@@ -919,8 +1017,8 @@ final class PRCockpit: StackbarPlugin {
 
     func rest(_ path: String, method: String = "GET", body: Data? = nil, timeout: Double = 30) async throws -> Data {
         guard try await loadEnterpriseServer() else { throw HostError("Enter your GitHub Enterprise server as GITHUB_ENTERPRISE_URL") }
-        guard let token = try await Stackbar.secret("GITHUB_TOKEN"), !token.isEmpty else {
-            throw HostError("Add a GitHub token (GITHUB_TOKEN) first")
+        guard let token = await accessToken() else {
+            throw HostError(connectMessage)
         }
         noteCredentials(token)
         let response = try await Stackbar.http(HTTPRequest(url: apiBase + path, method: method, headers: [
@@ -931,7 +1029,7 @@ final class PRCockpit: StackbarPlugin {
         ], body: body, timeout: timeout))
         switch response.status {
         case 200..<300: return response.body
-        case 401: throw HostError("GitHub rejected the token (401); set a new GITHUB_TOKEN")
+        case 401: tokenRefused(); throw HostError(self.refusedHelp)
         case 403, 404:
             struct Message: Decodable { let message: String }
             let message = (try? JSONDecoder().decode(Message.self, from: response.body))?.message ?? "not allowed"
@@ -989,7 +1087,8 @@ final class PRCockpit: StackbarPlugin {
         // An empty account or an unreachable GitHub never fills the cache;
         // the palette asks on every keystroke, so wait between tries, unless
         // the token or server changed since the last one.
-        let token = (try? await Stackbar.secret("GITHUB_TOKEN")) ?? ""
+        try? await loadEnterpriseServer()
+        let token = await accessToken() ?? ""
         let credentials = token + "|" + apiBase
         if !force, credentials == reposCredentials, let at = reposAttempted, Date().timeIntervalSince(at) < 15 { return }
         reposCredentials = credentials
@@ -1100,7 +1199,7 @@ final class PRCockpit: StackbarPlugin {
     @ViewBuilder func issueForm(repo: String?) -> ViewContent {
         let names = shownRepos.filter(\.has_issues).map(\.full_name)
         if names.isEmpty {
-            ContentUnavailableView("No repositories yet", symbol: "book.closed", message: reposError ?? "Add a GitHub token, then try again.")
+            ContentUnavailableView("No repositories yet", symbol: "book.closed", message: reposError ?? "GitHub isn't connected: gh auth login, or paste a GITHUB_TOKEN, then try again.")
         } else {
             Form(submit: "Create Issue", key: "issue") {
                 FormField.picker("Repository", name: "repo", options: names, selection: repo.flatMap { names.contains($0) ? $0 : nil } ?? recentRepos.first { names.contains($0) } ?? names.first)
@@ -1297,14 +1396,16 @@ final class PRCockpit: StackbarPlugin {
         return status == 200 ? message : "GitHub said \(status): \(message). The token may need more access."
     }
 
-    /// What to show instead of the lists when none have loaded: how to add a
-    /// token, or why GitHub can't be reached.
+    /// What to show instead of the lists when none have loaded: the two ways
+    /// to sign in, with why gh isn't in use, or why GitHub can't be reached.
     @ViewBuilder var problemState: ViewContent {
-        if let lastError, lastError.contains("Add a GitHub token") {
-            EmptyState("Paste a GitHub token above", symbol: "key.fill", message: "A fine-grained token with read access to pull requests, issues and metadata. Add write access to issues to create them from the palette. Already signed in to the gh command-line tool? Run gh auth token | pbcopy in Terminal and paste.", theme: theme)
+        if tokenMissing {
+            EmptyState("Connect to GitHub", symbol: "person.badge.key.fill", message: connectMessage, theme: theme) {
+                ActionButton("Try Again", symbol: "arrow.clockwise", theme: theme) { try await self.refresh(retryGh: true) }
+            }
         } else {
             EmptyState("Can't reach GitHub", symbol: "exclamationmark.triangle.fill", message: lastError, theme: .critical) {
-                ActionButton("Try Again", symbol: "arrow.clockwise", theme: theme) { try await self.refresh() }
+                ActionButton("Try Again", symbol: "arrow.clockwise", theme: theme) { try await self.refresh(retryGh: true) }
             }
         }
     }
@@ -1320,6 +1421,19 @@ final class PRCockpit: StackbarPlugin {
 
     /// Stackbar's Settings window, so the panel stays about the pull requests.
     var settings: ViewContent {
+        Section("Sign-in") {
+            Toggle("Sign in with gh", isOn: useGh) { on in
+                self.useGh = on
+                self.ghAnswer = nil
+                try await self.refetch()
+            }
+            if useGh {
+                Text("Uses the token of the gh command-line tool (gh auth login in Terminal) instead of a pasted GITHUB_TOKEN. gh's token usually has full repo access, more than a fine-grained token needs.").style(.caption).role(.secondary)
+                if let tokenProblem { Text("Can't use gh: \(tokenProblem).").style(.caption).role(.warning) }
+            } else {
+                Text("Uses the GITHUB_TOKEN pasted in the panel or above. Turn this on to use the gh command-line tool's sign-in instead, with nothing to paste.").style(.caption).role(.secondary)
+            }
+        }
         Section("What to show") {
             Toggle("Include requests to my teams", isOn: includeTeams) { on in
                 self.includeTeams = on
@@ -1339,7 +1453,7 @@ final class PRCockpit: StackbarPlugin {
             Picker("Click", options: ["Shows its checks", "Opens it in the browser"], selection: clickShowsChecks ? "Shows its checks" : "Opens it in the browser") { chosen in
                 self.clickShowsChecks = chosen == "Shows its checks"
             }
-            Text("Checks open under the pull request with why they failed, its deployments, and Re-run. ⌘↩ always opens the browser. Re-running needs a token with Actions write access.").style(.caption).role(.secondary)
+            Text("Checks open under the pull request with why they failed, its deployments, and Re-run. ⌘↩ always opens the browser. Re-running needs Actions write: gh auth refresh -s workflow, or Actions write on a pasted fine-grained token.").style(.caption).role(.secondary)
             Toggle("Show checks in the palette's preview", isOn: previewChecks) { self.previewChecks = $0 }
             Text("Fetches the checks of your listed pull requests in the background, only for those whose checks changed, so the preview beside the palette shows them as you move through the list.").style(.caption).role(.secondary)
         }
@@ -1355,7 +1469,7 @@ final class PRCockpit: StackbarPlugin {
             }
             if enterprise {
                 LabeledContent("Server", value: enterpriseServer ?? "Not set: enter GITHUB_ENTERPRISE_URL")
-                Text("Enter your server's address (https://github.example.com) as GITHUB_ENTERPRISE_URL, and a token from that server as GITHUB_TOKEN. Requests go to that server and no other.").style(.caption).role(.secondary)
+                Text("Enter your server's address (https://github.example.com) as GITHUB_ENTERPRISE_URL, and a token from that server as GITHUB_TOKEN, or with Sign in with gh, gh auth login --hostname <that server>. Requests go to that server and no other.").style(.caption).role(.secondary)
             }
         }
         Section("GitHub inbox") {
@@ -1363,7 +1477,7 @@ final class PRCockpit: StackbarPlugin {
                 self.showInbox = on
                 if on { try await self.refresh() } else { self.inbox = [] }
             }
-            Text("Mentions, issues and everything else GitHub notifies you about. Needs a classic token with the notifications scope.").style(.caption).role(.secondary)
+            Text("Mentions, issues and everything else GitHub notifies you about. Needs the notifications scope: gh auth refresh -s notifications; a fine-grained token can't read notifications.").style(.caption).role(.secondary)
             if let inboxError { Text(inboxError).style(.caption).role(.warning) }
         }
         Section("Repositories") {
@@ -1371,7 +1485,7 @@ final class PRCockpit: StackbarPlugin {
             Toggle("Include archived", isOn: includeArchived) { self.includeArchived = $0 }
             Picker("Copy clone URLs as", options: ["SSH", "HTTPS"], selection: cloneWith) { self.cloneWith = $0 }
             Button("Reload", symbol: "arrow.clockwise") { await self.loadRepos(force: true) }
-            Text("Search GitHub Repositories in the palette opens any of them, or its pull requests, issues or Actions. Creating issues needs a token with write access to issues.").style(.caption).role(.secondary)
+            Text("Search GitHub Repositories in the palette opens any of them, or its pull requests, issues or Actions. Creating issues needs write access to issues (gh's usual repo scope covers it; a fine-grained token needs Issues write).").style(.caption).role(.secondary)
         }
         Section("Hidden repositories") {
             if hiddenRepos.isEmpty { Text("None. Hide one from a pull request's menu.").role(.secondary) }
@@ -1612,7 +1726,7 @@ final class PRCockpit: StackbarPlugin {
                 self.filesView(invocation["url"] ?? "")
             }
         Command("refresh", title: "Refresh Pull Requests", symbol: "arrow.clockwise", keywords: ["github"]) { _ in
-            try await self.refresh()
+            try await self.refresh(retryGh: true)
             return .message(self.lastError ?? "\(self.shownReview.count) to review, \(self.shownMine.count) of yours open")
         }
     }
@@ -1637,8 +1751,8 @@ final class PRCockpit: StackbarPlugin {
             searchError = "Enter your GitHub Enterprise server as GITHUB_ENTERPRISE_URL."
             return
         }
-        guard let token = try await Stackbar.secret("GITHUB_TOKEN"), !token.isEmpty else {
-            searchError = "Add a GitHub token to search."
+        guard let token = await accessToken() else {
+            searchError = connectMessage
             return
         }
         noteCredentials(token)
@@ -1649,7 +1763,8 @@ final class PRCockpit: StackbarPlugin {
                 "Authorization": "Bearer \(token)", "Content-Type": "application/json", "Accept": "application/json",
             ], body: try JSONEncoder().encode(["query": query]), timeout: Self.refreshTimeout))
             guard (200..<300).contains(response.status) else {
-                throw HostError(response.status == 401 ? "GitHub rejected the token (401); set a new GITHUB_TOKEN" : "GitHub answered \(response.status)")
+                if response.status == 401 { tokenRefused() }
+                throw HostError(response.status == 401 ? self.refusedHelp : "GitHub answered \(response.status)")
             }
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
@@ -1926,7 +2041,7 @@ extension PRCockpit {
         guard let parts = Self.parts(of: url) else { detailErrors[url] = "That isn't a pull request link."; return }
         do {
             guard try await loadEnterpriseServer() else { throw HostError("Enter your GitHub Enterprise server as GITHUB_ENTERPRISE_URL.") }
-            guard let token = try await Stackbar.secret("GITHUB_TOKEN"), !token.isEmpty else { throw HostError("Add a GitHub token to see checks.") }
+            guard let token = await accessToken() else { throw HostError(connectMessage) }
             noteCredentials(token)
             struct Body: Encodable {
                 struct Variables: Encodable { let owner: String; let name: String; let number: Int }
@@ -1938,7 +2053,8 @@ extension PRCockpit {
                 "Authorization": "Bearer \(token)", "Content-Type": "application/json", "Accept": "application/json",
             ], body: body, timeout: Self.refreshTimeout))
             guard (200..<300).contains(response.status) else {
-                throw HostError(response.status == 401 ? "GitHub rejected the token (401); set a new GITHUB_TOKEN" : "GitHub answered \(response.status)")
+                if response.status == 401 { tokenRefused() }
+                throw HostError(response.status == 401 ? self.refusedHelp : "GitHub answered \(response.status)")
             }
             let reply = try Self.restDecoder.decode(DetailsReply.self, from: response.body)
             guard let found = reply.details() else {
@@ -1979,7 +2095,7 @@ extension PRCockpit {
         let targets = pulls.compactMap { pr in Self.parts(of: pr.url).map { (pr: pr, parts: $0) } }.filter { named($0.parts.owner) && named($0.parts.name) }
         guard !targets.isEmpty else { return }
         do {
-            guard try await loadEnterpriseServer(), let token = try await Stackbar.secret("GITHUB_TOKEN"), !token.isEmpty else { return }
+            guard try await loadEnterpriseServer(), let token = await accessToken() else { return }
             let fields = targets.enumerated().map { index, target in
                 "p\(index): repository(owner: \"\(target.parts.owner)\", name: \"\(target.parts.name)\") { pullRequest(number: \(target.parts.number)) { \(DetailsReply.selection(number: "\(target.parts.number)")) } }"
             }
@@ -2039,7 +2155,7 @@ extension PRCockpit {
             await loadDetails(url)
         } catch {
             let text = "\(error)"
-            Stackbar.hud(text.contains("403") || text.contains("404") ? "Re-running needs a token with Actions write access" : text, isError: true)
+            Stackbar.hud(text.contains("403") || text.contains("404") ? "Re-running needs Actions write: gh auth refresh -s workflow, or Actions write on the pasted token" : text, isError: true)
         }
     }
 

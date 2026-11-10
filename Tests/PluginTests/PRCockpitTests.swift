@@ -128,10 +128,42 @@ final class PRCockpitTests: XCTestCase {
 
     /// Points the plugin at the stub as a GitHub Enterprise server. Enterprise
     /// is switched on in storage, so the first refresh never reaches github.com.
-    private func connect(_ host: Host, _ stub: GitHubStub, token: String) async throws {
-        try host.services.secrets.setSecret(token, for: "GITHUB_TOKEN")
+    /// gh has no sign-in for the stub's loopback host, so without a token
+    /// neither way in works — on any machine the tests run on.
+    private func connect(_ host: Host, _ stub: GitHubStub) async throws {
         try host.services.secrets.setSecret("http://127.0.0.1:\(stub.port)", for: "GITHUB_ENTERPRISE_URL")
         try await host.services.storage.set("enterprise", "true", for: id)
+    }
+
+    /// `connect`, with a `GITHUB_TOKEN` pasted.
+    private func connect(_ host: Host, _ stub: GitHubStub, token: String) async throws {
+        try host.services.secrets.setSecret(token, for: "GITHUB_TOKEN")
+        try await connect(host, stub)
+    }
+
+    /// A host whose `gh` is a stub script: one that prints a token (signed
+    /// in) or exits 1 (not signed in). Each run appends its arguments to a
+    /// log, so a test can see how often gh ran and for which host; the
+    /// script itself is handed back too, so a test can rewrite it (as when
+    /// the user signs in). The plugin's choice of sign-in doesn't depend on
+    /// the machine running the tests.
+    private func ghHost(signedIn: Bool) throws -> (host: Host, log: URL, script: URL) {
+        let bin = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: bin, withIntermediateDirectories: true)
+        addTeardownBlock { try? FileManager.default.removeItem(at: bin) }
+        let log = bin.appendingPathComponent("gh.log")
+        let script = bin.appendingPathComponent("gh")
+        try ("#!/bin/sh\necho \"$*\" >> '\(log.path)'\n" + (signedIn ? "printf GHSTUB\n" : "exit 1\n"))
+            .write(to: script, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: script.path)
+        let gate = CommandRunGate(root: FileManager.default.temporaryDirectory.appendingPathComponent("stackbar-run-\(UUID().uuidString)", isDirectory: true),
+                                  resolver: CommandResolver(directories: [bin.path]))
+        return (Host(self, runs: gate), log, script)
+    }
+
+    /// What the stub gh was asked, one line per run.
+    private func ghRuns(_ log: URL) -> [String] {
+        ((try? String(contentsOf: log, encoding: .utf8)) ?? "").split(separator: "\n").map(String.init)
     }
 
     private func panelText(_ supervisor: PluginSupervisor) async -> String {
@@ -269,14 +301,73 @@ final class PRCockpitTests: XCTestCase {
         await session.stop()
     }
 
-    /// Agent tools say a token is missing instead of "nothing is waiting".
+    /// Agent tools say how to connect instead of "nothing is waiting".
     func testAgentToolsSayWhenNoTokenIsSet() async throws {
+        let stub = try GitHubStub { method, path, auth, _ in gitHub(method, path, auth, Answers()) }
         let host = Host(self)
+        try await connect(host, stub)
         let supervisor = try await host.start("PRCockpit")
         let review = await supervisor.callTool("review_queue").text
-        XCTAssertTrue(review.contains("GitHub token"), review)
+        XCTAssertTrue(review.contains("gh auth login"), review)
+        XCTAssertTrue(review.contains("GITHUB_TOKEN"), review)
         let issues = await supervisor.callTool("my_issues").text
-        XCTAssertTrue(issues.contains("GitHub token"), issues)
+        XCTAssertTrue(issues.contains("GITHUB_TOKEN"), issues)
+        await supervisor.stop()
+    }
+
+    /// By default only the pasted token is used, even when gh is signed in:
+    /// the user chose it, possibly a read-only fine-grained one, so gh is
+    /// never asked.
+    func testByDefaultOnlyThePastedTokenIsUsed() async throws {
+        let answers = Locked(Answers(review: ["Bearer A": [1]]))
+        let stub = try GitHubStub { method, path, auth, _ in gitHub(method, path, auth, answers.current) }
+        let gh = try ghHost(signedIn: true)
+        try await connect(gh.host, stub, token: "A")
+        let supervisor = try await gh.host.start("PRCockpit")
+        _ = await waitUntil { await supervisor.views[.menuBar]?.plainText == "1" }
+        XCTAssertTrue(stub.requests.all.contains { $0.contains(" Bearer A ") }, "\(stub.requests.all)")
+        XCTAssertEqual(ghRuns(gh.log).count, 0, "gh is not asked unless Sign in with gh is on")
+        await supervisor.stop()
+    }
+
+    /// With Sign in with gh on, gh's token is the one that reaches GitHub,
+    /// even with a token pasted (the secret isn't read, so a gh user isn't
+    /// asked for one), and gh is asked once for the whole refresh and for
+    /// the Enterprise server's host.
+    func testSignInWithGhUsesGhsToken() async throws {
+        let answers = Locked(Answers(review: ["Bearer GHSTUB": [1]]))
+        let stub = try GitHubStub { method, path, auth, _ in gitHub(method, path, auth, answers.current) }
+        let gh = try ghHost(signedIn: true)
+        try await connect(gh.host, stub, token: "A")
+        try await gh.host.services.storage.set("useGh", "true", for: id)
+        let supervisor = try await gh.host.start("PRCockpit")
+        _ = await waitUntil { await supervisor.views[.menuBar]?.plainText == "1" }
+        XCTAssertTrue(stub.requests.all.contains { $0.contains(" Bearer GHSTUB ") }, "\(stub.requests.all)")
+        XCTAssertFalse(stub.requests.all.contains { $0.contains(" Bearer A ") }, "the pasted token is left alone while gh is chosen")
+        let runs = ghRuns(gh.log)
+        XCTAssertEqual(runs.count, 1, "one gh run serves the refresh and its follow-up requests: \(runs)")
+        XCTAssertEqual(runs.first, "auth token --hostname 127.0.0.1", "the token is asked for the Enterprise server's host, not github.com")
+        await supervisor.stop()
+    }
+
+    /// After gh auth login, pressing Try Again uses gh at once, without
+    /// waiting out the five-minute memory of the earlier failure.
+    func testTryAgainRetriesGhAfterSignIn() async throws {
+        let answers = Locked(Answers(review: ["Bearer GHSTUB": [1]]))
+        let stub = try GitHubStub { method, path, auth, _ in gitHub(method, path, auth, answers.current) }
+        let gh = try ghHost(signedIn: false)
+        try await connect(gh.host, stub)
+        try await gh.host.services.storage.set("useGh", "true", for: id)
+        let supervisor = try await gh.host.start("PRCockpit")
+        let connected = await waitUntil { await supervisor.views[.panel].map { TreeTextRenderer.render($0) }?.contains("Connect to GitHub") == true }
+        XCTAssertTrue(connected, "the panel starts in the connect state")
+        try "#!/bin/sh\nprintf GHSTUB\n".write(to: gh.script, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: gh.script.path)
+        await supervisor.press(ActionID("button/Try Again"))
+        let loaded = await waitUntil { await supervisor.views[.menuBar]?.plainText == "1" }
+        let panel = await supervisor.views[.panel].map { TreeTextRenderer.render($0) } ?? "(none)"
+        XCTAssertTrue(loaded, "signing in to gh and pressing Try Again loads the lists; panel: \(panel) | gh runs: \(ghRuns(gh.log))")
+        XCTAssertTrue(stub.requests.all.contains { $0.contains(" Bearer GHSTUB ") }, "\(stub.requests.all)")
         await supervisor.stop()
     }
 
@@ -315,12 +406,15 @@ final class PRCockpitTests: XCTestCase {
         await session.stop()
     }
 
-    /// Without a token the window explains how to connect, not empty lists.
+    /// Without either way in, the window explains both, not empty lists.
     func testWindowSaysHowToConnectWhenThereIsNoToken() async throws {
+        let stub = try GitHubStub { method, path, auth, _ in gitHub(method, path, auth, Answers()) }
         let host = Host(self)
+        try await connect(host, stub)
         let supervisor = try await host.start("PRCockpit")
         let window = await supervisor.views[.window].map { TreeTextRenderer.render($0) } ?? ""
-        XCTAssertTrue(window.contains("Paste a GitHub token above"), window)
+        XCTAssertTrue(window.contains("Connect to GitHub"), window)
+        XCTAssertTrue(window.contains("Paste a GITHUB_TOKEN"), window)
         XCTAssertFalse(window.contains("Waiting on your review"), window)
         await supervisor.stop()
     }
