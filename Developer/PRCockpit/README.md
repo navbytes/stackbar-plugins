@@ -89,6 +89,10 @@ how long reviews have waited.
 A widget keeps the review queue in view.
 <!-- preview: widget -->
 
+## What's new in 1.17.0
+
+- The palette's preview shows a pull request's checks in color: each check with its state, failures first, then deployments. Stackbar 0.38 and older still show the text.
+
 ## What's new in 1.16.0
 
 - Sign in with gh: turn it on in Settings and PR Cockpit uses the gh command-line tool's sign-in (`gh auth login`), with nothing to paste. It reads the token itself with `gh auth token`, kept for five minutes, not once per request. A pasted `GITHUB_TOKEN` stays the default.

@@ -10,6 +10,10 @@ Pick a color from anywhere on screen and copy it. Run **Pick Color** from the pa
 - **Settings:** copy as hex (`#0A60C8`), RGB (`rgb(10, 96, 200)`), HSL (`hsl(213, 90%, 41%)`) or SwiftUI (`Color(red: 0.039, green: 0.376, blue: 0.784)`), and Clear Picked Colors.
 - **Requires:** Stackbar 0.35.0 or later.
 
+## What's new in 1.3.0
+
+- Picked colors show a swatch in the preview, with the color written every way under it. Stackbar 0.38 and older still show the text.
+
 ## What's new in 1.2.0
 
 - Clear Picked Colors asks through Stackbar, naming how many colors go.

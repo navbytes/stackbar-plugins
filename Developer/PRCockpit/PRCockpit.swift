@@ -25,7 +25,7 @@ final class PRCockpit: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.pr-cockpit",
         name: "PR Cockpit",
-        version: "1.16.0",
+        version: "1.17.0",
         summary: "Your pull requests, reviews and issues with CI and review state, and your repositories a keystroke away.",
         surfaces: [.menuBar, .panel, .window, .widget, .settings],
         triggers: [.launch, .every(.seconds(20)), .wake],
@@ -1257,7 +1257,9 @@ final class PRCockpit: StackbarPlugin {
             row = row.navigate("Checks and deployments", to: "checks", arguments: ["url": pr.url], shortcut: "cmd+i")
         }
         if let summary = details[pr.url]?.summary {
-            row = row.preview(text: details[pr.url].map { checksText(pr, $0) }, caption: summary)
+            row = row.preview(text: details[pr.url].map { checksText(pr, $0) }, caption: summary) {
+                if let found = self.details[pr.url] { self.checksPreview(pr, found) }
+            }
         }
         row = row.action("Open files changed") { self.open(pr, path: "/files") }
             .action(isNew(pr) ? "Mark as seen" : "Mark as new", shortcut: "cmd+u") {
@@ -2160,6 +2162,55 @@ extension PRCockpit {
     }
 
     /// The failures in words, to paste into a chat or an issue.
+    /// The palette's preview of a pull request's checks: problems first, in
+    /// color, then deployments. Kept to a few dozen nodes, since every row
+    /// carries its preview in each render; older hosts show `checksText`.
+    @ViewBuilder
+    func checksPreview(_ pr: PullRequest, _ found: PRDetails) -> ViewContent {
+        let sorted = found.checks.sorted { $0.state < $1.state }
+        let shown = sorted.prefix(Self.previewChecks)
+        let failing = !found.failed.isEmpty
+        PreviewDetail(pr.title, subtitle: "\(pr.id) · \(pr.repo)", symbol: "checkmark.seal", theme: failing ? .critical : found.isRunning ? .warning : .success) {
+            Metadata("Checks", pill: found.summary, theme: failing ? .critical : found.isRunning ? .warning : .success)
+            ForEach(Array(shown)) { check in
+                let (word, role) = Self.word(check.state)
+                HStack(spacing: Space.s) {
+                    Image(systemName: Self.symbol(check.state)).foreground(Self.theme(role).textPaint)
+                    Text(check.title)
+                    Spacer(minLength: Space.s)
+                    Text(word).role(role).typography(.caption)
+                }
+            }
+            if sorted.count > shown.count {
+                Text("\(sorted.count - shown.count) more").role(.secondary).typography(.caption)
+            }
+            ForEach(Array(found.deployments.prefix(3))) { deployment in
+                Metadata(deployment.environment, Self.deployWord(deployment.state), role: Self.deployRole(deployment.state))
+            }
+        }
+    }
+
+    /// How many checks a preview lists, so it stays well under the host's node budget.
+    static let previewChecks = 8
+
+    static func theme(_ role: Role) -> Theme {
+        switch role {
+        case .critical: return .critical
+        case .warning: return .warning
+        case .success: return .success
+        case .primary, .secondary, .accent: return .neutral
+        }
+    }
+
+    static func deployRole(_ state: String) -> Role {
+        switch state {
+        case "SUCCESS", "ACTIVE": return .success
+        case "FAILURE", "ERROR": return .critical
+        case "IN_PROGRESS", "QUEUED", "PENDING": return .warning
+        default: return .secondary
+        }
+    }
+
     func checksText(_ pr: PullRequest?, _ found: PRDetails) -> String {
         var lines: [String] = []
         if let pr { lines.append("\(pr.title) (\(pr.id)): \(found.summary)") } else { lines.append(found.summary) }
