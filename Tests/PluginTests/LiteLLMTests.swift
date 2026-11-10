@@ -8,7 +8,7 @@ import Network
 
 /// A LiteLLM proxy on loopback. The plugin's requests reach it through the
 /// host like any other, and `requests` records each one as "METHOD path auth body".
-private final class LiteLLMStub: @unchecked Sendable {
+final class LiteLLMStub: @unchecked Sendable {
     let listener: NWListener
     let requests = Recorder<String>()
     var port: Int { Int(listener.port!.rawValue) }

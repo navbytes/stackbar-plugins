@@ -6,8 +6,10 @@ import Foundation
 /// Follow-up questions keep the conversation. Commands on the selected text
 /// summarize or explain it, or fix, improve or shorten it in place.
 ///
-/// Anthropic's Claude is the default provider; OpenAI, OpenRouter and Ollama
-/// (local, no key) are one setting away. Keys stay in the Keychain and are
+/// Anthropic's Claude is the default provider; OpenAI, OpenRouter, Ollama
+/// (local, no key) and your own LiteLLM proxy are one setting away. LiteLLM
+/// shares LITELLM_PROXY_URL and LITELLM_API_KEY with the LiteLLM plugin, and
+/// its models come from the proxy's /v1/models. Keys stay in the Keychain and are
 /// asked for only for the provider in use. Answers arrive whole, not word by
 /// word.
 @main
@@ -15,16 +17,17 @@ final class AskAI: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.ask-ai",
         name: "Ask AI",
-        version: "1.0.0",
-        summary: "Ask Claude, ChatGPT or a local model from the palette, and fix or summarize selected text, with your own key.",
+        version: "1.1.0",
+        summary: "Ask Claude, ChatGPT, a local model or your LiteLLM proxy from the palette, and fix or summarize selected text, with your own key.",
         surfaces: [.panel, .settings],
         triggers: [.launch],
         // The selection for the text commands; the clipboard to paste their
         // result over it; one host per provider (localhost is Ollama); one
-        // key per provider.
+        // key per provider; the LiteLLM proxy is the one host the user enters.
         capabilities: [.context, .clipboard,
                        .network("api.anthropic.com", "api.openai.com", "openrouter.ai", "localhost"),
-                       .secret(name: "ANTHROPIC_API_KEY"), .secret(name: "OPENAI_API_KEY"), .secret(name: "OPENROUTER_API_KEY")],
+                       .secret(name: "ANTHROPIC_API_KEY"), .secret(name: "OPENAI_API_KEY"), .secret(name: "OPENROUTER_API_KEY"),
+                       .userServer(secret: "LITELLM_PROXY_URL"), .secret(name: "LITELLM_API_KEY")],
         minimumStackbar: "0.26.0",
         homepage: "https://github.com/navbytes/stackbar-plugins/tree/main/Productivity/AskAI",
         accent: .violet,
@@ -48,7 +51,7 @@ final class AskAI: StackbarPlugin {
     // MARK: Providers
 
     enum Provider: String, CaseIterable {
-        case anthropic = "Anthropic", openai = "OpenAI", openrouter = "OpenRouter", ollama = "Ollama"
+        case anthropic = "Anthropic", openai = "OpenAI", openrouter = "OpenRouter", ollama = "Ollama", litellm = "LiteLLM"
 
         var defaultModel: String {
             switch self {
@@ -56,6 +59,8 @@ final class AskAI: StackbarPlugin {
             case .openai: return "gpt-5-mini"
             case .openrouter: return "openrouter/auto"
             case .ollama: return "llama3.2"
+            // The proxy's own model names; the first it lists until one is picked.
+            case .litellm: return ""
             }
         }
 
@@ -65,17 +70,19 @@ final class AskAI: StackbarPlugin {
             case .anthropic: return "ANTHROPIC_API_KEY"
             case .openai: return "OPENAI_API_KEY"
             case .openrouter: return "OPENROUTER_API_KEY"
+            case .litellm: return "LITELLM_API_KEY"
             case .ollama: return nil
             }
         }
 
-        /// Where OpenAI-style chat completions go.
-        var chatURL: String {
+        /// Where the question goes. LiteLLM's is under the proxy's URL.
+        func chatURL(base: String? = nil) -> String {
             switch self {
             case .anthropic: return "https://api.anthropic.com/v1/messages"
             case .openai: return "https://api.openai.com/v1/chat/completions"
             case .openrouter: return "https://openrouter.ai/api/v1/chat/completions"
             case .ollama: return "http://localhost:11434/v1/chat/completions"
+            case .litellm: return AskAI.apiRoot(base ?? "") + "/chat/completions"
             }
         }
 
@@ -84,7 +91,7 @@ final class AskAI: StackbarPlugin {
             case .anthropic: return "https://platform.claude.com/settings/keys"
             case .openai: return "https://platform.openai.com/api-keys"
             case .openrouter: return "https://openrouter.ai/settings/keys"
-            case .ollama: return nil
+            case .ollama, .litellm: return nil
             }
         }
     }
@@ -93,10 +100,74 @@ final class AskAI: StackbarPlugin {
     /// A model per provider, when changed from its default.
     @Stored("models") var models: [String: String] = [:]
 
+    /// The models the LiteLLM proxy offers, from its /v1/models.
+    @Stored("litellmModels") var litellmModels: [String] = []
+    @Stored("litellmModelsFetched") var litellmModelsFetched: Date? = nil
+    /// Why the proxy's models couldn't be listed, for Settings.
+    var litellmProblem: String?
+
     var provider: Provider { Provider(rawValue: storedProvider) ?? .anthropic }
     var model: String {
         let chosen = models[provider.rawValue]?.trimmingCharacters(in: .whitespaces) ?? ""
+        if chosen.isEmpty, provider == .litellm { return litellmModels.first ?? "" }
         return chosen.isEmpty ? provider.defaultModel : chosen
+    }
+
+    // MARK: LiteLLM
+
+    /// The proxy's OpenAI-style API root: its URL with `/v1`, whether or not
+    /// the user typed it, and no trailing slash.
+    nonisolated static func apiRoot(_ base: String) -> String {
+        var root = base.trimmingCharacters(in: .whitespacesAndNewlines)
+        while root.hasSuffix("/") { root.removeLast() }
+        return root.hasSuffix("/v1") ? root : root + "/v1"
+    }
+
+    /// The model names in a /v1/models reply, sorted.
+    nonisolated static func modelIDs(status: Int, body: Data) throws -> [String] {
+        let json = try? JSONSerialization.jsonObject(with: body) as? [String: Any]
+        guard (200..<300).contains(status) else {
+            let message = ((json?["error"] as? [String: Any])?["message"] as? String) ?? (json?["error"] as? String)
+            switch status {
+            case 401, 403: throw HostError("The proxy refused the key (\(status)). Check LITELLM_API_KEY in Stackbar's Settings")
+            case 404: throw HostError("The proxy has no /v1/models. Is LITELLM_PROXY_URL the proxy's base URL?")
+            default: throw HostError("The proxy answered \(status)" + (message.map { ": \($0)" } ?? ""))
+            }
+        }
+        let ids = (json?["data"] as? [[String: Any]] ?? []).compactMap { $0["id"] as? String }
+        return Array(Set(ids)).sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+    }
+
+    /// The proxy's URL and key, or why LiteLLM can't be asked yet.
+    func litellmConnection() async throws -> (base: String, key: String) {
+        guard let base = try await Stackbar.secret("LITELLM_PROXY_URL")?.trimmingCharacters(in: .whitespacesAndNewlines), !base.isEmpty else {
+            throw HostError("Enter your LiteLLM proxy's URL as LITELLM_PROXY_URL in Stackbar's Settings")
+        }
+        guard let key = try await Stackbar.secret("LITELLM_API_KEY")?.trimmingCharacters(in: .whitespacesAndNewlines), !key.isEmpty else {
+            throw HostError("Add a LiteLLM key (LITELLM_API_KEY) in Stackbar's Settings")
+        }
+        return (base, key)
+    }
+
+    /// Lists the proxy's models for the Settings picker.
+    func loadLiteLLMModels() async {
+        do {
+            let (base, key) = try await litellmConnection()
+            let response = try await Stackbar.http(HTTPRequest(url: Self.apiRoot(base) + "/models",
+                                                               headers: ["Authorization": "Bearer \(key)", "Accept": "application/json"], timeout: 15))
+            litellmModels = try Self.modelIDs(status: response.status, body: response.body)
+            litellmModelsFetched = Date()
+            litellmProblem = litellmModels.isEmpty ? "The proxy lists no models for this key" : nil
+        } catch {
+            litellmProblem = "\(error)"
+        }
+    }
+
+    /// At launch, the proxy's models when LiteLLM is in use and the list is
+    /// over a day old.
+    func refresh() async throws {
+        guard provider == .litellm, litellmModelsFetched.map({ Date().timeIntervalSince($0) > 86_400 }) ?? true else { return }
+        await loadLiteLLMModels()
     }
 
     // MARK: Conversation
@@ -134,7 +205,7 @@ final class AskAI: StackbarPlugin {
     }
 
     /// The HTTP request for a provider.
-    nonisolated static func request(_ provider: Provider, model: String, key: String?, messages: [Message], system: String = systemPrompt) throws -> HTTPRequest {
+    nonisolated static func request(_ provider: Provider, model: String, key: String?, messages: [Message], system: String = systemPrompt, base: String? = nil) throws -> HTTPRequest {
         let turns = messages.map { ["role": $0.role, "content": $0.content] }
         var headers = ["Content-Type": "application/json"]
         var body: [String: Any]
@@ -152,11 +223,11 @@ final class AskAI: StackbarPlugin {
                 headers["anthropic-beta"] = "server-side-fallback-2026-07-01"
                 body["fallbacks"] = "default"
             }
-        case .openai, .openrouter, .ollama:
+        case .openai, .openrouter, .ollama, .litellm:
             if let key { headers["Authorization"] = "Bearer \(key)" }
             body = ["model": model, "messages": [["role": "system", "content": system]] + turns]
         }
-        return HTTPRequest(url: provider.chatURL, method: "POST", headers: headers,
+        return HTTPRequest(url: provider.chatURL(base: base), method: "POST", headers: headers,
                            body: try JSONSerialization.data(withJSONObject: body), timeout: 120)
     }
 
@@ -168,6 +239,7 @@ final class AskAI: StackbarPlugin {
             switch status {
             case 401, 403: throw HostError("\(provider.rawValue) refused the key (\(status)). Check \(provider.secret ?? "the key") in Stackbar's Settings")
             case 404 where provider == .ollama: throw HostError(message ?? "Ollama doesn't have that model; run ollama pull, or pick another in Settings")
+            case 400 where provider == .litellm, 404 where provider == .litellm: throw HostError("LiteLLM answered \(status)" + (message.map { ": \($0)" } ?? "") + ". Check the model in Settings")
             case 429: throw HostError("\(provider.rawValue) is busy or out of credit (429). \(message ?? "Try again in a moment")")
             default: throw HostError("\(provider.rawValue) answered \(status)" + (message.map { ": \($0)" } ?? ""))
             }
@@ -181,7 +253,7 @@ final class AskAI: StackbarPlugin {
             let text = blocks.filter { $0["type"] as? String == "text" }.compactMap { $0["text"] as? String }.joined()
             guard !text.isEmpty else { throw HostError("Claude sent no answer") }
             return json?["stop_reason"] as? String == "max_tokens" ? text + "\n\n(cut short)" : text
-        case .openai, .openrouter, .ollama:
+        case .openai, .openrouter, .ollama, .litellm:
             let choices = json?["choices"] as? [[String: Any]] ?? []
             guard let text = (choices.first?["message"] as? [String: Any])?["content"] as? String, !text.isEmpty else {
                 throw HostError("\(provider.rawValue) sent no answer")
@@ -193,13 +265,18 @@ final class AskAI: StackbarPlugin {
     /// Asks the provider in use, with the conversation so far.
     func ask(_ question: String, history: [Exchange], system: String = systemPrompt) async throws -> String {
         var key: String?
-        if let secret = provider.secret {
+        var base: String?
+        if provider == .litellm {
+            (base, key) = try await litellmConnection()
+            if model.isEmpty { await loadLiteLLMModels() }
+            guard !model.isEmpty else { throw HostError(litellmProblem ?? "Pick a LiteLLM model in Ask AI's Settings") }
+        } else if let secret = provider.secret {
             key = try await Stackbar.secret(secret)?.trimmingCharacters(in: .whitespacesAndNewlines)
             guard let key, !key.isEmpty else {
                 throw HostError("Add your \(provider.rawValue) API key (\(secret)) in Stackbar's Settings, or switch to Ollama for a local model")
             }
         }
-        let request = try Self.request(provider, model: model, key: key, messages: Self.messages(history, then: question), system: system)
+        let request = try Self.request(provider, model: model, key: key, messages: Self.messages(history, then: question), system: system, base: base)
         let response = try await Stackbar.http(request)
         return try Self.answer(provider, status: response.status, body: response.body)
     }
@@ -370,11 +447,40 @@ final class AskAI: StackbarPlugin {
                 self.storedProvider = choice
                 self.started = nil
                 self.problem = nil
+                if self.provider == .litellm, self.litellmModels.isEmpty { await self.loadLiteLLMModels() }
             }
-            TextField(provider.defaultModel, text: models[provider.rawValue] ?? "", key: "model-\(provider.rawValue)") { value in
-                self.models[self.provider.rawValue] = value.trimmingCharacters(in: .whitespaces)
+            if provider == .litellm {
+                litellmModelPicker
+            } else {
+                TextField(provider.defaultModel, text: models[provider.rawValue] ?? "", key: "model-\(provider.rawValue)") { value in
+                    self.models[self.provider.rawValue] = value.trimmingCharacters(in: .whitespaces)
+                }
             }
             Text(caption).style(.caption)
+        }
+    }
+
+    /// The proxy's models to pick from, a field when it can't list them, and
+    /// a button to list them again.
+    @ViewBuilder var litellmModelPicker: ViewContent {
+        let chosen = model
+        if litellmModels.isEmpty {
+            TextField("Model name on your proxy", text: models[Provider.litellm.rawValue] ?? "", key: "model-LiteLLM") { value in
+                self.models[Provider.litellm.rawValue] = value.trimmingCharacters(in: .whitespaces)
+            }
+        } else {
+            // A model typed earlier and since gone from the proxy stays pickable.
+            Picker("Model", options: litellmModels.contains(chosen) || chosen.isEmpty ? litellmModels : [chosen] + litellmModels,
+                   selection: chosen, key: "litellm-model") { choice in
+                self.models[Provider.litellm.rawValue] = choice
+                self.started = nil
+            }
+        }
+        if let litellmProblem {
+            Banner(litellmProblem)
+        }
+        ActionButton(litellmModels.isEmpty ? "List the Proxy's Models" : "Refresh Models", symbol: "arrow.clockwise", theme: theme) {
+            await self.loadLiteLLMModels()
         }
     }
 
@@ -388,6 +494,8 @@ final class AskAI: StackbarPlugin {
             return "Needs OPENROUTER_API_KEY. openrouter/auto picks a model per question; name one (anthropic/…, openai/…) to fix it."
         case .ollama:
             return "Runs on your Mac with Ollama (ollama.com), no key and nothing sent anywhere. Pull the model first: ollama pull llama3.2."
+        case .litellm:
+            return "Asks your own LiteLLM proxy. Uses the same LITELLM_PROXY_URL and LITELLM_API_KEY as the LiteLLM plugin, and reaches that host and no other. The models are the ones your key may use."
         }
     }
 }
