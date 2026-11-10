@@ -315,10 +315,10 @@ final class PRCockpitTests: XCTestCase {
         await supervisor.stop()
     }
 
-    /// A pasted token wins even when gh is signed in: the user chose it,
-    /// possibly a read-only fine-grained one, so gh is never asked while it
-    /// serves and nothing says the secret is in use.
-    func testThePastedTokenBeatsASignedInGh() async throws {
+    /// By default only the pasted token is used, even when gh is signed in:
+    /// the user chose it, possibly a read-only fine-grained one, so gh is
+    /// never asked.
+    func testByDefaultOnlyThePastedTokenIsUsed() async throws {
         let answers = Locked(Answers(review: ["Bearer A": [1]]))
         let stub = try GitHubStub { method, path, auth, _ in gitHub(method, path, auth, answers.current) }
         let gh = try ghHost(signedIn: true)
@@ -326,23 +326,24 @@ final class PRCockpitTests: XCTestCase {
         let supervisor = try await gh.host.start("PRCockpit")
         _ = await waitUntil { await supervisor.views[.menuBar]?.plainText == "1" }
         XCTAssertTrue(stub.requests.all.contains { $0.contains(" Bearer A ") }, "\(stub.requests.all)")
-        XCTAssertEqual(ghRuns(gh.log).count, 0, "gh is not asked while the pasted token serves")
-        let panel = await panelText(supervisor)
-        XCTAssertFalse(panel.contains("Using the GITHUB_TOKEN secret"), panel)
+        XCTAssertEqual(ghRuns(gh.log).count, 0, "gh is not asked unless Sign in with gh is on")
         await supervisor.stop()
     }
 
-    /// With no pasted token, the signed-in gh command-line tool serves: its
-    /// token reaches GitHub, asked once for the whole refresh and for the
-    /// Enterprise server's host.
-    func testGhServesWhenNoTokenIsPasted() async throws {
+    /// With Sign in with gh on, gh's token is the one that reaches GitHub,
+    /// even with a token pasted (the secret isn't read, so a gh user isn't
+    /// asked for one), and gh is asked once for the whole refresh and for
+    /// the Enterprise server's host.
+    func testSignInWithGhUsesGhsToken() async throws {
         let answers = Locked(Answers(review: ["Bearer GHSTUB": [1]]))
         let stub = try GitHubStub { method, path, auth, _ in gitHub(method, path, auth, answers.current) }
         let gh = try ghHost(signedIn: true)
-        try await connect(gh.host, stub)
+        try await connect(gh.host, stub, token: "A")
+        try await gh.host.services.storage.set("useGh", "true", for: id)
         let supervisor = try await gh.host.start("PRCockpit")
         _ = await waitUntil { await supervisor.views[.menuBar]?.plainText == "1" }
         XCTAssertTrue(stub.requests.all.contains { $0.contains(" Bearer GHSTUB ") }, "\(stub.requests.all)")
+        XCTAssertFalse(stub.requests.all.contains { $0.contains(" Bearer A ") }, "the pasted token is left alone while gh is chosen")
         let runs = ghRuns(gh.log)
         XCTAssertEqual(runs.count, 1, "one gh run serves the refresh and its follow-up requests: \(runs)")
         XCTAssertEqual(runs.first, "auth token --hostname 127.0.0.1", "the token is asked for the Enterprise server's host, not github.com")
@@ -356,6 +357,7 @@ final class PRCockpitTests: XCTestCase {
         let stub = try GitHubStub { method, path, auth, _ in gitHub(method, path, auth, answers.current) }
         let gh = try ghHost(signedIn: false)
         try await connect(gh.host, stub)
+        try await gh.host.services.storage.set("useGh", "true", for: id)
         let supervisor = try await gh.host.start("PRCockpit")
         let connected = await waitUntil { await supervisor.views[.panel].map { TreeTextRenderer.render($0) }?.contains("Connect to GitHub") == true }
         XCTAssertTrue(connected, "the panel starts in the connect state")
@@ -412,7 +414,7 @@ final class PRCockpitTests: XCTestCase {
         let supervisor = try await host.start("PRCockpit")
         let window = await supervisor.views[.window].map { TreeTextRenderer.render($0) } ?? ""
         XCTAssertTrue(window.contains("Connect to GitHub"), window)
-        XCTAssertTrue(window.contains("paste a GITHUB_TOKEN"), window)
+        XCTAssertTrue(window.contains("Paste a GITHUB_TOKEN"), window)
         XCTAssertFalse(window.contains("Waiting on your review"), window)
         await supervisor.stop()
     }
