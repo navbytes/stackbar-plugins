@@ -1,6 +1,6 @@
 {
   "format" : 2,
-  "generated" : "2026-11-10T15:35:18Z",
+  "generated" : "2026-11-10T16:19:59Z",
   "homepage" : "https://github.com/navbytes/stackbar-plugins",
   "name" : "Stackbar Plugins by navbytes",
   "plugins" : [
@@ -1272,6 +1272,32 @@
       "symbol" : "eyedropper",
       "updated" : "2026-11-10",
       "version" : "1.2.0"
+    },
+    {
+      "accent" : "pink",
+      "bundle" : "Productivity/io.navbytes.stackbar.plugins.color-picker-1.3.0.stackbarplugin",
+      "capabilities" : [
+
+      ],
+      "capabilityKinds" : [
+
+      ],
+      "category" : "Productivity",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Productivity/ColorPicker",
+      "id" : "io.navbytes.stackbar.plugins.color-picker",
+      "minimumStackbar" : "0.35.0",
+      "name" : "Color Picker",
+      "publisher" : "navbytes",
+      "screenshot" : "Productivity/io.navbytes.stackbar.plugins.color-picker.png",
+      "sha256" : "1b2644c85d5814c84f7a47ec4cf654e9aefb3282dac70f8653dea166dfde6d22",
+      "summary" : "Pick a color from anywhere on screen and copy it as hex, RGB or HSL.",
+      "surfaces" : [
+        "panel",
+        "settings"
+      ],
+      "symbol" : "eyedropper",
+      "updated" : "2026-11-10",
+      "version" : "1.3.0"
     },
     {
       "accent" : "indigo",
@@ -6196,6 +6222,41 @@
       "version" : "1.16.0"
     },
     {
+      "accent" : "violet",
+      "bundle" : "Developer/io.navbytes.stackbar.pr-cockpit-1.17.0.stackbarplugin",
+      "capabilities" : [
+        "Connects to api.github.com",
+        "Reads the secret GITHUB_TOKEN",
+        "Runs /opt/homebrew/bin/gh",
+        "Connects to the server you enter as GITHUB_ENTERPRISE_URL, and no other"
+      ],
+      "capabilityKinds" : [
+        "network",
+        "secret",
+        "run",
+        "userServer"
+      ],
+      "category" : "Developer",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/PRCockpit",
+      "id" : "io.navbytes.stackbar.pr-cockpit",
+      "minimumStackbar" : "0.37.0",
+      "name" : "PR Cockpit",
+      "publisher" : "navbytes",
+      "screenshot" : "Developer/io.navbytes.stackbar.pr-cockpit.png",
+      "sha256" : "063376bde4aead77d80adae830c46a628f0db038e1ec3700c9476be62d12c80f",
+      "summary" : "Your pull requests, reviews and issues with CI and review state, and your repositories a keystroke away.",
+      "surfaces" : [
+        "menuBar",
+        "panel",
+        "window",
+        "widget",
+        "settings"
+      ],
+      "symbol" : "arrow.triangle.pull",
+      "updated" : "2026-11-10",
+      "version" : "1.17.0"
+    },
+    {
       "bundle" : "Productivity/io.navbytes.stackbar.quicklinks-1.0.1.stackbarplugin",
       "capabilities" : [
         "Opens any link, file or folder, in any app",
@@ -7215,5 +7276,5 @@
       "reason" : "GitHub is now part of PR Cockpit, which has the same features and more. Install PR Cockpit from the store."
     }
   ],
-  "signature" : "GLiRGoSziBuRu6RQTYihigQ54iCT3hcu7KNk3CWtdy+Tzx/O4bvmt3IPpaoXZuQWGgYesboUquADlnTQpdasDQ=="
+  "signature" : "06AmRbYjf4b73V5FC7GC/zUvkv9pDPRc9umehsHOrdNThaae91+DULuap3jm5ZZJQNd8ISuc8N3dLGsQaCwgCg=="
 }
