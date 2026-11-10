@@ -18,16 +18,29 @@ Return copies an answer and ⌘P pastes it into the app you were in.
 - **Providers:** Anthropic is the default, with Claude Opus 5.5 at low effort
   for quick answers; name another model in Settings, such as
   `claude-haiku-5-5` for cheaper ones. OpenAI, OpenRouter (`openrouter/auto`
-  picks a model per question) and Ollama on your own Mac (no key, nothing sent
-  anywhere) are the others. Answers arrive whole rather than word by word.
+  picks a model per question), Ollama on your own Mac (no key, nothing sent
+  anywhere) and your own LiteLLM proxy are the others. Answers arrive whole
+  rather than word by word.
+- **LiteLLM:** uses the same `LITELLM_PROXY_URL` and `LITELLM_API_KEY` as the
+  LiteLLM plugin, so if that one is set up there is nothing to enter. Settings
+  lists the models your key may use (from the proxy's `/v1/models`) to pick
+  from, with a button to list them again; until you pick one, the first is
+  used. The URL works with or without `/v1` at the end.
 - **Needs:** the selection (`.context`), the clipboard (to paste results),
   `api.anthropic.com`, `api.openai.com`, `openrouter.ai` and `localhost`
-  (Ollama), and one of the secrets `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` or
-  `OPENROUTER_API_KEY`, asked for only for the provider you use. Your
+  (Ollama), the LiteLLM proxy you enter as `LITELLM_PROXY_URL` and no other
+  host, and one of the secrets `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
+  `OPENROUTER_API_KEY` or `LITELLM_API_KEY`, asked for only for the provider
+  you use. Your
   question, the conversation and, for the text commands, the selected text go
   to that provider.
 - **Surfaces:** panel, settings. No menu-bar item.
 - **Settings:** the provider and its model.
+
+## What's new in 1.1.0
+
+- LiteLLM as a provider: ask your own proxy, with its models in a picker.
+  Shares its URL and key with the LiteLLM plugin.
 
 ## What's new in 1.0.0
 

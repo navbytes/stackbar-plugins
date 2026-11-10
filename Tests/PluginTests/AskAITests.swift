@@ -85,4 +85,69 @@ final class AskAITests: XCTestCase {
         XCTAssertTrue(host.system.pasted.isEmpty)
         await session.stop()
     }
+
+    func testLiteLLMAsksTheProxyWithItsKey() throws {
+        XCTAssertEqual(AskAI.apiRoot("https://llm.example.com/"), "https://llm.example.com/v1")
+        XCTAssertEqual(AskAI.apiRoot(" https://llm.example.com/v1/ "), "https://llm.example.com/v1")
+        let request = try AskAI.request(.litellm, model: "claude-sonnet", key: "sk-lite", messages: AskAI.messages([], then: "hi"), base: "https://llm.example.com")
+        XCTAssertEqual(request.url, "https://llm.example.com/v1/chat/completions")
+        XCTAssertEqual(request.headers["Authorization"], "Bearer sk-lite")
+        let json = try body(request)
+        XCTAssertEqual(json["model"] as? String, "claude-sonnet")
+        XCTAssertEqual((json["messages"] as? [[String: String]])?.first?["role"], "system")
+
+        let chat = Data(#"{"choices":[{"message":{"role":"assistant","content":"Lisbon"}}]}"#.utf8)
+        XCTAssertEqual(try AskAI.answer(.litellm, status: 200, body: chat), "Lisbon")
+        let unknown = Data(#"{"error":{"message":"Invalid model name passed in model=nope"}}"#.utf8)
+        XCTAssertThrowsError(try AskAI.answer(.litellm, status: 400, body: unknown)) { error in
+            XCTAssertTrue("\(error)".contains("Invalid model name"), "\(error)")
+            XCTAssertTrue("\(error)".contains("Settings"), "\(error)")
+        }
+        XCTAssertThrowsError(try AskAI.answer(.litellm, status: 401, body: Data())) { error in
+            XCTAssertTrue("\(error)".contains("LITELLM_API_KEY"), "\(error)")
+        }
+    }
+
+    func testReadsTheProxysModels() throws {
+        let reply = Data(#"{"object":"list","data":[{"id":"gpt-5-mini","object":"model"},{"id":"claude-sonnet","object":"model"},{"id":"gpt-5-mini","object":"model"}]}"#.utf8)
+        XCTAssertEqual(try AskAI.modelIDs(status: 200, body: reply), ["claude-sonnet", "gpt-5-mini"])
+        XCTAssertThrowsError(try AskAI.modelIDs(status: 401, body: Data())) { error in
+            XCTAssertTrue("\(error)".contains("LITELLM_API_KEY"), "\(error)")
+        }
+        XCTAssertThrowsError(try AskAI.modelIDs(status: 404, body: Data())) { error in
+            XCTAssertTrue("\(error)".contains("LITELLM_PROXY_URL"), "\(error)")
+        }
+    }
+
+    #if canImport(Network)
+    /// Picking LiteLLM in Settings lists the proxy's models, and a question
+    /// goes to the proxy with the picked one and the shared key.
+    func testLiteLLMListsTheProxysModelsAndAsksWithThePickedOne() async throws {
+        let stub = try LiteLLMStub { method, path, _, _ in
+            switch (method, path) {
+            case ("GET", "/v1/models"): return (200, #"{"data":[{"id":"gpt-5-mini"},{"id":"claude-sonnet"}]}"#)
+            case ("POST", "/v1/chat/completions"): return (200, #"{"choices":[{"message":{"role":"assistant","content":"Four"}}]}"#)
+            default: return (404, "{}")
+            }
+        }
+        let host = Host(self)
+        try host.services.secrets.setSecret("http://127.0.0.1:\(stub.port)/", for: "LITELLM_PROXY_URL")
+        try host.services.secrets.setSecret("sk-lite", for: "LITELLM_API_KEY")
+        let supervisor = try await host.start("AskAI")
+        func settings() async -> String { await supervisor.views[.settings].map { TreeTextRenderer.render($0) } ?? "" }
+
+        await supervisor.press("picker/Ask", value: .text("LiteLLM"))
+        let listed = await waitUntil { await settings().contains("gpt-5-mini") }
+        XCTAssertTrue(listed, await settings())
+        XCTAssertTrue(stub.requests.all.contains { $0.hasPrefix("GET /v1/models Bearer sk-lite") }, "\(stub.requests.all)")
+
+        await supervisor.press("picker/litellm-model", value: .text("gpt-5-mini"))
+        await supervisor.press("field/Ask anything, then Return", value: .text("2+2?"))
+        let answered = await waitUntil { await supervisor.views[.panel].map { TreeTextRenderer.render($0) }?.contains("Four") ?? false }
+        XCTAssertTrue(answered, await supervisor.views[.panel].map { TreeTextRenderer.render($0) } ?? "")
+        let asked = stub.requests.all.first { $0.hasPrefix("POST /v1/chat/completions") } ?? ""
+        XCTAssertTrue(asked.contains("Bearer sk-lite") && asked.contains(#""model":"gpt-5-mini""#), asked)
+        await supervisor.stop()
+    }
+    #endif
 }
