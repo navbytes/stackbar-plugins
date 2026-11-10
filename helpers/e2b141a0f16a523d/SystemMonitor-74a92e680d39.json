@@ -1,0 +1,13 @@
+{
+  "arch" : "arm64",
+  "id" : "io.navbytes.stackbar.plugins.system-monitor",
+  "protocol" : 27,
+  "publicKey" : "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+  "sha256" : "c2afc436d5e0eec3a3ebca759e735236079be5d52c93c4ac1ec678c8aedf0d52",
+  "signature" : "5qUlWo33GnRptZzsEEVVhlkY66Pk8uWF3nXVqcfuP0c+HeJq0PRLW/5Nm5czYngQdCtVbF3HENY+pQSvEBPzBA==",
+  "size" : 6050768,
+  "sourceDigest" : "74a92e680d39d019b6f35d07de022e045b122e52d6f4f14cf8de104f716a6c27",
+  "stackbarKit" : "e2b141a0f16a523d6dd15c86b8e74ed93ad042cefb736916dcfad43400ef5bec",
+  "url" : "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-e2b141a0f16a523d/SystemMonitor-74a92e680d39",
+  "version" : "1.8.0"
+}
