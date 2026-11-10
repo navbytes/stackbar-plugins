@@ -2174,6 +2174,19 @@
     },
     {
       "arch": "arm64",
+      "id": "io.navbytes.stackbar.plugins.notes",
+      "protocol": 28,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "2ba78ed56ab584f0ec5b61620adb083815897bb786d238c42d6812d5ff8d0a9a",
+      "signature": "3ClCpZEBm5PFUZXD0DuIx8WMFZVDNzrLF07SrC+r3qyqk7EzuI29/HqBg0sYA4EtO+tU1Y84MJza/AWanqvzAg==",
+      "size": 6109352,
+      "sourceDigest": "828cbc04e7a9ceeaf7af0d607779fa25c971ecbfee9f0b245a7ba8c67ae717ff",
+      "stackbarKit": "5ad38b1e5c5d447ca192566cf87df66ceb09a7bbd9dcec9a7ad41654455adfa0",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-5ad38b1e5c5d447c/Notes-828cbc04e7a9",
+      "version": "1.0.0"
+    },
+    {
+      "arch": "arm64",
       "id": "io.navbytes.stackbar.plugins.openrouter",
       "protocol": 28,
       "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
