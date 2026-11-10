@@ -13,19 +13,25 @@ permissions:
 
 jobs:
   main:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.LINUX_RUNNER || 'ubuntu-latest' }}
     container: swift:6.2
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          repository: navbytes/stackbar
-          path: .stackbar
       - run: apt-get update -qq && apt-get install -y -qq python3 > /dev/null
-      - run: scripts/check.sh
+      # The Stackbar in store.json (an organization's copy: its own, with
+      # STACKBAR_REPO_TOKEN when it is private).
+      - name: Stackbar main
         env:
-          STACKBAR_PATH: ${{ github.workspace }}/.stackbar
+          STACKBAR_REPO_TOKEN: ${{ secrets.STACKBAR_REPO_TOKEN }}
+        run: |
+          if [ -n "$STACKBAR_REPO_TOKEN" ]; then
+            scripts/fetch-stackbar.sh .stackbar main >> "$GITHUB_ENV"
+          else
+            git clone -q --depth 1 "$(python3 scripts/store_config.py get stackbar)" .stackbar
+            echo "STACKBAR_PATH=$PWD/.stackbar" >> "$GITHUB_ENV"
+          fi
+      - run: scripts/check.sh
       - name: Open an issue
         if: failure()
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
@@ -35,4 +41,4 @@ jobs:
             const open = await github.rest.issues.listForRepo({ ...context.repo, state: "open", labels: "canary" });
             if (open.data.some(issue => issue.title === title)) return;
             await github.rest.issues.create({ ...context.repo, title, labels: ["canary"],
-              body: `The nightly build against navbytes/stackbar main failed: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}` });
+              body: `The nightly build against stackbar main failed: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}` });

@@ -2,7 +2,9 @@ name: Publish
 
 # Signs new plugin versions with the navbytes key and rebuilds the signed
 # index on the gh-pages branch, which GitHub Pages serves at
-# https://navbytes.github.io/stackbar-plugins/index.json.
+# https://navbytes.github.io/stackbar-plugins/index.json. An organization's
+# copy signs with its own key and copies gh-pages to its own host
+# (scripts/export-store.sh).
 on:
   push:
     branches: [main]
@@ -20,13 +22,20 @@ concurrency:
 
 jobs:
   publish:
-    runs-on: macos-26
+    runs-on: ${{ vars.MACOS_RUNNER || 'macos-26' }}
     timeout-minutes: 45
     # The key is only available to jobs in this environment, which only main
     # may use (Settings → Environments → release).
     environment: release
+    env:
+      STACKBAR_REPO_TOKEN: ${{ secrets.STACKBAR_REPO_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      # An organization's copy whose Stackbar repository is private
+      # (stackbar's docs/self-hosting.md); upstream has no such secret.
+      - name: Private Stackbar copy
+        if: env.STACKBAR_REPO_TOKEN != ''
+        run: scripts/fetch-stackbar.sh .stackbar >> "$GITHUB_ENV"
       - name: Check out gh-pages
         run: |
           if git ls-remote --exit-code origin gh-pages > /dev/null; then

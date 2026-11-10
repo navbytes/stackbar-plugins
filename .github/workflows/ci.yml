@@ -19,15 +19,29 @@ jobs:
   # and renders every surface. Pull requests from forks need no secrets here.
   linux:
     if: github.event_name != 'pull_request' || !github.event.pull_request.draft
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.LINUX_RUNNER || 'ubuntu-latest' }}
     container: swift:6.2
     timeout-minutes: 30
+    env:
+      STACKBAR_REPO_TOKEN: ${{ secrets.STACKBAR_REPO_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - run: apt-get update -qq && apt-get install -y -qq python3 > /dev/null
+      # An organization's copy whose Stackbar repository is private
+      # (stackbar's docs/self-hosting.md); upstream has no such secret.
+      - name: Private Stackbar copy
+        if: env.STACKBAR_REPO_TOKEN != ''
+        run: scripts/fetch-stackbar.sh .stackbar >> "$GITHUB_ENV"
+      - name: No store override upstream
+        if: github.repository == 'navbytes/stackbar-plugins'
+        run: |
+          if [ -e store.override.json ]; then
+            echo "::error::store.override.json is for an organization's own copy; remove it"
+            exit 1
+          fi
       - name: Check
         run: |
           if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
@@ -41,7 +55,7 @@ jobs:
   # we can't diff, run it.
   changes:
     if: github.event_name != 'pull_request' || !github.event.pull_request.draft
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.LINUX_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 5
     outputs:
       macos: ${{ steps.decide.outputs.macos }}
@@ -65,15 +79,22 @@ jobs:
   macos:
     needs: changes
     if: needs.changes.outputs.macos == 'true'
-    runs-on: macos-26
+    runs-on: ${{ vars.MACOS_RUNNER || 'macos-26' }}
     # Each plugin soaks for a minute, so this grows with the store: 34
     # plugins took the whole 45 minutes on 11-06 and the job was cancelled
     # after "check: ok".
     timeout-minutes: 75
+    env:
+      STACKBAR_REPO_TOKEN: ${{ secrets.STACKBAR_REPO_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
+      # An organization's copy whose Stackbar repository is private
+      # (stackbar's docs/self-hosting.md); upstream has no such secret.
+      - name: Private Stackbar copy
+        if: env.STACKBAR_REPO_TOKEN != ''
+        run: scripts/fetch-stackbar.sh .stackbar >> "$GITHUB_ENV"
       # A pull request soaks only the plugins it changed; a push to main
       # soaks them all, so a StackbarKit pin change is soaked there.
       - run: scripts/check.sh
@@ -87,7 +108,7 @@ jobs:
     name: CI ok
     if: always()
     needs: [linux, changes, macos]
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.LINUX_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 5
     steps:
       - env:

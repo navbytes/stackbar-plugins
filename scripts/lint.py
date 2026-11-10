@@ -14,9 +14,17 @@ import subprocess
 import sys
 import tempfile
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import store_config  # noqa: E402
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 CATEGORIES = ["System", "Developer", "Network", "Monitoring", "Productivity"]
-ID_PREFIX = "io.navbytes.stackbar.plugins."
+# The ids this store accepts (store.json, plus an organization's
+# store.override.json). The README table lists only plugins under
+# store.json's own prefixes, so an organization's plugins never change the
+# README and merging upstream never conflicts there.
+ID_PREFIXES = tuple(store_config.load()["idPrefixes"])
+README_PREFIXES = tuple(store_config.load(include_override=False)["idPrefixes"])
 COMMUNITY = "Community"
 # Plugins that shipped inside Stackbar before they moved here keep their ids,
 # so settings, storage and approvals (all keyed by id) carry over.
@@ -147,8 +155,8 @@ def lint(ctl, base=None):
                 problems.append(f"{where}: id {plugin_id} is also used by {seen_ids[plugin_id]}")
             else:
                 seen_ids[plugin_id] = where
-        elif not (plugin_id.startswith(ID_PREFIX) or plugin_id in LEGACY_IDS):
-            problems.append(f"{where}: manifest id must start with {ID_PREFIX}")
+        elif not (plugin_id.startswith(ID_PREFIXES) or plugin_id in LEGACY_IDS):
+            problems.append(f"{where}: manifest id must start with {' or '.join(ID_PREFIXES)}")
         elif plugin_id in seen_ids:
             problems.append(f"{where}: id {plugin_id} is also used by {seen_ids[plugin_id]}")
         else:
@@ -165,7 +173,8 @@ def lint(ctl, base=None):
                 elif version_tuple(version) <= version_tuple(old_version):
                     problems.append(f"{where}: source changed since {base} but version is still {version}; raise it")
         shown = f"{COMMUNITY} (by @{user})" if user else category
-        rows.append(f"| [{manifest['name']}]({category}/{name}) | {shown} | {summary or ''} |")
+        if user is not None or plugin_id.startswith(README_PREFIXES) or plugin_id in LEGACY_IDS:
+            rows.append(f"| [{manifest['name']}]({category}/{name}) | {shown} | {summary or ''} |")
     return problems, rows
 
 
