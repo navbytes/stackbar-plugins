@@ -89,13 +89,17 @@ how long reviews have waited.
 A widget keeps the review queue in view.
 <!-- preview: widget -->
 
-## What's new in 1.15.0
+## What's new in 1.16.0
 
 - Sign in with gh: turn it on in Settings and PR Cockpit uses the gh command-line tool's sign-in (`gh auth login`), with nothing to paste. It reads the token itself with `gh auth token`, kept for five minutes, not once per request. A pasted `GITHUB_TOKEN` stays the default.
 - Stackbar now asks to let PR Cockpit run gh. It only ever runs `gh auth token`.
 - On GitHub Enterprise Server, gh's token is read for that server's host (`gh auth login --hostname <server>`).
 - Try Again and Refresh Pull Requests ask gh again at once, so signing in takes effect without waiting.
 - Hints about token access now cover both a pasted fine-grained token and gh's scopes.
+
+## What's new in 1.15.0
+
+- Type `pr`, a space and text in the palette to search pull requests straight away. Change or clear the alias in Settings › Commands.
 
 ## What's new in 1.14.0
 

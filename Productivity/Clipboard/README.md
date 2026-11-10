@@ -46,6 +46,10 @@ key or card number is masked, kept away from agent tools, and dropped after
 The window shows how much you copy, and from which apps.
 <!-- preview: insights -->
 
+## What's new in 1.15.0
+
+- Type `clip`, a space and text in the palette to search your clipboard history, whether or not it shows in the main search.
+
 ## What's new in 1.14.0
 
 - Searching the history finds words anywhere in a long copy, not only in its first 2,000 characters, and the preview shows the part where it was found.
