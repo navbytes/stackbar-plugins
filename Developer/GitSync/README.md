@@ -65,6 +65,11 @@ up the merged ones.
 A widget with what's behind and unpushed, and an Update button.
 <!-- preview: widget -->
 
+## What's new in 1.2.0
+
+- Type `gs`, a space and a repository name in the palette to search only your repositories. Change or clear the alias in Settings › General › Main Search.
+- Stackbar 0.37.0 keeps free-text plugins out of the main search until you turn them on there; `gs` works either way.
+
 ## What's new in 1.1.0
 
 - Clean Up asks through Stackbar before it removes merged worktrees, naming how many.

@@ -15,7 +15,7 @@ final class Clipboard: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.clipboard",
         name: "Clipboard History",
-        version: "1.14.0",
+        version: "1.15.0",
         summary: "Everything you copy, searchable and one keystroke from pasting back.",
         surfaces: [.menuBar, .panel, .window, .settings],
         // The minute tick only lets secrets expire on time.
@@ -25,7 +25,7 @@ final class Clipboard: StackbarPlugin {
         // the panel stays on the menu bar icon.
         hotkey: "cmd+shift+v",
         hotkeyCommand: "search",
-        minimumStackbar: "0.35.0",
+        minimumStackbar: "0.37.0",
         homepage: "https://github.com/navbytes/stackbar-plugins/tree/main/Productivity/Clipboard",
         accent: .blue,
         symbol: "doc.on.clipboard.fill"
@@ -805,7 +805,8 @@ final class Clipboard: StackbarPlugin {
                 }
             }
         // What you copied shows in the palette's results as you type.
-        if inPalette { search.rootSearch() } else { search }
+        // `clip` and text searches the history from the palette either way.
+        if inPalette { search.rootSearch().alias("clip") } else { search.alias("clip") }
         Command("paste-plain", title: "Paste Last Copy as Plain Text", symbol: "doc.plaintext", keywords: ["clipboard", "format"]) { _ in
             // Pinned items move to the top when they are used again, so skip them: this is the last copy you made.
             guard let latest = self.newestFirst.first(where: { !$0.pinned }) ?? self.newestFirst.first else { return .message("Nothing copied yet") }

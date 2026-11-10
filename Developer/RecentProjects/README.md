@@ -30,6 +30,11 @@ rank higher, and they show up in the palette's own results too.
   results.
 - **Leaves out:** single files and remote (SSH, container) projects.
 
+## What's new in 1.5.0
+
+- Type `proj`, a space and a name in the palette to search only your recent projects. Change or clear the alias in Settings › General › Main Search.
+- Stackbar 0.37.0 keeps free-text plugins out of the main search until you turn them on there; `proj` works either way.
+
 ## What's new in 1.4.0
 
 - The panel says how many remote projects (SSH, containers, WSL) your editors listed and were left out, so a missing project isn't a mystery.

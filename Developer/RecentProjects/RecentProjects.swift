@@ -77,7 +77,7 @@ final class RecentProjects: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.recent-projects",
         name: "Recent Projects",
-        version: "1.4.0",
+        version: "1.5.0",
         summary: "Open the projects you used lately in VS Code, Cursor, Windsurf or VSCodium from the palette.",
         surfaces: [.panel, .settings],
         triggers: [.launch, .minutes(5), .wake],
@@ -89,7 +89,7 @@ final class RecentProjects: StackbarPlugin {
             // Which editors are installed, for the default editor setting.
             .apps,
         ],
-        minimumStackbar: "0.22.0",
+        minimumStackbar: "0.37.0",
         homepage: "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/RecentProjects",
         accent: .blue,
         symbol: "folder.badge.gearshape"
@@ -363,6 +363,7 @@ final class RecentProjects: StackbarPlugin {
                 }
             }
             .rootSearch(section: "Recent Projects")
+            .alias("proj")
     }
 
     // MARK: Panel
