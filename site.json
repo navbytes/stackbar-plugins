@@ -263,6 +263,12 @@
       "changes": [
         {
           "notes": [
+            "LiteLLM as a provider: ask your own proxy, with its models in a picker. Shares its URL and key with the LiteLLM plugin."
+          ],
+          "version": "1.1.0"
+        },
+        {
+          "notes": [
             "First version: Ask AI with follow-ups and Tab from the palette, five commands on selected text, and Anthropic, OpenAI, OpenRouter or Ollama."
           ],
           "version": "1.0.0"
@@ -276,11 +282,15 @@
         },
         {
           "label": "Providers",
-          "text": "Anthropic is the default, with Claude Opus 5.5 at low effort for quick answers; name another model in Settings, such as `claude-haiku-5-5` for cheaper ones. OpenAI, OpenRouter (`openrouter/auto` picks a model per question) and Ollama on your own Mac (no key, nothing sent anywhere) are the others. Answers arrive whole rather than word by word."
+          "text": "Anthropic is the default, with Claude Opus 5.5 at low effort for quick answers; name another model in Settings, such as `claude-haiku-5-5` for cheaper ones. OpenAI, OpenRouter (`openrouter/auto` picks a model per question), Ollama on your own Mac (no key, nothing sent anywhere) and your own LiteLLM proxy are the others. Answers arrive whole rather than word by word."
+        },
+        {
+          "label": "LiteLLM",
+          "text": "uses the same `LITELLM_PROXY_URL` and `LITELLM_API_KEY` as the LiteLLM plugin, so if that one is set up there is nothing to enter. Settings lists the models your key may use (from the proxy's `/v1/models`) to pick from, with a button to list them again; until you pick one, the first is used. The URL works with or without `/v1` at the end."
         },
         {
           "label": "Needs",
-          "text": "the selection (`.context`), the clipboard (to paste results), `api.anthropic.com`, `api.openai.com`, `openrouter.ai` and `localhost` (Ollama), and one of the secrets `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` or `OPENROUTER_API_KEY`, asked for only for the provider you use. Your question, the conversation and, for the text commands, the selected text go to that provider."
+          "text": "the selection (`.context`), the clipboard (to paste results), `api.anthropic.com`, `api.openai.com`, `openrouter.ai` and `localhost` (Ollama), the LiteLLM proxy you enter as `LITELLM_PROXY_URL` and no other host, and one of the secrets `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY` or `LITELLM_API_KEY`, asked for only for the provider you use. Your question, the conversation and, for the text commands, the selected text go to that provider."
         },
         {
           "label": "Surfaces",
@@ -291,7 +301,7 @@
           "text": "the provider and its model."
         }
       ],
-      "version": "1.0.0"
+      "version": "1.1.0"
     },
     "io.navbytes.stackbar.plugins.browser-tabs": {
       "changes": [
@@ -3273,6 +3283,12 @@
           "dark": "Productivity/shots/io.navbytes.stackbar.plugins.ask-ai/1.0.0/dark/panel.png",
           "light": "Productivity/shots/io.navbytes.stackbar.plugins.ask-ai/1.0.0/light/panel.png"
         }
+      },
+      "1.1.0": {
+        "panel": {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.ask-ai/1.1.0/dark/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.ask-ai/1.1.0/light/panel.png"
+        }
       }
     },
     "io.navbytes.stackbar.plugins.browser-tabs": {
@@ -5478,6 +5494,15 @@
         {
           "dark": "Productivity/shots/io.navbytes.stackbar.plugins.ask-ai/1.0.0/dark/previews/hero/panel.png",
           "light": "Productivity/shots/io.navbytes.stackbar.plugins.ask-ai/1.0.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Ask from the palette, follow up, copy the answer"
+        }
+      ],
+      "1.1.0": [
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.ask-ai/1.1.0/dark/previews/hero/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.ask-ai/1.1.0/light/previews/hero/panel.png",
           "name": "hero",
           "surface": "panel",
           "title": "Ask from the palette, follow up, copy the answer"

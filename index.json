@@ -1,6 +1,6 @@
 {
   "format" : 2,
-  "generated" : "2026-11-10T13:26:06Z",
+  "generated" : "2026-11-10T14:32:06Z",
   "homepage" : "https://github.com/navbytes/stackbar-plugins",
   "name" : "Stackbar Plugins by navbytes",
   "plugins" : [
@@ -803,6 +803,46 @@
       "symbol" : "sparkles",
       "updated" : "2026-11-10",
       "version" : "1.0.0"
+    },
+    {
+      "accent" : "violet",
+      "bundle" : "Productivity/io.navbytes.stackbar.plugins.ask-ai-1.1.0.stackbarplugin",
+      "capabilities" : [
+        "Reads the text you select and which app you're in",
+        "Reads everything you copy, and pastes into the app you're using",
+        "Connects to api.anthropic.com, api.openai.com, openrouter.ai, localhost",
+        "Reads the secret ANTHROPIC_API_KEY",
+        "Reads the secret OPENAI_API_KEY",
+        "Reads the secret OPENROUTER_API_KEY",
+        "Connects to the server you enter as LITELLM_PROXY_URL, and no other",
+        "Reads the secret LITELLM_API_KEY"
+      ],
+      "capabilityKinds" : [
+        "context",
+        "clipboard",
+        "network",
+        "secret",
+        "secret",
+        "secret",
+        "userServer",
+        "secret"
+      ],
+      "category" : "Productivity",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Productivity/AskAI",
+      "id" : "io.navbytes.stackbar.plugins.ask-ai",
+      "minimumStackbar" : "0.26.0",
+      "name" : "Ask AI",
+      "publisher" : "navbytes",
+      "screenshot" : "Productivity/io.navbytes.stackbar.plugins.ask-ai.png",
+      "sha256" : "9fcf93afc9f808267b56356838bebad65587ecd0a087ba3c0408932d465278d6",
+      "summary" : "Ask Claude, ChatGPT, a local model or your LiteLLM proxy from the palette, and fix or summarize selected text, with your own key.",
+      "surfaces" : [
+        "panel",
+        "settings"
+      ],
+      "symbol" : "sparkles",
+      "updated" : "2026-11-10",
+      "version" : "1.1.0"
     },
     {
       "accent" : "cyan",
@@ -7148,5 +7188,5 @@
       "reason" : "GitHub is now part of PR Cockpit, which has the same features and more. Install PR Cockpit from the store."
     }
   ],
-  "signature" : "sinPRf3wMqFJRRGyW/CZDgSRsxyQ84isVS+mEL6NAS+8MX/eAgvzlw1Q44h3Rdb4JzpDRqwzMkDOEykmLZ4ICQ=="
+  "signature" : "SMUoKm9z3lKCG3UVjmGxoOVWLI9x2BwB5acQTZhGLBdLtWCPpjgbkl31MhBoS3Nma+M+vx1PIqNBpX6V/FEaDQ=="
 }
