@@ -14,7 +14,7 @@ import PackageDescription
 /// and custom styling.
 /// Switch to `exact:` once tags are pushed, and raise it in its own pull
 /// request; a plugin may still set an older `minimumStackbar`.
-let stackbarRevision = "6b289fe7c152fe60b2a228f242db73a0e4f7b1d9" // main after palette-root-commands (stackbar #176): Command.alias; re-pin to 0.37.0
+let stackbarRevision = "d3332f3070afc005b2a8b3d8e467a29de06d2e50" // v0.37.0 (Command.alias, protocol 27)
 
 /// Category folders. The folder name is the category the store shows.
 let categories = ["System", "Developer", "Network", "Monitoring", "Productivity"]
