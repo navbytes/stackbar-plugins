@@ -79,6 +79,10 @@ how long reviews have waited.
 A widget keeps the review queue in view.
 <!-- preview: widget -->
 
+## What's new in 1.15.0
+
+- Type `pr`, a space and text in the palette to search pull requests straight away. Change or clear the alias in Settings › Commands.
+
 ## What's new in 1.14.0
 
 - When your organization uses SAML single sign-on, PR Cockpit says to authorize the token for it (Configure SSO on github.com), instead of a bare 403.

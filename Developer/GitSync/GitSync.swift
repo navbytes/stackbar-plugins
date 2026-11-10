@@ -18,12 +18,12 @@ final class GitSync: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.git-sync",
         name: "Git Sync",
-        version: "1.1.0",
+        version: "1.2.0",
         summary: "Which local repositories are behind or ahead of their remote, with the safe ones updated in one click.",
         surfaces: [.menuBar, .panel, .window, .widget, .settings],
         triggers: [.launch, .every(.seconds(60)), .wake],
         capabilities: [.run(commands: ["git", "find"]), .sshAgent, .openURLs(schemes: ["*"])],
-        minimumStackbar: "0.35.0",
+        minimumStackbar: "0.37.0",
         homepage: "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/GitSync",
         accent: .green,
         symbol: "arrow.triangle.branch"
@@ -1167,6 +1167,7 @@ final class GitSync: StackbarPlugin {
                 }
             }
             .rootSearch(section: "Repositories")
+            .alias("gs")
         Command("update-all", title: "Update All Repositories", subtitle: "Fast-forward every repository that is behind and safe to", symbol: "arrow.down.circle", keywords: ["git", "pull", "sync"]) { _ in
             await self.updateAll()
             return .message(self.lastResult ?? "Done")

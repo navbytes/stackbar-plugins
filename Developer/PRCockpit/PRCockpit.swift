@@ -24,12 +24,12 @@ final class PRCockpit: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.pr-cockpit",
         name: "PR Cockpit",
-        version: "1.14.0",
+        version: "1.15.0",
         summary: "Your pull requests, reviews and issues with CI and review state, and your repositories a keystroke away.",
         surfaces: [.menuBar, .panel, .window, .widget, .settings],
         triggers: [.launch, .every(.seconds(20)), .wake],
         capabilities: [.network("api.github.com"), .secret(name: "GITHUB_TOKEN"), .userServer(secret: "GITHUB_ENTERPRISE_URL")],
-        minimumStackbar: "0.35.0",
+        minimumStackbar: "0.37.0",
         homepage: "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/PRCockpit",
         accent: .violet,
         symbol: "arrow.triangle.pull"
@@ -1515,6 +1515,7 @@ final class PRCockpit: StackbarPlugin {
 
     var commands: [Command] {
         Command("search", title: "Search Pull Requests", subtitle: "Yours and to review; type to search GitHub", symbol: "magnifyingglass", keywords: ["github", "pr", "pull request"])
+            .alias("pr")
             .view(search: { invocation in
                 try await self.search(invocation.text)
             }) { invocation in
