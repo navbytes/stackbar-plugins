@@ -4,6 +4,12 @@
       "changes": [
         {
           "notes": [
+            "Type `clip`, a space and text in the palette to search your clipboard history, whether or not it shows in the main search."
+          ],
+          "version": "1.15.0"
+        },
+        {
+          "notes": [
             "Searching the history finds words anywhere in a long copy, not only in its first 2,000 characters, and the preview shows the part where it was found.",
             "Settings explains that \u2318\u21e7V is also Paste and Match Style in Chrome, Slack, Pages and Mail, and how to pick another hotkey to keep theirs."
           ],
@@ -117,7 +123,7 @@
           "text": "Stackbar 0.35.0 or later."
         }
       ],
-      "version": "1.14.0"
+      "version": "1.15.0"
     },
     "io.navbytes.stackbar.plugins.app-switcher": {
       "changes": [
@@ -756,6 +762,13 @@
       "changes": [
         {
           "notes": [
+            "Type `gs`, a space and a repository name in the palette to search only your repositories. Change or clear the alias in Settings \u203a General \u203a Main Search.",
+            "Stackbar 0.37.0 keeps free-text plugins out of the main search until you turn them on there; `gs` works either way."
+          ],
+          "version": "1.2.0"
+        },
+        {
+          "notes": [
             "Clean Up asks through Stackbar before it removes merged worktrees, naming how many.",
             "Stackbar 0.35.0 now asks for the second press itself, the same way in the panel, the palette and every window, and VoiceOver reads the question."
           ],
@@ -803,7 +816,7 @@
           "text": "`repo_status` lists each repository's state."
         }
       ],
-      "version": "1.1.0"
+      "version": "1.2.0"
     },
     "io.navbytes.stackbar.plugins.homebrew": {
       "changes": [
@@ -1496,6 +1509,13 @@
       "changes": [
         {
           "notes": [
+            "Type `proj`, a space and a name in the palette to search only your recent projects. Change or clear the alias in Settings \u203a General \u203a Main Search.",
+            "Stackbar 0.37.0 keeps free-text plugins out of the main search until you turn them on there; `proj` works either way."
+          ],
+          "version": "1.5.0"
+        },
+        {
+          "notes": [
             "The panel says how many remote projects (SSH, containers, WSL) your editors listed and were left out, so a missing project isn't a mystery."
           ],
           "version": "1.4.0"
@@ -1556,7 +1576,7 @@
           "text": "single files and remote (SSH, container) projects."
         }
       ],
-      "version": "1.4.0"
+      "version": "1.5.0"
     },
     "io.navbytes.stackbar.plugins.script-commands": {
       "changes": [
@@ -2277,6 +2297,12 @@
       "changes": [
         {
           "notes": [
+            "Type `pr`, a space and text in the palette to search pull requests straight away. Change or clear the alias in Settings \u203a Commands."
+          ],
+          "version": "1.15.0"
+        },
+        {
+          "notes": [
             "When your organization uses SAML single sign-on, PR Cockpit says to authorize the token for it (Configure SSO on github.com), instead of a bare 403.",
             "Signed in to the gh command-line tool? The empty state tells you how to reuse its token: `gh auth token | pbcopy`."
           ],
@@ -2403,7 +2429,7 @@
           "text": "`review_queue`, `my_pull_requests` and `my_issues`."
         }
       ],
-      "version": "1.14.0"
+      "version": "1.15.0"
     },
     "io.navbytes.stackbar.quicklinks": {
       "changes": [
@@ -2765,6 +2791,12 @@
         "seconds": 7.2,
         "surface": "panel"
       },
+      "1.15.0": {
+        "dark": "Productivity/shots/io.navbytes.stackbar.clipboard/1.15.0/dark/demo/b07000be5086/panel.png",
+        "light": "Productivity/shots/io.navbytes.stackbar.clipboard/1.15.0/light/demo/b07000be5086/panel.png",
+        "seconds": 7.2,
+        "surface": "panel"
+      },
       "1.5.0": {
         "dark": "Productivity/shots/io.navbytes.stackbar.clipboard/1.5.0/dark/demo/b07000be5086/panel.png",
         "light": "Productivity/shots/io.navbytes.stackbar.clipboard/1.5.0/light/demo/b07000be5086/panel.png",
@@ -2937,6 +2969,12 @@
         "seconds": 5.0,
         "surface": "panel"
       },
+      "1.15.0": {
+        "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.15.0/dark/demo/526649a16612/panel.png",
+        "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.15.0/light/demo/526649a16612/panel.png",
+        "seconds": 5.0,
+        "surface": "panel"
+      },
       "1.6.0": {
         "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.6.0/dark/demo/526649a16612/panel.png",
         "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.6.0/light/demo/526649a16612/panel.png",
@@ -3010,6 +3048,16 @@
         "panel": {
           "dark": "Productivity/shots/io.navbytes.stackbar.clipboard/1.14.0/dark/panel.png",
           "light": "Productivity/shots/io.navbytes.stackbar.clipboard/1.14.0/light/panel.png"
+        }
+      },
+      "1.15.0": {
+        "menuBar": {
+          "dark": "Productivity/shots/io.navbytes.stackbar.clipboard/1.15.0/dark/menuBar.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.clipboard/1.15.0/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Productivity/shots/io.navbytes.stackbar.clipboard/1.15.0/dark/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.clipboard/1.15.0/light/panel.png"
         }
       },
       "1.4.0": {
@@ -3500,6 +3548,16 @@
         "panel": {
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.1.0/dark/panel.png",
           "light": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.1.0/light/panel.png"
+        }
+      },
+      "1.2.0": {
+        "menuBar": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.0/dark/menuBar.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.0/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.0/dark/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.0/light/panel.png"
         }
       }
     },
@@ -4067,6 +4125,12 @@
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.recent-projects/1.4.0/dark/panel.png",
           "light": "Developer/shots/io.navbytes.stackbar.plugins.recent-projects/1.4.0/light/panel.png"
         }
+      },
+      "1.5.0": {
+        "panel": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.recent-projects/1.5.0/dark/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.recent-projects/1.5.0/light/panel.png"
+        }
       }
     },
     "io.navbytes.stackbar.plugins.script-commands": {
@@ -4610,6 +4674,16 @@
           "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.14.0/light/panel.png"
         }
       },
+      "1.15.0": {
+        "menuBar": {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.15.0/dark/menuBar.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.15.0/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.15.0/dark/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.15.0/light/panel.png"
+        }
+      },
       "1.4.0": {
         "menuBar": {
           "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.4.0/dark/menuBar.png",
@@ -5045,6 +5119,29 @@
         {
           "dark": "Productivity/shots/io.navbytes.stackbar.clipboard/1.14.0/dark/previews/insights/window.png",
           "light": "Productivity/shots/io.navbytes.stackbar.clipboard/1.14.0/light/previews/insights/window.png",
+          "name": "insights",
+          "surface": "window",
+          "title": "What you copy, and from where"
+        }
+      ],
+      "1.15.0": [
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.clipboard/1.15.0/dark/previews/hero/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.clipboard/1.15.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Everything you copied, one keystroke away"
+        },
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.clipboard/1.15.0/dark/previews/pinned/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.clipboard/1.15.0/light/previews/pinned/panel.png",
+          "name": "pinned",
+          "surface": "panel",
+          "title": "Pin what you paste every day"
+        },
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.clipboard/1.15.0/dark/previews/insights/window.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.clipboard/1.15.0/light/previews/insights/window.png",
           "name": "insights",
           "surface": "window",
           "title": "What you copy, and from where"
@@ -5924,6 +6021,36 @@
           "surface": "widget",
           "title": "Behind and unpushed at a glance"
         }
+      ],
+      "1.2.0": [
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.0/dark/previews/hero/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Which repositories are behind, and one click to update them"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.0/dark/previews/worktrees/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.0/light/previews/worktrees/panel.png",
+          "name": "worktrees",
+          "surface": "panel",
+          "title": "Every worktree under its repository, and the merged ones to clean up"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.0/dark/previews/dashboard/window.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.0/light/previews/dashboard/window.png",
+          "name": "dashboard",
+          "surface": "window",
+          "title": "Repositories, worktrees and stale branches"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.0/dark/previews/widget/widget.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.0/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "Behind and unpushed at a glance"
+        }
       ]
     },
     "io.navbytes.stackbar.plugins.homebrew": {
@@ -6706,6 +6833,22 @@
         {
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.recent-projects/1.4.0/dark/previews/editors/settings.png",
           "light": "Developer/shots/io.navbytes.stackbar.plugins.recent-projects/1.4.0/light/previews/editors/settings.png",
+          "name": "editors",
+          "surface": "settings",
+          "title": "Open projects in the editor you prefer"
+        }
+      ],
+      "1.5.0": [
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.recent-projects/1.5.0/dark/previews/hero/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.recent-projects/1.5.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Your projects, a few letters away"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.recent-projects/1.5.0/dark/previews/editors/settings.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.recent-projects/1.5.0/light/previews/editors/settings.png",
           "name": "editors",
           "surface": "settings",
           "title": "Open projects in the editor you prefer"
@@ -7634,6 +7777,43 @@
         {
           "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.14.0/dark/previews/widget/widget.png",
           "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.14.0/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "Your review queue on the desktop"
+        }
+      ],
+      "1.15.0": [
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.15.0/dark/previews/hero/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.15.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Every pull request waiting on you"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.15.0/dark/previews/mine/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.15.0/light/previews/mine/panel.png",
+          "name": "mine",
+          "surface": "panel",
+          "title": "Your own PRs: checks, reviews and conflicts"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.15.0/dark/previews/checks/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.15.0/light/previews/checks/panel.png",
+          "name": "checks",
+          "surface": "panel",
+          "title": "Why a check failed, and its preview deploy, without leaving the menu bar"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.15.0/dark/previews/dashboard/window.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.15.0/light/previews/dashboard/window.png",
+          "name": "dashboard",
+          "surface": "window",
+          "title": "Both lists, what merged and how long reviews wait"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.15.0/dark/previews/widget/widget.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.15.0/light/previews/widget/widget.png",
           "name": "widget",
           "surface": "widget",
           "title": "Your review queue on the desktop"
