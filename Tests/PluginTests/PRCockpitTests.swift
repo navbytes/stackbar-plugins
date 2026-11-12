@@ -27,12 +27,18 @@ private struct Answers: Sendable {
     var ready: Set<Int> = []
     var drafts: Set<Int> = []
     var autoMerge: Set<Int> = []
+    /// The watched repositories' reply, sent for a query that reads them by name.
+    var watched: String?
 }
 
 private func gitHub(_ method: String, _ path: String, _ auth: String, _ answers: Answers, body: Data = Data()) -> (Int, String) {
     if method == "POST", path == "/api/graphql", String(decoding: body, as: UTF8.self).contains("mutation") {
         return (200, #"{"data":{}}"#)
     }
+    if method == "POST", path == "/api/graphql", let watched = answers.watched, String(decoding: body, as: UTF8.self).contains("r0: repository") {
+        return (200, watched)
+    }
+    if method == "GET", path.hasPrefix("/api/v3/user/teams") { return (200, #"[{"slug":"web","organization":{"login":"o"}}]"#) }
     if method == "POST", path == "/api/graphql" {
         return auth == "Bearer C" ? (401, #"{"message":"Bad credentials"}"#) : (200, graphQL(answers, auth: auth))
     }
@@ -256,6 +262,36 @@ final class PRCockpitTests: XCTestCase {
         }
         XCTAssertTrue(shown, "the search names the rejected token")
         await session.stop()
+    }
+
+    /// A watched repository is read by name: a review asked of your team
+    /// and your own pull request show though search found neither, one
+    /// asked of someone else doesn't, and a repository GitHub refuses says why.
+    func testWatchedRepositoriesShowWhatSearchMissedAndSayWhyOneIsRefused() async throws {
+        func requested(_ number: Int, _ reviewer: String, author: String = "a") -> String {
+            let pr = pullRequest(number, state: "OPEN").replacingOccurrences(of: #""author":{"login":"a"}"#, with: #""author":{"login":"\#(author)"}"#)
+            return String(pr.dropLast()) + #","reviewRequests":{"nodes":[{"requestedReviewer":\#(reviewer)}]}}"#
+        }
+        let pulls = [requested(21, #"{"combinedSlug":"o/web"}"#), requested(22, "{}", author: "me"), requested(23, #"{"login":"someone"}"#)]
+        let watched = #"{"data":{"viewer":{"login":"me"},"r0":{"pullRequests":{"nodes":["# + pulls.joined(separator: ",") + #"]}},"r1":null},"#
+            + #""errors":[{"type":"FORBIDDEN","path":["r1"],"message":"Resource protected by organization SAML enforcement. You must grant your Personal Access token access to this organization."}]}"#
+        let answers = Locked(Answers(watched: watched))
+        let stub = try GitHubStub { method, path, auth, body in gitHub(method, path, auth, answers.current, body: body) }
+        let host = Host(self)
+        try await connect(host, stub, token: "A")
+        try await host.services.storage.set("watchedRepos", #"["o/w","o/x"]"#, for: id)
+        let supervisor = try await host.start("PRCockpit")
+        let counted = await waitUntil { await supervisor.views[.menuBar]?.plainText == "1" }
+        XCTAssertTrue(counted, "the team's review request counts")
+        let panel = await panelText(supervisor)
+        XCTAssertTrue(panel.contains("PR 21"), panel)
+        XCTAssertFalse(panel.contains("PR 23"), panel)
+        XCTAssertTrue(panel.contains("o uses single sign-on"), panel)
+        await supervisor.press("picker/Show", value: .text("Mine 1"))
+        let mine = await waitUntil { await self.panelText(supervisor).contains("PR 22") }
+        let shownMine = await panelText(supervisor)
+        XCTAssertTrue(mine, shownMine)
+        await supervisor.stop()
     }
 
     /// Agent tools say how to connect instead of "nothing is waiting".

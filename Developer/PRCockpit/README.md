@@ -14,9 +14,12 @@ all here, with the same sign-in.
   sign in, chosen on the Settings page: a `GITHUB_TOKEN` secret kept in the
   Keychain (the default), or, with **Sign in with gh** on, the gh
   command-line tool (`gh auth login`; the plugin reads its token itself,
-  nothing to paste). Only the chosen one is read. A fine-grained token with read access to pull requests, issues and metadata
-  covers everything except creating issues, which needs write access to
-  issues; gh's usual scopes cover all of it. Approving, merging, auto-merge
+  nothing to paste). Only the chosen one is read. A classic token needs the `repo` and
+  `read:org` scopes (`read:org` finds review requests to your teams); gh's
+  usual scopes cover all of it. A fine-grained token sees one owner's
+  repositories only, so for an organization's pull requests make it with the
+  organization as the resource owner, with read access to pull requests,
+  issues and metadata (creating issues needs write access to issues). Approving, merging, auto-merge
   and Mark Ready for Review need write access to pull requests (merging also
   needs contents write). Mark as done in the inbox needs the notifications
   scope (`gh auth refresh -s notifications`, or a classic token). Running
@@ -47,6 +50,16 @@ all here, with the same sign-in.
   file's diff beside the list.
 - **Surfaces:** menu bar, panel (To review, Mine, Issues and an optional
   Inbox), window, widget, settings.
+- **Missing pull requests:** GitHub's search leaves out, without a word,
+  pull requests your sign-in isn't let see: an organization with single
+  sign-on the token isn't authorized for, or one that hasn't approved the
+  GitHub CLI app gh signs in with. PR Cockpit checks what GitHub says it left
+  out and names the organization and the fix above the lists. Add a
+  repository under Settings › Missing pull requests? (or Always Check Its
+  Pull Requests on it in Search GitHub Repositories) and its open pull
+  requests are read directly on every refresh, so yours and the ones asking
+  you or your teams to review show up even when search misses them, and a
+  repository GitHub refuses says why.
 - **Settings:** include team review requests, include drafts, how recently a
   pull request or issue must have changed to show (any age, or the last week
   to three months), notifications, repositories (include archived, copy clone
@@ -88,6 +101,12 @@ how long reviews have waited.
 ### On your desktop too
 A widget keeps the review queue in view.
 <!-- preview: widget -->
+
+## What's new in 1.18.0
+
+- Missing pull requests from your organization? PR Cockpit now says why: an organization whose single sign-on your token or gh isn't authorized for, a missing read:org scope for your teams' review requests, or a fine-grained token that can't see the organization, with the fix.
+- Repositories to always check: add one in Settings (or from Search GitHub Repositories) and its open pull requests are read directly on every refresh, beside the search, so yours and the reviews asked of you or your teams show even when search misses them. A repository GitHub refuses says why.
+- Search Pull Requests shows the matching pull requests already in your lists at once as you type, then GitHub's, which now include review requests to your teams.
 
 ## What's new in 1.17.0
 
