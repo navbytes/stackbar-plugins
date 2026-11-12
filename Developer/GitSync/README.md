@@ -65,6 +65,10 @@ up the merged ones.
 A widget with what's behind and unpushed, and an Update button.
 <!-- preview: widget -->
 
+## What's new in 1.2.1
+
+- An agent asking for status before the first load waits for one fresh refresh instead of racing the one already running. Needs Stackbar 0.40.1, where clicks no longer wait for a refresh.
+
 ## What's new in 1.2.0
 
 - Type `gs`, a space and a repository name in the palette to search only your repositories. Change or clear the alias in Settings › General › Main Search.

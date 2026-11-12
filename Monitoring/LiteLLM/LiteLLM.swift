@@ -14,12 +14,12 @@ final class LiteLLM: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.litellm",
         name: "LiteLLM",
-        version: "1.6.0",
+        version: "1.6.1",
         summary: "Tokens, spend, budget and model mix from your LiteLLM proxy, with charts.",
         surfaces: [.menuBar, .panel, .window, .widget, .settings],
         triggers: [.launch, .minutes(2), .wake],
         capabilities: [.userServer(secret: "LITELLM_PROXY_URL"), .secret(name: "LITELLM_API_KEY")],
-        minimumStackbar: "0.17.0",
+        minimumStackbar: "0.40.1",
         homepage: "https://github.com/navbytes/stackbar-plugins/tree/main/Monitoring/LiteLLM",
         accent: .pink,
         symbol: "sparkles"
@@ -189,7 +189,7 @@ final class LiteLLM: StackbarPlugin {
     /// on every keystroke, so it waits, and a failed proxy waits 30 s at least.
     func refresh(maxAge: TimeInterval) async throws {
         if let at = lastAttempt, Date().timeIntervalSince(at) < (problem == nil ? maxAge : max(maxAge, 30)) { return }
-        try await refresh()
+        try await Stackbar.refresh()
     }
 
     private func headers(_ key: String) -> [String: String] {
@@ -326,7 +326,7 @@ final class LiteLLM: StackbarPlugin {
                 EmptyState("Add your LiteLLM key", symbol: "key.fill", message: "Enter a LiteLLM key as LITELLM_API_KEY. It stays in your Keychain.", theme: theme)
             } else if days.isEmpty, let problem {
                 EmptyState("Can't reach the proxy", symbol: "exclamationmark.triangle", message: problem, theme: .warning) {
-                    ActionButton("Try Again", symbol: "arrow.clockwise", theme: theme, prominent: true) { try await self.refresh() }
+                    ActionButton("Try Again", symbol: "arrow.clockwise", theme: theme, prominent: true) { try await Stackbar.refresh() }
                 }
             } else if days.isEmpty {
                 loading

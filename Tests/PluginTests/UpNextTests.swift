@@ -419,11 +419,15 @@ final class UpNextTests: XCTestCase {
         let now = Date()
         let calendar = Calendar.current
         let dayStart = calendar.startOfDay(for: now)
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: dayStart) ?? dayStart
+        // Every meeting starts today, however late the test runs: steps of up
+        // to five minutes, squeezed into what is left of the day.
+        let step = min(5 * 60, tomorrow.timeIntervalSince(now) / 14)
         let host = Host(self, system: SimulatedSystem(events: [
-            CalendarEvent(id: "allday", title: "Offsite", start: dayStart, end: calendar.date(byAdding: .day, value: 1, to: dayStart) ?? dayStart, isAllDay: true, calendar: "Work", participation: .none),
-            CalendarEvent(id: "planning", title: "Planning", start: now.addingTimeInterval(30 * 60), end: now.addingTimeInterval(60 * 60), location: "Room 4", notes: "https://acme.zoom.us/j/666", calendar: "Work", participation: .accepted, attendees: 3),
-            CalendarEvent(id: "standup", title: "Standup", start: now.addingTimeInterval(5 * 60), end: now.addingTimeInterval(20 * 60), calendar: "Home", participation: .accepted, attendees: 2),
-            CalendarEvent(id: "cafe", title: "Café review", start: now.addingTimeInterval(15 * 60), end: now.addingTimeInterval(25 * 60), calendar: "Team", participation: .accepted, attendees: 2),
+            CalendarEvent(id: "allday", title: "Offsite", start: dayStart, end: tomorrow, isAllDay: true, calendar: "Work", participation: .none),
+            CalendarEvent(id: "planning", title: "Planning", start: now.addingTimeInterval(6 * step), end: now.addingTimeInterval(12 * step), location: "Room 4", notes: "https://acme.zoom.us/j/666", calendar: "Work", participation: .accepted, attendees: 3),
+            CalendarEvent(id: "standup", title: "Standup", start: now.addingTimeInterval(1 * step), end: now.addingTimeInterval(4 * step), calendar: "Home", participation: .accepted, attendees: 2),
+            CalendarEvent(id: "cafe", title: "Café review", start: now.addingTimeInterval(3 * step), end: now.addingTimeInterval(5 * step), calendar: "Team", participation: .accepted, attendees: 2),
         ]))
         let session = try await host.session("UpNext")
         func titles(_ query: String) async throws -> [String] {

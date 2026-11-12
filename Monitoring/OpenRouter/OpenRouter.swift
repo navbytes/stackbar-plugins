@@ -16,12 +16,12 @@ final class OpenRouter: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.openrouter",
         name: "OpenRouter",
-        version: "1.0.0",
+        version: "1.0.1",
         summary: "Spend, credits, limits and model mix for your OpenRouter account, with charts.",
         surfaces: [.menuBar, .panel, .widget, .settings],
         triggers: [.launch, .minutes(2), .wake],
         capabilities: [.network("openrouter.ai"), .secret(name: "OPENROUTER_API_KEY"), .secret(name: "OPENROUTER_MANAGEMENT_KEY")],
-        minimumStackbar: "0.17.0",
+        minimumStackbar: "0.40.1",
         homepage: "https://github.com/navbytes/stackbar-plugins/tree/main/Monitoring/OpenRouter",
         accent: .indigo,
         symbol: "point.3.connected.trianglepath.dotted"
@@ -220,7 +220,7 @@ final class OpenRouter: StackbarPlugin {
     /// asks on every keystroke.
     func refresh(maxAge: TimeInterval) async throws {
         if let at = lastAttempt, Date().timeIntervalSince(at) < (problem == nil ? maxAge : max(maxAge, 30)) { return }
-        try await refresh()
+        try await Stackbar.refresh()
     }
 
     static func trimmedSecret(_ name: String) async throws -> String? {
@@ -356,7 +356,7 @@ final class OpenRouter: StackbarPlugin {
                 }
             } else if key == nil && credits == nil, let message = problem ?? managementProblem {
                 EmptyState("Can't reach OpenRouter", symbol: "exclamationmark.triangle", message: message, theme: .warning) {
-                    ActionButton("Try Again", symbol: "arrow.clockwise", theme: theme, prominent: true) { try await self.refresh() }
+                    ActionButton("Try Again", symbol: "arrow.clockwise", theme: theme, prominent: true) { try await Stackbar.refresh() }
                 }
             } else if key == nil && credits == nil {
                 loading

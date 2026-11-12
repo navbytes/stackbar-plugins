@@ -33,6 +33,10 @@ red at 90%.
 
 Ported from vee-plugins' `litellm-cost`.
 
+## What's new in 1.6.1
+
+- Try Again cancels a refresh already running, so older numbers never replace newer ones. Needs Stackbar 0.40.1, where clicks no longer wait for a refresh.
+
 ## What's new in 1.6.0
 
 - Today by model: the panel, the window and LiteLLM Spend show what each model cost today.
