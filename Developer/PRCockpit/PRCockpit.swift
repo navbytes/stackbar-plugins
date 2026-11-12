@@ -25,7 +25,7 @@ final class PRCockpit: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.pr-cockpit",
         name: "PR Cockpit",
-        version: "1.18.0",
+        version: "1.18.1",
         summary: "Your pull requests, reviews and issues with CI and review state, and your repositories a keystroke away.",
         surfaces: [.menuBar, .panel, .window, .widget, .settings],
         triggers: [.launch, .every(.seconds(20)), .wake],
@@ -1760,8 +1760,10 @@ final class PRCockpit: StackbarPlugin {
                         Spacer()
                     }
                 }
-                Picker("Show", options: tabs.map(label), selection: label(currentTab), style: .segmented) { chosen in
-                    self.tab = (self.tabs.first { self.label($0) == chosen } ?? .review).rawValue
+                // Titles without counts: Picker drops a choice that isn't among the latest
+                // render's options, so a count changed by the refresh a click waited behind lost the click.
+                Picker("Show", options: tabs.map(\.title), selection: currentTab.title, style: .segmented) { chosen in
+                    if let picked = self.tabs.first(where: { $0.title == chosen }) { self.tab = picked.rawValue }
                 }
                 if let lastError { Banner(lastError) }
                 if currentTab != .inbox && currentTab != .issues { coverageBanners }
@@ -2025,18 +2027,6 @@ final class PRCockpit: StackbarPlugin {
     var currentTab: Tab {
         let chosen = Tab(rawValue: tab) ?? .review
         return tabs.contains(chosen) ? chosen : .review
-    }
-
-    /// The tab's title, with its count when there is something in it.
-    func label(_ tab: Tab) -> String {
-        let count: Int
-        switch tab {
-        case .review: count = shownReview.count
-        case .mine: count = shownMine.count
-        case .issues: count = shownIssues.count
-        case .inbox: count = inbox.filter(\.unread).count
-        }
-        return count > 0 ? "\(tab.title) \(count)" : tab.title
     }
 
     @ViewBuilder func list(_ prs: [PullRequest], showAuthor: Bool, empty: (String, String)) -> ViewContent {

@@ -102,6 +102,10 @@ how long reviews have waited.
 A widget keeps the review queue in view.
 <!-- preview: widget -->
 
+## What's new in 1.18.1
+
+- Switching tabs in the panel works every time. A click made while PR Cockpit was refreshing used to be ignored when the refresh changed a tab's count, so nothing happened. The tabs no longer show counts; the To review and Mine numbers stay at the top of the panel.
+
 ## What's new in 1.18.0
 
 - Missing pull requests from your organization? PR Cockpit now says why: an organization whose single sign-on your token or gh isn't authorized for, a missing read:org scope for your teams' review requests, or a fine-grained token that can't see the organization, with the fix.

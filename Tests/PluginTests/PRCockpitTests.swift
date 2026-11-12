@@ -287,7 +287,7 @@ final class PRCockpitTests: XCTestCase {
         XCTAssertTrue(panel.contains("PR 21"), panel)
         XCTAssertFalse(panel.contains("PR 23"), panel)
         XCTAssertTrue(panel.contains("o uses single sign-on"), panel)
-        await supervisor.press("picker/Show", value: .text("Mine 1"))
+        await supervisor.press("picker/Show", value: .text("Mine"))
         let mine = await waitUntil { await self.panelText(supervisor).contains("PR 22") }
         let shownMine = await panelText(supervisor)
         XCTAssertTrue(mine, shownMine)
@@ -410,6 +410,29 @@ final class PRCockpitTests: XCTestCase {
         XCTAssertTrue(window.contains("Paste a GITHUB_TOKEN"), window)
         XCTAssertFalse(window.contains("Waiting on your review"), window)
         await supervisor.stop()
+    }
+
+    /// A tab click carries the tab as the user saw it; a refresh that lands
+    /// before the click is handled doesn't make it miss.
+    func testATabClickAfterARefreshStillSwitches() async throws {
+        let answers = Locked(Answers(review: ["Bearer A": [1]], mine: ["Bearer A": [5, 6]]))
+        let stub = try GitHubStub { method, path, auth, body in gitHub(method, path, auth, answers.current, body: body) }
+        let host = Host(self)
+        try await connect(host, stub, token: "A")
+        let session = try await host.session("PRCockpit")
+        _ = await waitUntil { await session.view(.panel)?.rows.contains { $0.title == "PR 1" } == true }
+        let panel = await session.view(.panel).map { TreeTextRenderer.render($0) } ?? ""
+        let tabs = panel.split(separator: "\n").first { $0.contains("{picker/Show}") } ?? ""
+        let seen = try XCTUnwrap(tabs.split(separator: "|").map { $0.replacingOccurrences(of: "Show:", with: "").trimmingCharacters(in: CharacterSet(charactersIn: " *")) }
+            .first { $0.hasPrefix("Mine") }, panel)
+
+        answers.change { $0.mine["Bearer A"] = [5, 6, 7] }
+        try await session.refresh()
+        try await session.event("picker/Show", value: .text(seen))
+        let switched = await waitUntil { await session.view(.panel)?.rows.contains { $0.title == "PR 5" } == true }
+        let titles = await session.view(.panel)?.rows.map(\.title) ?? []
+        XCTAssertTrue(switched, "\(titles)")
+        await session.stop()
     }
 
     // MARK: Merging, drafts and files (after Raycast's GitHub extension)
