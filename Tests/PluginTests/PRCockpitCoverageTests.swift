@@ -78,4 +78,20 @@ final class PRCockpitCoverageTests: XCTestCase {
         XCTAssertFalse(PRCockpit.matches(pr, "login signup"))
         XCTAssertEqual(PRCockpit.merged([pr], [pr]).count, 1)
     }
+
+    func testATabIsFoundByItsName() {
+        let tabs: [PRCockpit.Tab] = [.review, .mine, .issues]
+        XCTAssertEqual(PRCockpit.tab(for: "Mine", in: tabs), .mine)
+        XCTAssertEqual(PRCockpit.tab(for: "Issues", in: tabs), .issues)
+        XCTAssertNil(PRCockpit.tab(for: "Inbox", in: tabs), "not shown without the inbox")
+    }
+
+    func testAFailedRequestSaysWhatHappensNext() {
+        struct Failure: Error, CustomStringConvertible { let description: String }
+        XCTAssertTrue(PRCockpit.explained(Failure(description: "The request timed out."), what: "your issues").contains("didn't send your issues within 20 seconds"))
+        XCTAssertTrue(PRCockpit.explained(Failure(description: "The Internet connection appears to be offline."), what: "x").contains("looks offline"))
+        XCTAssertEqual(PRCockpit.explained(Failure(description: "GitHub answered 502"), what: "x"), "GitHub answered 502")
+        XCTAssertEqual(PRCockpit.listed(["pull requests", "issues", "inbox"]), "pull requests, issues and inbox")
+        XCTAssertEqual(PRCockpit.listed(["issues"]), "issues")
+    }
 }

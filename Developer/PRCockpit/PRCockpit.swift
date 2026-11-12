@@ -25,7 +25,7 @@ final class PRCockpit: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.pr-cockpit",
         name: "PR Cockpit",
-        version: "1.18.0",
+        version: "1.18.1",
         summary: "Your pull requests, reviews and issues with CI and review state, and your repositories a keystroke away.",
         surfaces: [.menuBar, .panel, .window, .widget, .settings],
         triggers: [.launch, .every(.seconds(20)), .wake],
@@ -519,28 +519,161 @@ final class PRCockpit: StackbarPlugin {
     /// may have signed in again since, so the next request asks gh again.
     func tokenRefused() { ghAnswer = nil }
 
-    /// Seconds a refresh request may take. The plugin handles one message at a
-    /// time, so a slow GitHub holds up every click behind the refresh; a
-    /// short limit keeps that wait short, and the next refresh tries again.
+    /// Seconds a refresh request may take before it counts as failed.
     static let refreshTimeout = 20.0
+
+    /// The fetch running in the background. The plugin handles one message
+    /// at a time, so a refresh that waited for GitHub held up every click
+    /// behind it (a tab switch could hang for as long as GitHub took). Now a
+    /// refresh starts the fetch and waits at most `clickWait` for it; what
+    /// arrives later shows on the next render (the 20-second timer, a click,
+    /// or opening the panel).
+    var fetching: Task<Void, Never>?
+    /// A lists fetch asked for while one ran, maybe with settings it didn't
+    /// see: it runs once the current one ends, forgetting gh's answer first
+    /// when `refetchRetriesGh`.
+    var refetchQueued = false
+    var refetchRetriesGh = false
+    var refetchQuiet = false
+    /// When the running lists fetch started, and the parts still on their
+    /// way, in the order they're named: what the panel says it's waiting for.
+    var fetchStarted: Date?
+    var waitingOn: [String] = []
+    /// After this long a fetch counts as slow, and the panel says so.
+    static let slowAfter: Duration = .seconds(6)
+    static let clickWait: Duration = .milliseconds(1500)
 
     func refresh() async throws {
         try await refresh(retryGh: false)
     }
 
-    /// Runs a full refresh. `retryGh` forgets gh's answer first, so an
-    /// explicit refresh (Try Again, the Refresh command) picks up a fresh
-    /// sign-in instead of the five-minute memory of a failure.
-    func refresh(retryGh: Bool) async throws {
+    /// Starts a refresh, and waits for it in full only when `wait` (Try
+    /// Again, the Refresh command, agent tools: someone wants the answer).
+    /// `retryGh` forgets gh's answer first, so an explicit refresh picks up
+    /// a fresh sign-in instead of the five-minute memory of a failure.
+    func refresh(retryGh: Bool, wait: Bool = false) async throws {
         if retryGh { ghAnswer = nil }
         // The 20-second timer follows open checks; the lists every two minutes.
-        if Stackbar.refreshReason == .interval, let listsFetched, Date().timeIntervalSince(listsFetched) < 115 {
-            await followOpenChecks()
+        let interval = Stackbar.refreshReason == .interval
+        let listsDue = !(interval && listsFetched.map { Date().timeIntervalSince($0) < 115 } == true)
+        if fetching != nil {
+            if listsDue && !interval {
+                refetchQueued = true
+                refetchRetriesGh = refetchRetriesGh || retryGh
+            }
+        } else {
+            startFetch(lists: listsDue, retryGh: retryGh)
+        }
+        await waitForFetch(full: wait)
+    }
+
+    /// Runs one fetch in the background, then any asked for meanwhile. What
+    /// it finds is drawn as each part lands (`Stackbar.redraw()`), not left
+    /// for the next timer; a fetch that runs long redraws once to say so.
+    func startFetch(lists: Bool, retryGh: Bool) {
+        if lists {
+            fetchStarted = Date()
+            Task {
+                try? await Task.sleep(for: Self.slowAfter)
+                if self.fetchStarted != nil { Stackbar.redraw() }
+            }
+        }
+        fetching = Task {
+            if lists { await self.fetchAll(retryGh: retryGh) } else { await self.followOpenChecks() }
+            self.fetchStarted = nil
+            self.waitingOn = []
+            self.fetching = nil
+            Stackbar.redraw()
+            if self.refetchQueued {
+                let retry = self.refetchRetriesGh
+                self.refetchQueued = false
+                self.refetchRetriesGh = false
+                if retry { self.ghAnswer = nil }
+                if self.refetchQuiet {
+                    self.refetchQuiet = false
+                    self.everRequested = []
+                    self.updatedAt = nil
+                }
+                self.startFetch(lists: true, retryGh: retry)
+            }
+        }
+    }
+
+    /// Waits for the background fetch: until it and any queued after it
+    /// end when `full`, otherwise until it ends or `clickWait` passes.
+    func waitForFetch(full: Bool) async {
+        if full {
+            while let task = fetching { await task.value }
             return
         }
+        guard let task = fetching else { return }
+        let gate = WaitGate()
+        await withCheckedContinuation { (done: CheckedContinuation<Void, Never>) in
+            gate.continuation = done
+            Task { await task.value; gate.open() }
+            Task { try? await Task.sleep(for: Self.clickWait); gate.open() }
+        }
+    }
+
+    /// Resumes a wait once, whichever of its two tasks gets there first.
+    @MainActor final class WaitGate {
+        var continuation: CheckedContinuation<Void, Never>?
+        func open() {
+            continuation?.resume()
+            continuation = nil
+        }
+    }
+
+    /// Runs one part of a fetch, then draws what it brought.
+    func part(_ name: String, _ body: () async -> Void) async {
+        await body()
+        waitingOn.removeAll { $0 == name }
+        Stackbar.redraw()
+    }
+
+    /// What the header says about fetching: refreshing, with what is still
+    /// on its way once it runs slow, or when the lists were last fetched.
+    var fetchStatus: String {
+        if let fetchStarted {
+            let seconds = Int(Date().timeIntervalSince(fetchStarted))
+            if seconds >= 6, !waitingOn.isEmpty {
+                return "Still waiting on GitHub for \(Self.listed(waitingOn))…"
+            }
+            return "Refreshing…"
+        }
+        return updatedAt.map { "Updated \($0.formatted(date: .omitted, time: .shortened))" } ?? "Not loaded yet"
+    }
+
+    /// A failed request in words that say what happened and what comes
+    /// next, instead of the network library's.
+    nonisolated static func explained(_ error: Error, what: String) -> String {
+        let text = "\(error)"
+        if text.localizedCaseInsensitiveContains("timed out") {
+            return "GitHub didn't send \(what) within 20 seconds. What was loaded before stays; PR Cockpit tries again in two minutes, or press Refresh."
+        }
+        if text.localizedCaseInsensitiveContains("offline") || text.localizedCaseInsensitiveContains("not connected") || text.localizedCaseInsensitiveContains("network connection was lost") {
+            return "Can't reach GitHub: the Mac looks offline. PR Cockpit tries again once it's back."
+        }
+        return text
+    }
+
+    /// "pull requests, issues and inbox".
+    nonisolated static func listed(_ names: [String]) -> String {
+        guard names.count > 1 else { return names.first ?? "" }
+        return names.dropLast().joined(separator: ", ") + " and " + names[names.count - 1]
+    }
+
+    /// Fetches the lists, issues, the inbox and the coverage check side by
+    /// side, then the checks shown or previewed.
+    func fetchAll(retryGh: Bool) async {
         listsFetched = Date()
         defer { loaded = true }
-        guard try await loadEnterpriseServer() else {
+        let serverKnown: Bool
+        do { serverKnown = try await loadEnterpriseServer() } catch {
+            lastError = "\(error)"
+            return
+        }
+        guard serverKnown else {
             lastError = "Enter your GitHub Enterprise server (https://github.example.com) as GITHUB_ENTERPRISE_URL."
             return
         }
@@ -551,9 +684,10 @@ final class PRCockpit: StackbarPlugin {
         noteCredentials(token)
         // The three requests run side by side: a refresh takes as long as the
         // slowest one, not all three, and a tab click waits for less.
-        async let pullRequests: Void = loadPullRequests(token: token)
-        async let notifications: Void = showInbox ? refreshInbox(token: token) : ()
-        async let assigned: Void = loadIssues()
+        waitingOn = ["pull requests", "issues"] + (showInbox ? ["inbox"] : [])
+        async let pullRequests: Void = part("pull requests") { await self.loadPullRequests(token: token) }
+        async let notifications: Void = showInbox ? part("inbox") { await self.refreshInbox(token: token) } : ()
+        async let assigned: Void = part("issues") { await self.loadIssues() }
         async let covered: Void = enterprise ? () : checkCoverage(token: token, force: retryGh)
         _ = await (pullRequests, notifications, assigned, covered)
         await followOpenChecks()
@@ -602,7 +736,7 @@ final class PRCockpit: StackbarPlugin {
             lastError = nil
         } catch {
             _ = await watched
-            lastError = "\(error)"
+            lastError = Self.explained(error, what: "your pull requests")
         }
     }
 
@@ -1043,7 +1177,7 @@ final class PRCockpit: StackbarPlugin {
             inboxLoaded = true
             inboxError = nil
         } catch {
-            inboxError = "\(error)"
+            inboxError = Self.explained(error, what: "your inbox")
         }
     }
 
@@ -1477,7 +1611,7 @@ final class PRCockpit: StackbarPlugin {
             issuesError = nil
             issuesLoaded = true
         } catch {
-            issuesError = "\(error)"
+            issuesError = Self.explained(error, what: "your issues")
         }
     }
 
@@ -1739,14 +1873,15 @@ final class PRCockpit: StackbarPlugin {
     var panel: ViewContent {
         VStack(spacing: Space.m) {
             if !loaded {
-                PanelHeader("Pull requests", subtitle: "Checking…", symbol: "arrow.triangle.pull", theme: theme)
+                loadingState
             } else if lastError != nil, toReview.isEmpty, mine.isEmpty, updatedAt == nil {
                 problemState
             } else {
-                PanelHeader(headline, subtitle: "\(shownMine.count) of yours open" + (updatedAt.map { " · updated \($0.formatted(date: .omitted, time: .shortened))" } ?? ""), symbol: "arrow.triangle.pull", theme: theme) {
+                PanelHeader(headline, subtitle: "\(shownMine.count) of yours open · " + fetchStatus, symbol: "arrow.triangle.pull", theme: theme) {
                     if (shownReview + shownMine).contains(where: isNew) {
                         IconButton("checkmark.circle", label: "Mark all as seen", theme: theme, prominence: .tinted) { self.markAllSeen() }
                     }
+                    refreshButton
                 }
                 HeroCard(theme: theme, look: .glow) {
                     HStack(spacing: Space.l) {
@@ -1761,14 +1896,19 @@ final class PRCockpit: StackbarPlugin {
                     }
                 }
                 Picker("Show", options: tabs.map(label), selection: label(currentTab), style: .segmented) { chosen in
-                    self.tab = (self.tabs.first { self.label($0) == chosen } ?? .review).rawValue
+                    self.tab = (Self.tab(for: chosen, in: self.tabs) ?? .review).rawValue
                 }
                 if let lastError { Banner(lastError) }
                 if currentTab != .inbox && currentTab != .issues { coverageBanners }
                 if currentTab == .inbox {
                     if let inboxError { Banner(inboxError) }
                     if inbox.isEmpty {
-                        if inboxError == nil { EmptyState("Inbox zero", symbol: "tray", message: "No GitHub notifications.", theme: .success) }
+                        if inboxError != nil {
+                        } else if !inboxLoaded {
+                            EmptyState("Loading your inbox…", symbol: "tray", message: "Asking GitHub for your notifications.", theme: .neutral)
+                        } else {
+                            EmptyState("Inbox zero", symbol: "tray", message: "No GitHub notifications.", theme: .success)
+                        }
                     } else {
                         ActionButton("Mark All as Read", symbol: "checkmark.circle", theme: theme, key: "inbox-mark-all", confirm: markAllConfirm) { await self.markAllRead() }
                         List(inbox, searchable: true) { item in inboxRow(item) }
@@ -1776,7 +1916,12 @@ final class PRCockpit: StackbarPlugin {
                 } else if currentTab == .issues {
                     if let issuesError { Banner(issuesError) }
                     if shownIssues.isEmpty {
-                        if issuesError == nil { EmptyState("No issues assigned", symbol: "checkmark", message: "Open issues assigned to you show up here.", theme: .success) }
+                        if issuesError != nil {
+                        } else if !issuesLoaded {
+                            EmptyState("Loading your issues…", symbol: "smallcircle.filled.circle", message: "Asking GitHub for the issues assigned to you.", theme: .neutral)
+                        } else {
+                            EmptyState("No issues assigned", symbol: "checkmark", message: "Open issues assigned to you show up here.", theme: .success)
+                        }
                     } else {
                         List(shownIssues, searchable: true) { issue in issueRow(issue) }
                     }
@@ -1807,16 +1952,37 @@ final class PRCockpit: StackbarPlugin {
         return status == 200 ? message : "GitHub said \(status): \(message). The token may need more access."
     }
 
+    /// The first load: what is being fetched and, once it runs slow, for how
+    /// long, instead of a bare "Checking…".
+    @ViewBuilder var loadingState: ViewContent {
+        PanelHeader("Pull requests", subtitle: fetchStatus, symbol: "arrow.triangle.pull", theme: theme)
+        EmptyState("Loading your pull requests…", symbol: "arrow.triangle.2.circlepath",
+                   message: fetchStarted.map { Date().timeIntervalSince($0) >= 6 } == true
+                       ? "GitHub is slow to answer. PR Cockpit keeps trying for 20 seconds, then says what went wrong."
+                       : "Asking GitHub for your reviews, your pull requests and your issues.",
+                   theme: .neutral)
+    }
+
+    /// Refresh in the header: spins while a fetch runs, and a press starts
+    /// one without waiting for it, so the panel stays usable.
+    @ViewBuilder var refreshButton: ViewContent {
+        if fetchStarted != nil {
+            Image(systemName: "arrow.triangle.2.circlepath").symbolEffect(.rotate).foreground(theme.textPaint)
+        } else {
+            IconButton("arrow.clockwise", label: "Refresh", theme: theme) { try await self.refresh(retryGh: true) }
+        }
+    }
+
     /// What to show instead of the lists when none have loaded: the two ways
     /// to sign in, with why gh isn't in use, or why GitHub can't be reached.
     @ViewBuilder var problemState: ViewContent {
         if tokenMissing {
             EmptyState("Connect to GitHub", symbol: "person.badge.key.fill", message: connectMessage, theme: theme) {
-                ActionButton("Try Again", symbol: "arrow.clockwise", theme: theme) { try await self.refresh(retryGh: true) }
+                ActionButton("Try Again", symbol: "arrow.clockwise", theme: theme) { try await self.refresh(retryGh: true, wait: true) }
             }
         } else {
             EmptyState("Can't reach GitHub", symbol: "exclamationmark.triangle.fill", message: lastError, theme: .critical) {
-                ActionButton("Try Again", symbol: "arrow.clockwise", theme: theme) { try await self.refresh(retryGh: true) }
+                ActionButton("Try Again", symbol: "arrow.clockwise", theme: theme) { try await self.refresh(retryGh: true, wait: true) }
             }
         }
     }
@@ -1827,6 +1993,9 @@ final class PRCockpit: StackbarPlugin {
     func refetch() async throws {
         everRequested = []
         updatedAt = nil
+        // A fetch already running didn't see the new setting: the one queued
+        // after it starts quiet too.
+        if fetching != nil { refetchQuiet = true }
         try await refresh()
     }
 
@@ -1842,7 +2011,7 @@ final class PRCockpit: StackbarPlugin {
                 Text("Uses the token of the gh command-line tool (gh auth login in Terminal) instead of a pasted GITHUB_TOKEN. gh's token usually has full repo access, more than a fine-grained token needs.").style(.caption).role(.secondary)
                 if let tokenProblem { Text("Can't use gh: \(tokenProblem).").style(.caption).role(.warning) }
             } else {
-                Text("Uses the GITHUB_TOKEN pasted in the panel or above. Turn this on to use the gh command-line tool's sign-in instead, with nothing to paste.").style(.caption).role(.secondary)
+                Text("Uses the GITHUB_TOKEN pasted in the panel or under Secrets below. Turn this on to use the gh command-line tool's sign-in instead, with nothing to paste.").style(.caption).role(.secondary)
             }
         }
         Section("What to show") {
@@ -1924,7 +2093,7 @@ final class PRCockpit: StackbarPlugin {
     /// Both lists side by side in sections, since a window has the room.
     var window: ViewContent {
         if !loaded {
-            PanelHeader("Pull requests", subtitle: "Checking…", symbol: "arrow.triangle.pull", theme: theme)
+            loadingState
         } else if lastError != nil, toReview.isEmpty, mine.isEmpty, updatedAt == nil {
             problemState
         } else {
@@ -2027,17 +2196,16 @@ final class PRCockpit: StackbarPlugin {
         return tabs.contains(chosen) ? chosen : .review
     }
 
-    /// The tab's title, with its count when there is something in it.
-    func label(_ tab: Tab) -> String {
-        let count: Int
-        switch tab {
-        case .review: count = shownReview.count
-        case .mine: count = shownMine.count
-        case .issues: count = shownIssues.count
-        case .inbox: count = inbox.filter(\.unread).count
-        }
-        return count > 0 ? "\(tab.title) \(count)" : tab.title
+    /// The tab a picker label names.
+    nonisolated static func tab(for label: String, in tabs: [Tab]) -> Tab? {
+        tabs.first { label == $0.title }
     }
+
+    /// The tab's name. No count: StackbarKit drops a choice that isn't one
+    /// of the options last drawn, so a count that changed between the
+    /// drawing and the click ("Mine 3" became "Mine 4") lost the click. The
+    /// counts are on the hero card and in each list instead.
+    func label(_ tab: Tab) -> String { tab.title }
 
     @ViewBuilder func list(_ prs: [PullRequest], showAuthor: Bool, empty: (String, String)) -> ViewContent {
         if prs.isEmpty {
@@ -2153,7 +2321,7 @@ final class PRCockpit: StackbarPlugin {
                 self.filesView(invocation["url"] ?? "")
             }
         Command("refresh", title: "Refresh Pull Requests", symbol: "arrow.clockwise", keywords: ["github"]) { _ in
-            try await self.refresh(retryGh: true)
+            try await self.refresh(retryGh: true, wait: true)
             return .message(self.lastError ?? "\(self.shownReview.count) to review, \(self.shownMine.count) of yours open")
         }
     }
@@ -2266,17 +2434,17 @@ final class PRCockpit: StackbarPlugin {
 
     var tools: [AgentTool] {
         AgentTool("review_queue", description: "Pull requests waiting on my review, one per line") { _ in
-            if !self.loaded { try await self.refresh() }
+            if !self.loaded { try await self.refresh(retryGh: false, wait: true) }
             if self.toReview.isEmpty && self.mine.isEmpty, let problem = self.lastError { return problem }
             return self.toReview.isEmpty ? "No pull requests are waiting on your review." : self.toReview.map { "\($0.id) \($0.title) by \($0.author?.login ?? "?") (\($0.url))" }.joined(separator: "\n")
         }
         AgentTool("my_issues", description: "Open GitHub issues assigned to me, one per line") { _ in
-            if !self.loaded { try await self.refresh() }
+            if !self.loaded { try await self.refresh(retryGh: false, wait: true) }
             if self.issues.isEmpty, !self.issuesLoaded, let problem = self.issuesError ?? self.lastError { return problem }
             return self.issues.isEmpty ? "No open issues are assigned to you." : self.issues.map { "\($0.reference) \($0.title) (\($0.html_url))" }.joined(separator: "\n")
         }
         AgentTool("my_pull_requests", description: "My open pull requests with their checks and review state, one per line") { _ in
-            if !self.loaded { try await self.refresh() }
+            if !self.loaded { try await self.refresh(retryGh: false, wait: true) }
             if self.toReview.isEmpty && self.mine.isEmpty, let problem = self.lastError { return problem }
             return self.mine.isEmpty ? "You have no open pull requests." : self.mine.map { pr in
                 "\(pr.id) \(pr.title): checks \(pr.checks?.lowercased() ?? "none"), review \(pr.reviewDecision?.lowercased().replacingOccurrences(of: "_", with: " ") ?? "none")\(pr.mergeable == "CONFLICTING" ? ", has conflicts" : "") (\(pr.url))"

@@ -287,10 +287,44 @@ final class PRCockpitTests: XCTestCase {
         XCTAssertTrue(panel.contains("PR 21"), panel)
         XCTAssertFalse(panel.contains("PR 23"), panel)
         XCTAssertTrue(panel.contains("o uses single sign-on"), panel)
-        await supervisor.press("picker/Show", value: .text("Mine 1"))
+        await supervisor.press("picker/Show", value: .text("Mine"))
         let mine = await waitUntil { await self.panelText(supervisor).contains("PR 22") }
         let shownMine = await panelText(supervisor)
         XCTAssertTrue(mine, shownMine)
+        await supervisor.stop()
+    }
+
+    /// A slow GitHub doesn't hold up a tab switch: the refresh waits for it
+    /// in the background, so the click is handled at once.
+    func testATabSwitchDoesNotWaitForASlowGitHub() async throws {
+        let slow = Locked(false)
+        let answers = Answers(review: ["Bearer A": [1]], mine: ["Bearer A": [2]])
+        let stub = try GitHubStub { method, path, auth, body in
+            if slow.current { Thread.sleep(forTimeInterval: 8) }
+            return gitHub(method, path, auth, answers, body: body)
+        }
+        let host = Host(self)
+        try await connect(host, stub, token: "A")
+        let supervisor = try await host.start("PRCockpit")
+        _ = await waitUntil { await supervisor.views[.menuBar]?.plainText == "1" }
+        slow.change { $0 = true }
+        await supervisor.refresh()
+        try await Task.sleep(for: .milliseconds(300))
+        let pressed = Date()
+        await supervisor.press("picker/Show", value: .text("Mine"))
+        let switched = await waitUntil(6) { await self.panelText(supervisor).contains("PR 2") }
+        let shown = await panelText(supervisor)
+        XCTAssertTrue(switched, shown)
+        XCTAssertLessThan(Date().timeIntervalSince(pressed), 5, "the click waited for GitHub")
+        // The panel says what it's waiting for once it runs slow, then draws
+        // the answer as soon as it lands, without waiting for the next timer.
+        let waiting = await waitUntil(8) { await self.panelText(supervisor).contains("Still waiting on GitHub for") }
+        let waitingText = await panelText(supervisor)
+        XCTAssertTrue(waiting, waitingText)
+        slow.change { $0 = false }
+        let landed = await waitUntil(12) { await self.panelText(supervisor).contains("Updated ") }
+        let landedText = await panelText(supervisor)
+        XCTAssertTrue(landed, landedText)
         await supervisor.stop()
     }
 
