@@ -289,7 +289,8 @@ final class PRCockpitTests: XCTestCase {
         XCTAssertTrue(panel.contains("o uses single sign-on"), panel)
         await supervisor.press("picker/Show", value: .text("Mine 1"))
         let mine = await waitUntil { await self.panelText(supervisor).contains("PR 22") }
-        XCTAssertTrue(mine, await panelText(supervisor))
+        let shownMine = await panelText(supervisor)
+        XCTAssertTrue(mine, shownMine)
         await supervisor.stop()
     }
 
