@@ -22,7 +22,7 @@ the menu bar icon, if you turn the icon on.
   copying, showing matching copies in the palette's results (off by default), keeping images, finding images by their text, plain text by default, how long to keep secrets
   (not at all, 5 minutes to an hour, or like any copy), apps and text patterns
   to ignore, and pausing the history.
-- **Commands:** Search Clipboard History, Paste Last Copy as Plain Text,
+- **Commands:** Clipboard History, Paste Last Copy as Plain Text,
   Pause Clipboard History, Ignore Next Copy, Clear Clipboard History.
 - **Agent tools:** `recent_clips`, `search_clips` and `copy_clip`.
 - **Requires:** Stackbar 0.35.0 or later.
@@ -45,6 +45,10 @@ key or card number is masked, kept away from agent tools, and dropped after
 ### See what you copy
 The window shows how much you copy, and from which apps.
 <!-- preview: insights -->
+
+## What's new in 1.16.0
+
+- The palette command is now called Clipboard History, as in Raycast. Typing "clip" or "clipboard" opens it first, not Clear Clipboard History. Its hotkey and what you taught the palette stay as they were.
 
 ## What's new in 1.15.0
 
