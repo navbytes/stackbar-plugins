@@ -1,0 +1,13 @@
+{
+  "arch" : "arm64",
+  "id" : "io.navbytes.stackbar.plugins.translate",
+  "protocol" : 29,
+  "publicKey" : "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+  "sha256" : "b05f8c7287b30496b34fea94536b7e1459c4848ebb85d6bdf4b70ca7611bb51e",
+  "signature" : "LQ4iBfruXB9MuTAuDAFPHzNJr4mXosb1lPuy0T868o0B1PK4A6Mm1Ql8De2r9ZwNzP3vkB19Xe3zq8FeCSSdDA==",
+  "size" : 6171480,
+  "sourceDigest" : "f3428657d0876f2bc205239bffda8b298fa75a7803ecc3f89aa47c40434b6b9e",
+  "stackbarKit" : "84d51d08d4bd325fbef492d35ba5d7a2b1a8caa55313b6f9f0c9d5cf0e9df760",
+  "url" : "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-84d51d08d4bd325f/Translate-f3428657d087",
+  "version" : "1.7.0"
+}

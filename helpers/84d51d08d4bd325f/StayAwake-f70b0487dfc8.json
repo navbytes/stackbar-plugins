@@ -1,0 +1,13 @@
+{
+  "arch" : "arm64",
+  "id" : "io.navbytes.stackbar.stay-awake",
+  "protocol" : 29,
+  "publicKey" : "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+  "sha256" : "9143ba7fd792a427c054af8ec439101a659830129584a794c2ecbadde3167fb5",
+  "signature" : "TVrN06S0pOLVaRzmBlM4ceMt7ADD760JmDLKTMU9v+zvylOZ1NzPJZjnp/ADQV2kDlu/4BYTD0I0q5t7nxD3Dw==",
+  "size" : 6328648,
+  "sourceDigest" : "f70b0487dfc8d2cef6ed22ae5d0dfdc9627fcf1c67acd88f0b79fb5fd12b529b",
+  "stackbarKit" : "84d51d08d4bd325fbef492d35ba5d7a2b1a8caa55313b6f9f0c9d5cf0e9df760",
+  "url" : "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-84d51d08d4bd325f/StayAwake-f70b0487dfc8",
+  "version" : "1.6.0"
+}
