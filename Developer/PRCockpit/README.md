@@ -102,6 +102,11 @@ how long reviews have waited.
 A widget keeps the review queue in view.
 <!-- preview: widget -->
 
+## What's new in 1.18.1
+
+- Switching tabs no longer hangs while PR Cockpit waits on GitHub. A refresh now fetches in the background, so a click is handled at once and what arrives later shows a moment after.
+- A click on Mine or Issues no longer lands on To review when a count changed since the panel was drawn.
+
 ## What's new in 1.18.0
 
 - Missing pull requests from your organization? PR Cockpit now says why: an organization whose single sign-on your token or gh isn't authorized for, a missing read:org scope for your teams' review requests, or a fine-grained token that can't see the organization, with the fix.

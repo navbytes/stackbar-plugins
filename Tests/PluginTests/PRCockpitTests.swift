@@ -294,6 +294,32 @@ final class PRCockpitTests: XCTestCase {
         await supervisor.stop()
     }
 
+    /// A slow GitHub doesn't hold up a tab switch: the refresh waits for it
+    /// in the background, so the click is handled at once.
+    func testATabSwitchDoesNotWaitForASlowGitHub() async throws {
+        let slow = Locked(false)
+        let answers = Answers(review: ["Bearer A": [1]], mine: ["Bearer A": [2]])
+        let stub = try GitHubStub { method, path, auth, body in
+            if slow.current { Thread.sleep(forTimeInterval: 8) }
+            return gitHub(method, path, auth, answers, body: body)
+        }
+        let host = Host(self)
+        try await connect(host, stub, token: "A")
+        let supervisor = try await host.start("PRCockpit")
+        _ = await waitUntil { await supervisor.views[.menuBar]?.plainText == "1" }
+        slow.change { $0 = true }
+        await supervisor.refresh()
+        try await Task.sleep(for: .milliseconds(300))
+        let pressed = Date()
+        await supervisor.press("picker/Show", value: .text("Mine 1"))
+        let switched = await waitUntil(6) { await self.panelText(supervisor).contains("PR 2") }
+        let shown = await panelText(supervisor)
+        XCTAssertTrue(switched, shown)
+        XCTAssertLessThan(Date().timeIntervalSince(pressed), 5, "the click waited for GitHub")
+        slow.change { $0 = false }
+        await supervisor.stop()
+    }
+
     /// Agent tools say how to connect instead of "nothing is waiting".
     func testAgentToolsSayWhenNoTokenIsSet() async throws {
         let stub = try GitHubStub { method, path, auth, _ in gitHub(method, path, auth, Answers()) }

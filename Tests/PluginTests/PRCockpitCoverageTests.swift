@@ -78,4 +78,12 @@ final class PRCockpitCoverageTests: XCTestCase {
         XCTAssertFalse(PRCockpit.matches(pr, "login signup"))
         XCTAssertEqual(PRCockpit.merged([pr], [pr]).count, 1)
     }
+
+    func testATabIsFoundByItsTitleWhateverItsCountSays() {
+        let tabs: [PRCockpit.Tab] = [.review, .mine, .issues]
+        XCTAssertEqual(PRCockpit.tab(for: "Mine 3", in: tabs), .mine, "the count moved since the render")
+        XCTAssertEqual(PRCockpit.tab(for: "Mine", in: tabs), .mine)
+        XCTAssertEqual(PRCockpit.tab(for: "Issues 12", in: tabs), .issues)
+        XCTAssertNil(PRCockpit.tab(for: "Inbox 2", in: tabs))
+    }
 }
