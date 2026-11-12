@@ -123,7 +123,7 @@ final class AskAITests: XCTestCase {
     /// Picking LiteLLM in Settings lists the proxy's models, and a question
     /// goes to the proxy with the picked one and the shared key.
     func testLiteLLMListsTheProxysModelsAndAsksWithThePickedOne() async throws {
-        let stub = try LiteLLMStub { method, path, _, _ in
+        let stub = try LoopbackStub { method, path, _, _ in
             switch (method, path) {
             case ("GET", "/v1/models"): return (200, #"{"data":[{"id":"gpt-5-mini"},{"id":"claude-sonnet"}]}"#)
             case ("POST", "/v1/chat/completions"): return (200, #"{"choices":[{"message":{"role":"assistant","content":"Four"}}]}"#)
