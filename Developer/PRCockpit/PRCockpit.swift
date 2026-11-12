@@ -25,7 +25,7 @@ final class PRCockpit: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.pr-cockpit",
         name: "PR Cockpit",
-        version: "1.17.0",
+        version: "1.18.0",
         summary: "Your pull requests, reviews and issues with CI and review state, and your repositories a keystroke away.",
         surfaces: [.menuBar, .panel, .window, .widget, .settings],
         triggers: [.launch, .every(.seconds(20)), .wake],
@@ -300,12 +300,15 @@ final class PRCockpit: StackbarPlugin {
 
     /// One search of GitHub, for the Search Pull Requests command.
     private struct SearchReply: Decodable {
-        struct Data: Decodable { let found: Reply.Data.Search }
+        struct Data: Decodable {
+            let found: Reply.Data.Search
+            let requested: Reply.Data.Search?
+        }
         let data: Data?
         let errors: [Reply.Problem]?
     }
 
-    static let fragment = """
+    nonisolated static let fragment = """
     fragment pr on PullRequest { nodeID: id number title url isDraft updatedAt state repository { nameWithOwner viewerDefaultMergeMethod } author { login } \
     autoMergeRequest { enabledAt } reviewDecision mergeable headRefName additions deletions comments { totalCount } commits(last: 1) { nodes { commit { statusCheckRollup { state } } } } }
     """
@@ -441,7 +444,7 @@ final class PRCockpit: StackbarPlugin {
         searchResults = []; searchedText = nil; repoSearches = [:]; repoResults = []
         repos = []; reposLoaded = nil; history = []; seenStarted = false; seen = [:]; snoozed = [:]; announced = [:]
         details = [:]; detailErrors = [:]; checksStamp = [:]; expanded = nil
-        ghAnswer = nil
+        ghAnswer = nil; myTeams = nil; coverage = []; coverageChecked = nil; watchedErrors = [:]; watchedCounts = [:]
     }
 
     // MARK: Sign-in: a pasted GITHUB_TOKEN, or the gh command-line tool when chosen
@@ -475,7 +478,7 @@ final class PRCockpit: StackbarPlugin {
             let why = tokenProblem.map { "Can't use gh: \($0). " } ?? ""
             return why + "Run gh auth login in Terminal, then Try Again, or paste a GITHUB_TOKEN instead by turning off Sign in with gh on the Settings page."
         }
-        return "Paste a GITHUB_TOKEN: a fine-grained token with read access to pull requests, issues and metadata. Already signed in to the gh command-line tool (gh auth login)? Turn on Sign in with gh on the Settings page instead."
+        return "Paste a GITHUB_TOKEN: a classic token with the repo and read:org scopes, or a fine-grained one made for the organization whose pull requests you want (it sees one owner only). Already signed in to the gh command-line tool (gh auth login)? Turn on Sign in with gh on the Settings page instead."
     }
 
     /// The token to call GitHub with, from the chosen sign-in only: the
@@ -551,7 +554,8 @@ final class PRCockpit: StackbarPlugin {
         async let pullRequests: Void = loadPullRequests(token: token)
         async let notifications: Void = showInbox ? refreshInbox(token: token) : ()
         async let assigned: Void = loadIssues()
-        _ = await (pullRequests, notifications, assigned)
+        async let covered: Void = enterprise ? () : checkCoverage(token: token, force: retryGh)
+        _ = await (pullRequests, notifications, assigned, covered)
         await followOpenChecks()
         if previewChecks { await prefetchChecks() }
     }
@@ -569,6 +573,9 @@ final class PRCockpit: StackbarPlugin {
         closed: search(query: "is:pr is:closed archived:false author:@me closed:>=\(since)", type: ISSUE, first: 20) { nodes { ...pr } } \
         } \(Self.fragment)
         """
+        // The watched repositories are read beside the searches, so the
+        // refresh takes no longer.
+        async let watched = loadWatched(token: token)
         do {
             let body = try JSONEncoder().encode(["query": query])
             let response = try await Stackbar.http(HTTPRequest(url: graphqlURL, method: "POST", headers: [
@@ -585,11 +592,16 @@ final class PRCockpit: StackbarPlugin {
             let reply = try decoder.decode(Reply.self, from: response.body)
             let errors = reply.errors?.map(\.message).joined(separator: "; ")
             guard let data = reply.data else { throw HostError(errors.map { Self.refusal(200, message: $0) } ?? "GitHub sent no data") }
-            update(review: data.review.nodes, mine: data.mine.nodes, closed: data.closed?.nodes ?? [])
+            let direct = await watched
+            let review = Self.merged(data.review.nodes, direct.review)
+            let mine = Self.merged(data.mine.nodes, direct.mine)
+            update(review: review, mine: mine, closed: data.closed?.nodes ?? [])
+            // What search matched; its "40 of N" note is about search's cap.
             reviewTotal = data.review.issueCount ?? 0
             mineTotal = data.mine.issueCount ?? 0
             lastError = nil
         } catch {
+            _ = await watched
             lastError = "\(error)"
         }
     }
@@ -597,6 +609,395 @@ final class PRCockpit: StackbarPlugin {
     /// A date as GitHub's search wants it: 2026-11-03.
     static func day(_ date: Date) -> String {
         ISO8601DateFormatter.string(from: date, timeZone: .gmt, formatOptions: [.withFullDate])
+    }
+
+    // MARK: Repositories checked directly, and why pull requests go missing
+
+    /// Repositories whose open pull requests are read straight from GitHub on
+    /// every refresh, beside the searches, as `owner/name`. GitHub's search
+    /// leaves out, without a word, pull requests the token isn't let see (an
+    /// organization's single sign-on, an OAuth app such as gh's it hasn't
+    /// approved); a repository asked for by name says why instead, and a
+    /// pull request search hasn't caught up with yet still shows.
+    @Stored("watchedRepos") var watchedRepos: [String] = []
+    /// Why each watched repository couldn't be read, by name.
+    var watchedErrors: [String: String] = [:]
+    /// How many open pull requests each watched repository had, by name.
+    var watchedCounts: [String: Int] = [:]
+    /// Your teams as `org/slug`, lowercased, for review requests to a team in
+    /// a watched repository; and when they were read.
+    var myTeams: (slugs: Set<String>, at: Date)?
+    /// Why the coverage check thinks pull requests are missing, with the page
+    /// that fixes each, shown above the lists. Empty when nothing is known.
+    var coverage: [CoverageNote] = []
+    /// When the coverage check last ran: it runs every half hour, on Try
+    /// Again or Refresh, and after a sign-in change.
+    var coverageChecked: Date?
+    /// The kind of token in use (fine-grained, classic, oauth…), from the last coverage check.
+    var signInKind: String?
+    /// Organization names by id, for the single sign-on header's ids.
+    var orgNames: [Int: String] = [:]
+
+    struct CoverageNote: Equatable {
+        let message: String
+        var url: String? = nil
+    }
+
+    /// What kind of token this is, from its prefix: fine-grained tokens see
+    /// one owner's repositories only.
+    nonisolated static func tokenKind(_ token: String) -> String {
+        if token.hasPrefix("github_pat_") { return "fine-grained" }
+        if token.hasPrefix("ghp_") { return "classic" }
+        if token.hasPrefix("gho_") { return "oauth" }
+        if token.hasPrefix("ghu_") { return "app" }
+        return "unknown"
+    }
+
+    /// A header by name, whatever case the server sent it in.
+    nonisolated static func header(_ name: String, in headers: [String: String]) -> String? {
+        headers.first { $0.key.caseInsensitiveCompare(name) == .orderedSame }?.value
+    }
+
+    /// The organization ids in `X-GitHub-SSO: partial-results; organizations=1,2`:
+    /// the organizations whose results GitHub left out because the token isn't
+    /// authorized for their single sign-on.
+    nonisolated static func ssoHiddenOrganizations(_ header: String?) -> [Int] {
+        guard let header, header.contains("partial-results"),
+              let list = header.components(separatedBy: "organizations=").dropFirst().first else { return [] }
+        return list.split(whereSeparator: { $0 == "," || $0 == ";" || $0 == " " }).compactMap { Int($0) }
+    }
+
+    /// `owner/name` from what was typed: a name, a URL or `owner/name#12`.
+    nonisolated static func repoName(_ text: String) -> String? {
+        var text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        for prefix in ["https://", "http://"] where text.hasPrefix(prefix) { text.removeFirst(prefix.count) }
+        var parts = text.split(separator: "/").map(String.init)
+        if parts.count > 2, parts[0].contains(".") { parts.removeFirst() }
+        guard parts.count >= 2 else { return nil }
+        let owner = parts[0]
+        var name = parts[1]
+        if let hash = name.firstIndex(of: "#") { name = String(name[..<hash]) }
+        if name.hasSuffix(".git") { name.removeLast(4) }
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-_."))
+        guard !owner.isEmpty, !name.isEmpty,
+              owner.unicodeScalars.allSatisfy(allowed.contains), name.unicodeScalars.allSatisfy(allowed.contains) else { return nil }
+        return owner + "/" + name
+    }
+
+    /// Why GitHub wouldn't show a repository, in words that say what to do.
+    nonisolated static func watchedProblem(_ message: String, org: String, gh: Bool) -> String {
+        if message.localizedCaseInsensitiveContains("SAML") {
+            return gh ? "\(org) uses single sign-on and gh's sign-in isn't authorized for it: open github.com/orgs/\(org)/sso, then run gh auth login again and authorize \(org)."
+                : "\(org) uses single sign-on and this token isn't authorized for it: on github.com, Settings › Developer settings › Tokens, Configure SSO next to the token."
+        }
+        if message.localizedCaseInsensitiveContains("OAuth App access restrictions") {
+            return gh ? "\(org) hasn't approved the GitHub CLI app that gh signs in with. Request approval on github.com (Settings › Applications › GitHub CLI), or paste a classic token as GITHUB_TOKEN instead."
+                : "\(org) hasn't approved the app this token belongs to. Ask an owner of \(org) to approve it, or use a classic token."
+        }
+        if message.localizedCaseInsensitiveContains("Could not resolve") {
+            return "Not found, or this sign-in can't see it. A fine-grained token sees one owner's repositories: make it with \(org) as the resource owner, or use a classic token or Sign in with gh."
+        }
+        return message
+    }
+
+    /// One reviewer asked for on a pull request: a person or a team.
+    struct Reviewer: Decodable, Equatable {
+        let login: String?
+        /// `org/slug` for a team.
+        let combinedSlug: String?
+    }
+
+    /// An open pull request in a watched repository, with who was asked to review it.
+    struct WatchedPull: Decodable {
+        let pr: PullRequest
+        let reviewers: [Reviewer]
+
+        private enum Keys: String, CodingKey { case reviewRequests }
+        private struct Requests: Decodable {
+            struct Node: Decodable { let requestedReviewer: Reviewer? }
+            let nodes: [Node?]
+        }
+
+        init(from decoder: Decoder) throws {
+            pr = try PullRequest(from: decoder)
+            let keys = try decoder.container(keyedBy: Keys.self)
+            reviewers = (try keys.decodeIfPresent(Requests.self, forKey: .reviewRequests))?.nodes.compactMap { $0?.requestedReviewer } ?? []
+        }
+    }
+
+    /// Which list a watched repository's pull request belongs on: yours,
+    /// waiting on your review (asked of you, or of one of your teams when
+    /// team requests are included), or neither.
+    nonisolated static func place(_ pull: WatchedPull, viewer: String, teams: Set<String>, includeTeams: Bool) -> Tab? {
+        if pull.pr.author?.login.lowercased() == viewer.lowercased() { return .mine }
+        for reviewer in pull.reviewers {
+            if let login = reviewer.login, login.lowercased() == viewer.lowercased() { return .review }
+            if includeTeams, let team = reviewer.combinedSlug, teams.contains(team.lowercased()) { return .review }
+        }
+        return nil
+    }
+
+    struct WatchedReply: Decodable {
+        struct Viewer: Decodable { let login: String }
+        struct Repository: Decodable {
+            struct Pulls: Decodable { let nodes: [WatchedPull] }
+            let pullRequests: Pulls
+        }
+        struct Problem: Decodable {
+            let message: String
+            /// The alias the problem is about, `r0` for the first repository.
+            let alias: String?
+            private enum Keys: String, CodingKey { case message, path }
+            init(from decoder: Decoder) throws {
+                let keys = try decoder.container(keyedBy: Keys.self)
+                message = try keys.decode(String.self, forKey: .message)
+                var path = try? keys.nestedUnkeyedContainer(forKey: .path)
+                alias = try? path?.decode(String.self)
+            }
+        }
+        private struct AnyKey: CodingKey {
+            var stringValue: String
+            var intValue: Int? { nil }
+            init(stringValue: String) { self.stringValue = stringValue }
+            init?(intValue: Int) { nil }
+        }
+        let viewer: String?
+        let repositories: [String: Repository]
+        let errors: [Problem]
+
+        private enum Keys: String, CodingKey { case data, errors }
+        init(from decoder: Decoder) throws {
+            let keys = try decoder.container(keyedBy: Keys.self)
+            errors = try keys.decodeIfPresent([Problem].self, forKey: .errors) ?? []
+            var found: [String: Repository] = [:]
+            var login: String?
+            if let data = try? keys.nestedContainer(keyedBy: AnyKey.self, forKey: .data) {
+                for key in data.allKeys {
+                    if key.stringValue == "viewer" {
+                        login = try? data.decode(Viewer.self, forKey: key).login
+                    } else if let repository = try? data.decodeIfPresent(Repository.self, forKey: key) {
+                        found[key.stringValue] = repository
+                    }
+                }
+            }
+            viewer = login
+            repositories = found
+        }
+    }
+
+    /// The query for the watched repositories: `r0`, `r1`… one per repository.
+    nonisolated static func watchedQuery(_ names: [String]) -> String {
+        func literal(_ text: String) -> String {
+            (try? JSONEncoder().encode(text)).map { String(decoding: $0, as: UTF8.self) } ?? "\"\""
+        }
+        let fields = names.enumerated().compactMap { index, name -> String? in
+            let parts = name.split(separator: "/")
+            guard parts.count == 2 else { return nil }
+            return "r\(index): repository(owner: \(literal(String(parts[0]))), name: \(literal(String(parts[1])))) { pullRequests(states: OPEN, first: 50, orderBy: {field: UPDATED_AT, direction: DESC}) { nodes { ...pr reviewRequests(first: 20) { nodes { requestedReviewer { ... on User { login } ... on Team { combinedSlug } } } } } } }"
+        }
+        return "query { viewer { login } " + fields.joined(separator: " ") + " } " + fragment
+    }
+
+    /// Your teams, as `org/slug`, read once an hour, only while a watched
+    /// repository needs them. Needs the read:org scope; without it, review
+    /// requests to your teams there don't show, and the coverage check says so.
+    func loadTeams() async -> Set<String> {
+        if let myTeams, Date().timeIntervalSince(myTeams.at) < 3600 { return myTeams.slugs }
+        struct Team: Decodable {
+            struct Org: Decodable { let login: String }
+            let slug: String
+            let organization: Org
+        }
+        var slugs: Set<String> = []
+        do {
+            for page in 1...3 {
+                let teams = try Self.restDecoder.decode([Team].self, from: try await rest("/user/teams?per_page=100&page=\(page)", timeout: Self.refreshTimeout))
+                slugs.formUnion(teams.map { "\($0.organization.login)/\($0.slug)".lowercased() })
+                if teams.count < 100 { break }
+            }
+        } catch {
+            // Kept empty for the hour: direct requests still show.
+        }
+        myTeams = (slugs, Date())
+        return slugs
+    }
+
+    /// The open pull requests of the watched repositories that are yours or
+    /// wait on your review, read by name instead of searched for. Each
+    /// repository GitHub won't show gets the reason in `watchedErrors`.
+    func loadWatched(token: String) async -> (review: [PullRequest], mine: [PullRequest]) {
+        let names = watchedRepos
+        guard !names.isEmpty else {
+            watchedErrors = [:]; watchedCounts = [:]
+            return ([], [])
+        }
+        let teams = includeTeams ? await loadTeams() : []
+        do {
+            let response = try await Stackbar.http(HTTPRequest(url: graphqlURL, method: "POST", headers: [
+                "Authorization": "Bearer \(token)", "Content-Type": "application/json", "Accept": "application/json",
+            ], body: try JSONEncoder().encode(["query": Self.watchedQuery(names)]), timeout: Self.refreshTimeout))
+            guard (200..<300).contains(response.status) else {
+                let text = String(decoding: response.body.prefix(300), as: UTF8.self)
+                if response.status == 401 { tokenRefused() }
+                let problem = response.status == 401 ? refusedHelp : "GitHub answered \(response.status): \(text)"
+                watchedErrors = Dictionary(names.map { ($0, problem) }, uniquingKeysWith: { first, _ in first })
+                return ([], [])
+            }
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            let reply = try decoder.decode(WatchedReply.self, from: response.body)
+            var review: [PullRequest] = []
+            var mine: [PullRequest] = []
+            var errors: [String: String] = [:]
+            var counts: [String: Int] = [:]
+            for (index, name) in names.enumerated() {
+                let alias = "r\(index)"
+                guard let repository = reply.repositories[alias] else {
+                    let message = reply.errors.first { $0.alias == alias }?.message ?? reply.errors.first?.message ?? "GitHub sent nothing for it"
+                    errors[name] = Self.watchedProblem(message, org: String(name.split(separator: "/").first ?? ""), gh: useGh)
+                    continue
+                }
+                counts[name] = repository.pullRequests.nodes.count
+                guard let viewer = reply.viewer else { continue }
+                for pull in repository.pullRequests.nodes {
+                    switch Self.place(pull, viewer: viewer, teams: teams, includeTeams: includeTeams) {
+                    case .mine?:
+                        if isRecent(pull.pr.updatedAt) { mine.append(pull.pr) }
+                    case .review?:
+                        if isRecent(pull.pr.updatedAt), includeDrafts || !pull.pr.isDraft { review.append(pull.pr) }
+                    default: break
+                    }
+                }
+            }
+            watchedErrors = errors
+            watchedCounts = counts
+            return (review, mine)
+        } catch {
+            watchedErrors = Dictionary(names.map { ($0, "\(error)") }, uniquingKeysWith: { first, _ in first })
+            return ([], [])
+        }
+    }
+
+    /// Search's pull requests, then the watched repositories' ones search
+    /// didn't list.
+    nonisolated static func merged(_ searched: [PullRequest], _ direct: [PullRequest]) -> [PullRequest] {
+        var seen = Set(searched.map(\.url))
+        return searched + direct.filter { seen.insert($0.url).inserted }
+    }
+
+    /// Asks GitHub's REST search the review question once, for what its
+    /// headers say about what search leaves out: organizations whose single
+    /// sign-on the token isn't authorized for, and, for a classic or gh
+    /// token, a missing read:org scope (team review requests need it). Runs
+    /// every half hour, or sooner when asked.
+    func checkCoverage(token: String, force: Bool) async {
+        if !force, let coverageChecked, Date().timeIntervalSince(coverageChecked) < 1800 { return }
+        coverageChecked = Date()
+        signInKind = Self.tokenKind(token)
+        var notes: [CoverageNote] = []
+        do {
+            let response = try await Stackbar.http(HTTPRequest(url: apiBase + "/search/issues?q=is%3Apr+is%3Aopen+review-requested%3A%40me&per_page=1", headers: [
+                "Authorization": "Bearer \(token)", "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28",
+            ], timeout: Self.refreshTimeout))
+            for id in Self.ssoHiddenOrganizations(Self.header("X-GitHub-SSO", in: response.headers)) {
+                let org = await organizationName(id)
+                let name = org ?? "An organization (id \(id))"
+                let fix = useGh
+                    ? "run gh auth login again and authorize it (open its single sign-on page first)"
+                    : "on github.com, Settings › Developer settings › Tokens, choose Configure SSO next to this token"
+                notes.append(CoverageNote(message: "Pull requests from \(name) are hidden: it uses single sign-on and this sign-in isn't authorized for it. To fix, \(fix).",
+                                          url: org.map { "https://github.com/orgs/\($0)/sso" } ?? "https://github.com/settings/tokens"))
+            }
+            // Only a classic or OAuth token (gh's) has scopes; a fine-grained
+            // one's header is empty, and a refused request says nothing.
+            if includeTeams, (200..<300).contains(response.status), ["classic", "oauth"].contains(signInKind ?? ""),
+               let scopes = Self.header("X-OAuth-Scopes", in: response.headers) {
+                let granted = Set(scopes.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) })
+                if granted.isDisjoint(with: ["read:org", "write:org", "admin:org"]) {
+                    notes.append(CoverageNote(message: useGh
+                        ? "Review requests to your teams are missing: gh's sign-in lacks the read:org scope. Run gh auth refresh -s read:org."
+                        : "Review requests to your teams are missing: this token lacks the read:org scope. Add it to the token on github.com.",
+                        url: useGh ? nil : "https://github.com/settings/tokens"))
+                }
+            }
+        } catch {
+            // A failed check says nothing; the lists report their own errors.
+        }
+        coverage = notes
+    }
+
+    /// An organization's login from its id, asked of GitHub without the
+    /// token (an organization's name is public, and its single sign-on would
+    /// refuse the token), and remembered.
+    func organizationName(_ id: Int) async -> String? {
+        if let known = orgNames[id] { return known }
+        struct Org: Decodable { let login: String }
+        guard let response = try? await Stackbar.http(HTTPRequest(url: apiBase + "/organizations/\(id)", headers: ["Accept": "application/vnd.github+json"], timeout: 10)),
+              (200..<300).contains(response.status),
+              let org = try? JSONDecoder().decode(Org.self, from: response.body) else { return nil }
+        orgNames[id] = org.login
+        return org.login
+    }
+
+    /// Why the last repository typed in Settings wasn't added.
+    var watchError: String?
+
+    /// Adds a repository to check directly, then fetches with it.
+    func watch(_ text: String) {
+        guard let name = Self.repoName(text) else {
+            watchError = text.trimmingCharacters(in: .whitespaces).isEmpty ? nil : "Type it as owner/name, like navbytes/stackbar"
+            return
+        }
+        watchError = nil
+        guard !watchedRepos.contains(where: { $0.caseInsensitiveCompare(name) == .orderedSame }) else { return }
+        guard watchedRepos.count < Self.watchLimit else {
+            watchError = "Up to \(Self.watchLimit) repositories"
+            return
+        }
+        watchedRepos.append(name)
+        Task { try? await self.refetch() }
+    }
+
+    /// How many repositories are read directly; each is one more field in
+    /// the refresh's request.
+    static let watchLimit = 25
+
+    /// A watched repository's line in Settings: why it can't be read, or
+    /// how many pull requests it has open.
+    func watchedStatus(_ name: String) -> String {
+        if let problem = watchedErrors[name] { return problem }
+        guard let count = watchedCounts[name] else { return "Checked on the next refresh" }
+        return count == 0 ? "No open pull requests" : "\(count) open pull request\(count == 1 ? "" : "s")" + (count >= 50 ? ", the 50 most recently updated read" : "")
+    }
+
+    /// What the coverage check and the watched repositories found missing,
+    /// above the lists, each with the page that fixes it.
+    @ViewBuilder var coverageBanners: ViewContent {
+        ForEach(coverage) { note in
+            Banner(note.message, symbol: "eye.trianglebadge.exclamationmark") {
+                if let url = note.url {
+                    IconButton("arrow.up.forward.square", label: "Fix on GitHub", theme: .warning) { Stackbar.open(url) }
+                }
+            }
+        }
+        if !watchedErrors.isEmpty {
+            let names = watchedErrors.keys.sorted()
+            Banner("Can't read \(names.count == 1 ? names[0] : "\(names.count) repositories you check") directly: \(watchedErrors[names[0]] ?? "")", symbol: "eye.trianglebadge.exclamationmark")
+        }
+    }
+
+    /// What Settings says about missing pull requests for this sign-in.
+    var signInCoverageHint: String {
+        if useGh {
+            return "gh signs in as the GitHub CLI app. An organization that restricts OAuth apps hides its pull requests from it until an owner approves GitHub CLI, and one with single sign-on until you authorize gh for it."
+        }
+        if signInKind == "classic" {
+            return "A classic token needs the repo and read:org scopes, and Configure SSO on github.com for each organization that uses single sign-on."
+        }
+        if signInKind != "fine-grained" {
+            return "A classic token needs the repo and read:org scopes, and Configure SSO for each organization that uses single sign-on. A fine-grained token sees one owner's repositories only: make it with the organization as the resource owner."
+        }
+        return "A fine-grained token sees one owner's repositories: one made for your account can't see an organization's private pull requests. Make one with the organization as the resource owner, or use a classic token (repo and read:org) or Sign in with gh."
     }
 
     /// The choices for how far back to look, and the days each one means.
@@ -1185,6 +1586,13 @@ final class PRCockpit: StackbarPlugin {
             .action("Copy Clone URL", shortcut: "cmd+shift+c") { Stackbar.copy(self.cloneWith == "HTTPS" ? repo.clone_url : repo.ssh_url) }
             .action("Copy URL", shortcut: "cmd+c") { Stackbar.copy(repo.html_url) }
             .navigate("New Issue", to: "create-issue", arguments: ["repo": repo.full_name], shortcut: "cmd+n")
+            .action(watchedRepos.contains(repo.full_name) ? "Stop Checking Its Pull Requests" : "Always Check Its Pull Requests") {
+                if self.watchedRepos.contains(repo.full_name) {
+                    self.watchedRepos.removeAll { $0 == repo.full_name }
+                } else {
+                    self.watch(repo.full_name)
+                }
+            }
     }
 
     func issueRow(_ issue: Issue) -> Row {
@@ -1356,6 +1764,7 @@ final class PRCockpit: StackbarPlugin {
                     self.tab = (self.tabs.first { self.label($0) == chosen } ?? .review).rawValue
                 }
                 if let lastError { Banner(lastError) }
+                if currentTab != .inbox && currentTab != .issues { coverageBanners }
                 if currentTab == .inbox {
                     if let inboxError { Banner(inboxError) }
                     if inbox.isEmpty {
@@ -1451,6 +1860,21 @@ final class PRCockpit: StackbarPlugin {
             }
             Text("Pull requests and issues nobody has touched for longer stay out of the lists, and fewer to fetch makes refreshing quicker.").style(.caption).role(.secondary)
         }
+        Section("Missing pull requests?") {
+            Text("GitHub's search leaves out pull requests this sign-in isn't let see, without saying so. Add a repository here and its open pull requests are read directly on every refresh: yours, and the ones asking you or your teams to review show up, and if GitHub refuses the repository, it says why.").style(.caption).role(.secondary)
+            TextField("Always check a repository (owner/name)", text: "", key: "watch") { text in self.watch(text) }
+            if let watchError { Text(watchError).style(.caption).role(.warning) }
+            ForEach(watchedRepos) { name in
+                Row(name, subtitle: watchedStatus(name), symbol: watchedErrors[name] == nil ? "eye" : "exclamationmark.triangle", key: "watched-\(name)")
+                    .action("Stop checking") {
+                        self.watchedRepos.removeAll { $0 == name }
+                        self.watchedErrors[name] = nil
+                        try await self.refetch()
+                    }
+            }
+            ForEach(coverage.map(\.message)) { message in Text(message).style(.caption).role(.warning) }
+            Text(signInCoverageHint).style(.caption).role(signInKind == "fine-grained" && !useGh ? .warning : .secondary)
+        }
         Section("Clicking a pull request") {
             Picker("Click", options: ["Shows its checks", "Opens it in the browser"], selection: clickShowsChecks ? "Shows its checks" : "Opens it in the browser") { chosen in
                 self.clickShowsChecks = chosen == "Shows its checks"
@@ -1510,6 +1934,7 @@ final class PRCockpit: StackbarPlugin {
 
     @ViewBuilder var windowContent: ViewContent {
         if let lastError { Banner(lastError) }
+        coverageBanners
         List(searchable: true) {
             Section("Waiting on your review (\(shownReview.count))") {
                 ForEach(shownReview) { pr in rowWithChecks(pr, showAuthor: true, place: "window-") }
@@ -1759,7 +2184,10 @@ final class PRCockpit: StackbarPlugin {
         }
         noteCredentials(token)
         let escaped = text.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"")
-        let query = "query { found: search(query: \"is:pr archived:false involves:@me \(escaped)\", type: ISSUE, first: 30) { nodes { ...pr } } } \(Self.fragment)"
+        // involves:@me leaves out review requests to your teams, so those are
+        // asked for beside it.
+        let query = "query { found: search(query: \"is:pr archived:false involves:@me \(escaped)\", type: ISSUE, first: 30) { nodes { ...pr } } "
+            + "requested: search(query: \"is:pr is:open archived:false review-requested:@me \(escaped)\", type: ISSUE, first: 20) { nodes { ...pr } } } \(Self.fragment)"
         do {
             let response = try await Stackbar.http(HTTPRequest(url: graphqlURL, method: "POST", headers: [
                 "Authorization": "Bearer \(token)", "Content-Type": "application/json", "Accept": "application/json",
@@ -1772,12 +2200,28 @@ final class PRCockpit: StackbarPlugin {
             decoder.dateDecodingStrategy = .iso8601
             let reply = try decoder.decode(SearchReply.self, from: response.body)
             guard let data = reply.data else { throw HostError(reply.errors?.map(\.message).joined(separator: "; ") ?? "GitHub sent no data") }
-            searchResults = data.found.nodes
+            searchResults = Self.merged(data.requested?.nodes ?? [], data.found.nodes)
             searchError = nil
         } catch {
             searchResults = []
             searchError = "\(error)"
         }
+    }
+
+    /// The fetched pull requests (to review, yours, closed lately) whose
+    /// title, repository, number, branch or author has every word typed.
+    func localMatches(_ text: String) -> [PullRequest] {
+        var seen: Set<String> = []
+        return (shownReview + shownMine + recentlyClosed).filter { pr in
+            Self.matches(pr, text) && seen.insert(pr.url).inserted
+        }
+    }
+
+    nonisolated static func matches(_ pr: PullRequest, _ text: String) -> Bool {
+        let words = text.lowercased().split(whereSeparator: \.isWhitespace)
+        guard !words.isEmpty else { return false }
+        let haystack = [pr.title, pr.repo, "#\(pr.number)", "\(pr.number)", pr.headRefName ?? "", pr.author?.login ?? ""].joined(separator: " ").lowercased()
+        return words.allSatisfy { haystack.contains($0) }
     }
 
     @ViewBuilder func searchView(_ text: String) -> ViewContent {
@@ -1791,13 +2235,29 @@ final class PRCockpit: StackbarPlugin {
                     ForEach(shownMine) { pr in row(pr, showAuthor: false, palette: true) }
                 }
             }
-        } else if let searchError {
-            ContentUnavailableView("Search failed", symbol: "exclamationmark.triangle", message: searchError)
-        } else if searchResults.isEmpty {
-            ContentUnavailableView("No pull requests", symbol: "magnifyingglass", message: "Nothing that involves you matches \"\(text)\".")
         } else {
-            List {
-                ForEach(searchResults) { pr in row(pr, showAuthor: true, palette: true) }
+            // The pull requests already fetched answer at once, before GitHub
+            // does, and stay when GitHub's search can't see them.
+            let local = localMatches(text)
+            let found = searchResults.filter { pr in !local.contains { $0.url == pr.url } }
+            if local.isEmpty, found.isEmpty, let searchError {
+                ContentUnavailableView("Search failed", symbol: "exclamationmark.triangle", message: searchError)
+            } else if local.isEmpty, found.isEmpty {
+                ContentUnavailableView("No pull requests", symbol: "magnifyingglass", message: "Nothing that involves you matches \"\(text)\"." + (coverage.first.map { " " + $0.message } ?? " Missing one from an organization? Settings › Missing pull requests? explains why and lets you add its repository."))
+            } else {
+                List {
+                    if !local.isEmpty {
+                        Section("In your lists") {
+                            ForEach(local) { pr in row(pr, showAuthor: true, palette: true) }
+                        }
+                    }
+                    if !found.isEmpty {
+                        Section("On GitHub") {
+                            ForEach(found) { pr in row(pr, showAuthor: true, palette: true) }
+                        }
+                    }
+                    if let searchError { Row("Couldn't search GitHub", subtitle: searchError, symbol: "exclamationmark.triangle", key: "pr-search-error") }
+                }
             }
         }
     }
