@@ -2371,6 +2371,15 @@
       "changes": [
         {
           "notes": [
+            "Switching tabs no longer hangs while PR Cockpit waits on GitHub. Refreshing happens in the background, so a click is handled at once.",
+            "You can always see what it's doing: the header says Refreshing\u2026 and, when GitHub is slow, what it's still waiting for. Each list shows up the moment it arrives. A spinning Refresh button replaces the old wait, and the Issues and Inbox tabs say they're loading instead of looking empty.",
+            "When GitHub doesn't answer, it says so in words, keeps what was loaded before, and says when it tries again.",
+            "The tabs are plain names now (Review, Mine, Issues). Their counts used to change under your click and swallow it; the counts stay on the card above."
+          ],
+          "version": "1.18.1"
+        },
+        {
+          "notes": [
             "Missing pull requests from your organization? PR Cockpit now says why: an organization whose single sign-on your token or gh isn't authorized for, a missing read:org scope for your teams' review requests, or a fine-grained token that can't see the organization, with the fix.",
             "Repositories to always check: add one in Settings (or from Search GitHub Repositories) and its open pull requests are read directly on every refresh, beside the search, so yours and the reviews asked of you or your teams show even when search misses them. A repository GitHub refuses says why.",
             "Search Pull Requests shows the matching pull requests already in your lists at once as you type, then GitHub's, which now include review requests to your teams."
@@ -2531,7 +2540,7 @@
           "text": "`review_queue`, `my_pull_requests` and `my_issues`."
         }
       ],
-      "version": "1.18.0"
+      "version": "1.18.1"
     },
     "io.navbytes.stackbar.quicklinks": {
       "changes": [
@@ -3047,87 +3056,9 @@
       }
     },
     "io.navbytes.stackbar.pr-cockpit": {
-      "1.10.0": {
-        "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.10.0/dark/demo/526649a16612/panel.png",
-        "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.10.0/light/demo/526649a16612/panel.png",
-        "seconds": 5.0,
-        "surface": "panel"
-      },
-      "1.11.0": {
-        "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.11.0/dark/demo/526649a16612/panel.png",
-        "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.11.0/light/demo/526649a16612/panel.png",
-        "seconds": 5.0,
-        "surface": "panel"
-      },
-      "1.12.0": {
-        "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.12.0/dark/demo/526649a16612/panel.png",
-        "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.12.0/light/demo/526649a16612/panel.png",
-        "seconds": 5.0,
-        "surface": "panel"
-      },
-      "1.13.0": {
-        "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.13.0/dark/demo/526649a16612/panel.png",
-        "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.13.0/light/demo/526649a16612/panel.png",
-        "seconds": 5.0,
-        "surface": "panel"
-      },
-      "1.14.0": {
-        "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.14.0/dark/demo/526649a16612/panel.png",
-        "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.14.0/light/demo/526649a16612/panel.png",
-        "seconds": 5.0,
-        "surface": "panel"
-      },
-      "1.15.0": {
-        "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.15.0/dark/demo/526649a16612/panel.png",
-        "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.15.0/light/demo/526649a16612/panel.png",
-        "seconds": 5.0,
-        "surface": "panel"
-      },
-      "1.16.0": {
-        "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.16.0/dark/demo/526649a16612/panel.png",
-        "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.16.0/light/demo/526649a16612/panel.png",
-        "seconds": 5.0,
-        "surface": "panel"
-      },
-      "1.17.0": {
-        "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.17.0/dark/demo/526649a16612/panel.png",
-        "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.17.0/light/demo/526649a16612/panel.png",
-        "seconds": 5.0,
-        "surface": "panel"
-      },
-      "1.18.0": {
-        "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/dark/demo/526649a16612/panel.png",
-        "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/light/demo/526649a16612/panel.png",
-        "seconds": 5.0,
-        "surface": "panel"
-      },
-      "1.6.0": {
-        "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.6.0/dark/demo/526649a16612/panel.png",
-        "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.6.0/light/demo/526649a16612/panel.png",
-        "seconds": 5.0,
-        "surface": "panel"
-      },
-      "1.7.0": {
-        "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.7.0/dark/demo/526649a16612/panel.png",
-        "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.7.0/light/demo/526649a16612/panel.png",
-        "seconds": 5.0,
-        "surface": "panel"
-      },
-      "1.8.0": {
-        "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.8.0/dark/demo/526649a16612/panel.png",
-        "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.8.0/light/demo/526649a16612/panel.png",
-        "seconds": 5.0,
-        "surface": "panel"
-      },
-      "1.8.1": {
-        "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.8.1/dark/demo/526649a16612/panel.png",
-        "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.8.1/light/demo/526649a16612/panel.png",
-        "seconds": 5.0,
-        "surface": "panel"
-      },
-      "1.9.0": {
-        "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.9.0/dark/demo/526649a16612/panel.png",
-        "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.9.0/light/demo/526649a16612/panel.png",
+      "1.18.1": {
+        "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.1/dark/demo/cbb7eda2f6be/panel.png",
+        "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.1/light/demo/cbb7eda2f6be/panel.png",
         "seconds": 5.0,
         "surface": "panel"
       }
@@ -4882,6 +4813,16 @@
         "panel": {
           "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/dark/panel.png",
           "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/light/panel.png"
+        }
+      },
+      "1.18.1": {
+        "menuBar": {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.1/dark/menuBar.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.1/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.1/dark/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.1/light/panel.png"
         }
       },
       "1.4.0": {
@@ -8228,6 +8169,43 @@
         {
           "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/dark/previews/widget/widget.png",
           "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "Your review queue on the desktop"
+        }
+      ],
+      "1.18.1": [
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.1/dark/previews/hero/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.1/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Every pull request waiting on you"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.1/dark/previews/mine/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.1/light/previews/mine/panel.png",
+          "name": "mine",
+          "surface": "panel",
+          "title": "Your own PRs: checks, reviews and conflicts"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.1/dark/previews/checks/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.1/light/previews/checks/panel.png",
+          "name": "checks",
+          "surface": "panel",
+          "title": "Why a check failed, and its preview deploy, without leaving the menu bar"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.1/dark/previews/dashboard/window.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.1/light/previews/dashboard/window.png",
+          "name": "dashboard",
+          "surface": "window",
+          "title": "Both lists, what merged and how long reviews wait"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.1/dark/previews/widget/widget.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.1/light/previews/widget/widget.png",
           "name": "widget",
           "surface": "widget",
           "title": "Your review queue on the desktop"
