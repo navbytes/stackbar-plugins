@@ -1,6 +1,6 @@
 {
   "format" : 2,
-  "generated" : "2026-11-12T00:37:48Z",
+  "generated" : "2026-11-12T09:10:47Z",
   "homepage" : "https://github.com/navbytes/stackbar-plugins",
   "name" : "Stackbar Plugins by navbytes",
   "plugins" : [
@@ -6316,6 +6316,41 @@
       "version" : "1.17.0"
     },
     {
+      "accent" : "violet",
+      "bundle" : "Developer/io.navbytes.stackbar.pr-cockpit-1.18.0.stackbarplugin",
+      "capabilities" : [
+        "Connects to api.github.com",
+        "Reads the secret GITHUB_TOKEN",
+        "Runs /opt/homebrew/bin/gh",
+        "Connects to the server you enter as GITHUB_ENTERPRISE_URL, and no other"
+      ],
+      "capabilityKinds" : [
+        "network",
+        "secret",
+        "run",
+        "userServer"
+      ],
+      "category" : "Developer",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/PRCockpit",
+      "id" : "io.navbytes.stackbar.pr-cockpit",
+      "minimumStackbar" : "0.37.0",
+      "name" : "PR Cockpit",
+      "publisher" : "navbytes",
+      "screenshot" : "Developer/io.navbytes.stackbar.pr-cockpit.png",
+      "sha256" : "f305a240a536d2c04016834353db4d67c24bd26670462586f441d596ef89b409",
+      "summary" : "Your pull requests, reviews and issues with CI and review state, and your repositories a keystroke away.",
+      "surfaces" : [
+        "menuBar",
+        "panel",
+        "window",
+        "widget",
+        "settings"
+      ],
+      "symbol" : "arrow.triangle.pull",
+      "updated" : "2026-11-12",
+      "version" : "1.18.0"
+    },
+    {
       "bundle" : "Productivity/io.navbytes.stackbar.quicklinks-1.0.1.stackbarplugin",
       "capabilities" : [
         "Opens any link, file or folder, in any app",
@@ -7335,5 +7370,5 @@
       "reason" : "GitHub is now part of PR Cockpit, which has the same features and more. Install PR Cockpit from the store."
     }
   ],
-  "signature" : "lj6KuTEyeaD77Vlze05Vz9zhJgCRP1WLDZhfCgOSkaoFyWDOUrwPDjD+KESn4uHs+yeWl20nIbEIzdeGYtDDAA=="
+  "signature" : "VqCetXqY23EUyTAzIJGB5OKxE4GLNoeVEfLdMKtR+djHZAA66sYtyuB9xiOZDcfwKtixfqGn86/Y7lGwbsEJAQ=="
 }

@@ -2371,6 +2371,14 @@
       "changes": [
         {
           "notes": [
+            "Missing pull requests from your organization? PR Cockpit now says why: an organization whose single sign-on your token or gh isn't authorized for, a missing read:org scope for your teams' review requests, or a fine-grained token that can't see the organization, with the fix.",
+            "Repositories to always check: add one in Settings (or from Search GitHub Repositories) and its open pull requests are read directly on every refresh, beside the search, so yours and the reviews asked of you or your teams show even when search misses them. A repository GitHub refuses says why.",
+            "Search Pull Requests shows the matching pull requests already in your lists at once as you type, then GitHub's, which now include review requests to your teams."
+          ],
+          "version": "1.18.0"
+        },
+        {
+          "notes": [
             "The palette's preview shows a pull request's checks in color: each check with its state, failures first, then deployments. Stackbar 0.38 and older still show the text."
           ],
           "version": "1.17.0"
@@ -2488,7 +2496,7 @@
       "facts": [
         {
           "label": "Needs",
-          "text": "network access to `api.github.com` only, and one of two ways to sign in, chosen on the Settings page: a `GITHUB_TOKEN` secret kept in the Keychain (the default), or, with **Sign in with gh** on, the gh command-line tool (`gh auth login`; the plugin reads its token itself, nothing to paste). Only the chosen one is read. A fine-grained token with read access to pull requests, issues and metadata covers everything except creating issues, which needs write access to issues; gh's usual scopes cover all of it. Approving, merging, auto-merge and Mark Ready for Review need write access to pull requests (merging also needs contents write). Mark as done in the inbox needs the notifications scope (`gh auth refresh -s notifications`, or a classic token). Running gh lets PR Cockpit do anything gh can, including `gh api` to any endpoint, gists and extensions; Stackbar shows that grant on the install sheet, and the plugin only ever runs `gh auth token`. On GitHub Enterprise Server, turn it on in Settings and enter the server as `GITHUB_ENTERPRISE_URL` (always needed); for the token, paste that server's token as `GITHUB_TOKEN`, or with Sign in with gh, sign in to that server with gh (`gh auth login --hostname <server>`). Requests go to that server and no other."
+          "text": "network access to `api.github.com` only, and one of two ways to sign in, chosen on the Settings page: a `GITHUB_TOKEN` secret kept in the Keychain (the default), or, with **Sign in with gh** on, the gh command-line tool (`gh auth login`; the plugin reads its token itself, nothing to paste). Only the chosen one is read. A classic token needs the `repo` and `read:org` scopes (`read:org` finds review requests to your teams); gh's usual scopes cover all of it. A fine-grained token sees one owner's repositories only, so for an organization's pull requests make it with the organization as the resource owner, with read access to pull requests, issues and metadata (creating issues needs write access to issues). Approving, merging, auto-merge and Mark Ready for Review need write access to pull requests (merging also needs contents write). Mark as done in the inbox needs the notifications scope (`gh auth refresh -s notifications`, or a classic token). Running gh lets PR Cockpit do anything gh can, including `gh api` to any endpoint, gists and extensions; Stackbar shows that grant on the install sheet, and the plugin only ever runs `gh auth token`. On GitHub Enterprise Server, turn it on in Settings and enter the server as `GITHUB_ENTERPRISE_URL` (always needed); for the token, paste that server's token as `GITHUB_TOKEN`, or with Sign in with gh, sign in to that server with gh (`gh auth login --hostname <server>`). Requests go to that server and no other."
         },
         {
           "label": "Checks on click",
@@ -2507,6 +2515,10 @@
           "text": "menu bar, panel (To review, Mine, Issues and an optional Inbox), window, widget, settings."
         },
         {
+          "label": "Missing pull requests",
+          "text": "GitHub's search leaves out, without a word, pull requests your sign-in isn't let see: an organization with single sign-on the token isn't authorized for, or one that hasn't approved the GitHub CLI app gh signs in with. PR Cockpit checks what GitHub says it left out and names the organization and the fix above the lists. Add a repository under Settings \u203a Missing pull requests? (or Always Check Its Pull Requests on it in Search GitHub Repositories) and its open pull requests are read directly on every refresh, so yours and the ones asking you or your teams to review show up even when search misses them, and a repository GitHub refuses says why."
+        },
+        {
           "label": "Settings",
           "text": "include team review requests, include drafts, how recently a pull request or issue must have changed to show (any age, or the last week to three months), notifications, repositories (include archived, copy clone URLs as SSH or HTTPS, reload), repositories to hide, and the inbox view."
         },
@@ -2519,7 +2531,7 @@
           "text": "`review_queue`, `my_pull_requests` and `my_issues`."
         }
       ],
-      "version": "1.17.0"
+      "version": "1.18.0"
     },
     "io.navbytes.stackbar.quicklinks": {
       "changes": [
@@ -3080,6 +3092,12 @@
       "1.17.0": {
         "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.17.0/dark/demo/526649a16612/panel.png",
         "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.17.0/light/demo/526649a16612/panel.png",
+        "seconds": 5.0,
+        "surface": "panel"
+      },
+      "1.18.0": {
+        "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/dark/demo/526649a16612/panel.png",
+        "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/light/demo/526649a16612/panel.png",
         "seconds": 5.0,
         "surface": "panel"
       },
@@ -4854,6 +4872,16 @@
         "panel": {
           "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.17.0/dark/panel.png",
           "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.17.0/light/panel.png"
+        }
+      },
+      "1.18.0": {
+        "menuBar": {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/dark/menuBar.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/dark/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/light/panel.png"
         }
       },
       "1.4.0": {
@@ -8163,6 +8191,43 @@
         {
           "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.17.0/dark/previews/widget/widget.png",
           "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.17.0/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "Your review queue on the desktop"
+        }
+      ],
+      "1.18.0": [
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/dark/previews/hero/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Every pull request waiting on you"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/dark/previews/mine/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/light/previews/mine/panel.png",
+          "name": "mine",
+          "surface": "panel",
+          "title": "Your own PRs: checks, reviews and conflicts"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/dark/previews/checks/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/light/previews/checks/panel.png",
+          "name": "checks",
+          "surface": "panel",
+          "title": "Why a check failed, and its preview deploy, without leaving the menu bar"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/dark/previews/dashboard/window.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/light/previews/dashboard/window.png",
+          "name": "dashboard",
+          "surface": "window",
+          "title": "Both lists, what merged and how long reviews wait"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/dark/previews/widget/widget.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.0/light/previews/widget/widget.png",
           "name": "widget",
           "surface": "widget",
           "title": "Your review queue on the desktop"
