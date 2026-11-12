@@ -14,12 +14,12 @@ final class Jira: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.jira",
         name: "Jira",
-        version: "1.6.0",
+        version: "1.6.1",
         summary: "Your assigned Jira issues: change status, assign, comment and watch, with alerts and new issues from the palette.",
         surfaces: [.menuBar, .panel, .widget, .settings],
         triggers: [.launch, .minutes(5), .wake],
         capabilities: [.network("*.atlassian.net"), .secret(name: "JIRA_API_TOKEN"), .userServer(secret: "JIRA_SERVER_URL")],
-        minimumStackbar: "0.22.0",
+        minimumStackbar: "0.40.1",
         homepage: "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/Jira",
         accent: .blue,
         symbol: "ticket.fill"
@@ -271,7 +271,7 @@ final class Jira: StackbarPlugin {
 
     func refresh(maxAge: TimeInterval) async throws {
         if loaded, let at = refreshed, Date().timeIntervalSince(at) < (problem == nil ? maxAge : max(maxAge, 30)) { return }
-        try await refresh()
+        try await Stackbar.refresh()
     }
 
     func refresh() async throws {
@@ -440,7 +440,7 @@ final class Jira: StackbarPlugin {
             Stackbar.hud("\(key) moved to \(transition.to?.name ?? transition.name)")
             transitions[key] = nil
             transitionsLoadedAt[key] = nil
-            try await refresh()
+            try await Stackbar.refresh()
         } catch {
             Stackbar.hud("\(error)", isError: true)
         }
@@ -451,7 +451,7 @@ final class Jira: StackbarPlugin {
             let me = try await myself()
             _ = try await api("/issue/\(key)/assignee", method: "PUT", body: [isDataCenter ? "name" : "accountId": me])
             Stackbar.hud("\(key) assigned to you")
-            try await refresh()
+            try await Stackbar.refresh()
         } catch {
             Stackbar.hud("\(error)", isError: true)
         }
@@ -558,7 +558,7 @@ final class Jira: StackbarPlugin {
                 PanelHeader("Jira", subtitle: "Checking…", symbol: "square.stack.3d.up.fill", theme: theme)
             } else if let problem, assigned.isEmpty {
                 EmptyState("Can't reach Jira", symbol: "exclamationmark.triangle.fill", message: problem, theme: .critical) {
-                    ActionButton("Try Again", symbol: "arrow.clockwise", theme: theme) { try await self.refresh() }
+                    ActionButton("Try Again", symbol: "arrow.clockwise", theme: theme) { try await Stackbar.refresh() }
                 }
             } else {
                 let toDo = assigned.filter { $0.category == "new" }
@@ -602,7 +602,7 @@ final class Jira: StackbarPlugin {
         me = nil
         server = nil
         seenReady = false
-        try? await refresh()
+        try? await Stackbar.refresh()
     }
 
     func setSite(_ value: String) async {
@@ -610,14 +610,14 @@ final class Jira: StackbarPlugin {
         projects = []
         me = nil
         seenReady = false
-        try? await refresh()
+        try? await Stackbar.refresh()
     }
 
     func setEmail(_ value: String) async {
         email = value.trimmingCharacters(in: .whitespaces)
         me = nil
         seenReady = false
-        try? await refresh()
+        try? await Stackbar.refresh()
     }
 
     var settings: ViewContent {
@@ -643,13 +643,13 @@ final class Jira: StackbarPlugin {
             TextField("JQL for the panel", text: jql, key: "jql") { value in
                 self.jql = value.trimmingCharacters(in: .whitespaces).isEmpty ? Self.defaultJQL : value
                 self.seenReady = false
-                try await self.refresh()
+                try await Stackbar.refresh()
             }
             if jql != Self.defaultJQL {
                 Button("Reset to Open Issues Assigned to Me", symbol: "arrow.uturn.backward") {
                     self.jql = Self.defaultJQL
                     self.seenReady = false
-                    try await self.refresh()
+                    try await Stackbar.refresh()
                 }
             }
             Text("Which issues the menu bar and panel show, as JQL.").style(.caption)
@@ -773,7 +773,7 @@ final class Jira: StackbarPlugin {
             let created = try JSONDecoder().decode(Created.self, from: try await api("/issue", method: "POST", body: ["fields": fields]))
             self.created = "Created \(created.key)"
             Stackbar.open(url(key: created.key))
-            try await refresh()
+            try await Stackbar.refresh()
         } catch {
             formError = "\(error)"
         }
@@ -781,7 +781,7 @@ final class Jira: StackbarPlugin {
 
     var tools: [AgentTool] {
         AgentTool("assigned", description: "Open Jira issues assigned to the user, with key, status, type and summary") { _ in
-            if !self.loaded { try await self.refresh() }
+            if !self.loaded { try await Stackbar.refresh() }
             if let problem = self.problem { return problem }
             return self.assigned.map { "\($0.key)\t\($0.fields.status?.name ?? "")\t\($0.fields.issuetype?.name ?? "")\t\($0.fields.summary)" }.joined(separator: "\n")
         }

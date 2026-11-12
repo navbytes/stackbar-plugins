@@ -15,12 +15,12 @@ final class Linear: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.linear",
         name: "Linear",
-        version: "1.8.0",
+        version: "1.8.1",
         summary: "Your assigned Linear issues and inbox: change status and priority, start work, comment, and new issues from the palette.",
         surfaces: [.menuBar, .panel, .widget, .settings],
         triggers: [.launch, .minutes(5), .wake],
         capabilities: [.network("api.linear.app"), .secret(name: "LINEAR_API_KEY")],
-        minimumStackbar: "0.35.0",
+        minimumStackbar: "0.40.1",
         homepage: "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/Linear",
         accent: .indigo,
         symbol: "circle.lefthalf.filled"
@@ -193,7 +193,7 @@ final class Linear: StackbarPlugin {
 
     func refresh(maxAge: TimeInterval) async throws {
         if loaded, let at = refreshed, Date().timeIntervalSince(at) < (problem == nil ? maxAge : max(maxAge, 30)) { return }
-        try await refresh()
+        try await Stackbar.refresh()
     }
 
     /// The assigned issues after the first hundred, up to three more pages.
@@ -392,7 +392,7 @@ final class Linear: StackbarPlugin {
         do {
             _ = try await query("mutation($id: String!, $input: IssueUpdateInput!) { issueUpdate(id: $id, input: $input) { success } }", variables: ["id": issue.id, "input": input], as: Done.self)
             Stackbar.hud(done)
-            try await refresh()
+            try await Stackbar.refresh()
         } catch {
             Stackbar.hud("\(error)", isError: true)
         }
@@ -602,11 +602,11 @@ final class Linear: StackbarPlugin {
             } else if let problem, assigned.isEmpty {
                 if needsKey {
                     EmptyState("Connect Linear", symbol: "key.fill", message: "Create a personal API key in Linear under Settings > Security & access. Stackbar asks for it once and keeps it in your Keychain.", theme: theme) {
-                        ActionButton("Add API Key", symbol: "key.fill", theme: theme, prominent: true) { try await self.refresh() }
+                        ActionButton("Add API Key", symbol: "key.fill", theme: theme, prominent: true) { try await Stackbar.refresh() }
                     }
                 } else {
                     EmptyState("Can't reach Linear", symbol: "exclamationmark.triangle.fill", message: problem, theme: .critical) {
-                        ActionButton("Try Again", symbol: "arrow.clockwise", theme: theme) { try await self.refresh() }
+                        ActionButton("Try Again", symbol: "arrow.clockwise", theme: theme) { try await Stackbar.refresh() }
                     }
                 }
             } else {
@@ -806,7 +806,7 @@ final class Linear: StackbarPlugin {
             guard let issue = reply.issueCreate.issue else { formError = "Linear didn't create it"; return }
             created = "Created \(issue.identifier) · link copied"
             Stackbar.copy(issue.url)
-            try await refresh()
+            try await Stackbar.refresh()
         } catch {
             formError = "\(error)"
         }
@@ -816,7 +816,7 @@ final class Linear: StackbarPlugin {
 
     var tools: [AgentTool] {
         AgentTool("assigned", description: "Open Linear issues assigned to the user, with identifier, state, priority, title and branch name") { _ in
-            if !self.loaded { try await self.refresh() }
+            if !self.loaded { try await Stackbar.refresh() }
             if let problem = self.problem { return problem }
             return self.assigned.map { "\($0.identifier)\t\($0.state.name)\t\(Self.priorityName($0.priority) ?? "-")\t\($0.title)\t\($0.branchName)" }.joined(separator: "\n")
         }

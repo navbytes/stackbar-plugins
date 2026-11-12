@@ -25,6 +25,10 @@ first.
   and the default project for new issues.
 - **Agent tool:** `assigned` lists your open issues.
 
+## What's new in 1.6.1
+
+- Changing a setting or pressing Try Again cancels a refresh already running, so older results never replace newer ones. Needs Stackbar 0.40.1, where clicks no longer wait for a refresh.
+
 ## What's new in 1.6.0
 
 - Paste a Jira issue link into Search Jira to open that issue.
