@@ -17,7 +17,7 @@
     "surface": "panel",
     "steps": [
       "--hold", "2.5",
-      "--event", "picker/Show=Mine 3",
+      "--event", "picker/Show=Mine",
       "--hold", "2.5"
     ]
   },

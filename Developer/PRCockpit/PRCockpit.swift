@@ -645,7 +645,7 @@ final class PRCockpit: StackbarPlugin {
     }
 
     /// A failed request in words that say what happened and what comes
-    /// next, instead of URLSession's.
+    /// next, instead of the network library's.
     nonisolated static func explained(_ error: Error, what: String) -> String {
         let text = "\(error)"
         if text.localizedCaseInsensitiveContains("timed out") {
@@ -2011,7 +2011,7 @@ final class PRCockpit: StackbarPlugin {
                 Text("Uses the token of the gh command-line tool (gh auth login in Terminal) instead of a pasted GITHUB_TOKEN. gh's token usually has full repo access, more than a fine-grained token needs.").style(.caption).role(.secondary)
                 if let tokenProblem { Text("Can't use gh: \(tokenProblem).").style(.caption).role(.warning) }
             } else {
-                Text("Uses the GITHUB_TOKEN pasted in the panel or above. Turn this on to use the gh command-line tool's sign-in instead, with nothing to paste.").style(.caption).role(.secondary)
+                Text("Uses the GITHUB_TOKEN pasted in the panel or under Secrets below. Turn this on to use the gh command-line tool's sign-in instead, with nothing to paste.").style(.caption).role(.secondary)
             }
         }
         Section("What to show") {
