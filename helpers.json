@@ -133,6 +133,19 @@
     },
     {
       "arch": "arm64",
+      "id": "io.navbytes.stackbar.plugins.docker",
+      "protocol": 26,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "4de261ae2adc1bd3b95c73d164c8d6933ddaff4022ceaa4305878783a2cc373b",
+      "signature": "CtquM7QdbyuEFS/DjHA6YOXrIUEAEb5TWOKhjfnZRmigylp3kr21dqO9SjZINMGDC6IrdVF9VQXlAw3Vrm0DCA==",
+      "size": 6152616,
+      "sourceDigest": "b464dd69f2a5770541ceafdcc1fb4b4d5c9ac7e26c27c6011215e19810f3fab7",
+      "stackbarKit": "94470a0def440d1ab132be34cf52ae06d6874f42e56903fd616a019efed07c7c",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-94470a0def440d1a/Docker-b464dd69f2a5",
+      "version": "1.10.1"
+    },
+    {
+      "arch": "arm64",
       "id": "io.navbytes.stackbar.plugins.emoji",
       "protocol": 26,
       "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
@@ -591,6 +604,19 @@
       "id": "io.navbytes.stackbar.clipboard",
       "protocol": 27,
       "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "77cc72c793c8a4bc37b006f3151cb3244b2aa274f6d558bca8183bf91af4170d",
+      "signature": "+j42SLYKGmdKWcPDOhiVW5hsO5ja9yUv84hc1ykMqZTRVEKk7dmoI+QIX07s/YrYLhU5C6ga0C6lD6h8MelXCQ==",
+      "size": 6116712,
+      "sourceDigest": "312ec30b3a5b25d56818ced6b9fe62969b8741cf0c55bf4a2b77f42f545f908a",
+      "stackbarKit": "e2b141a0f16a523d6dd15c86b8e74ed93ad042cefb736916dcfad43400ef5bec",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-e2b141a0f16a523d/Clipboard-312ec30b3a5b",
+      "version": "1.16.0"
+    },
+    {
+      "arch": "arm64",
+      "id": "io.navbytes.stackbar.clipboard",
+      "protocol": 27,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
       "sha256": "334c6b8a7e44136730f6b9573df6e0a05c192b8fa740f38f5727e31be3b98ec9",
       "signature": "/i15VeVj71T8xnkW63IFYe1IMuUMSGyr4JIFsIa4ozY+zHO3QcBFzF+s7DwveXsMmHI+tRS3SM2vRhwlFXehCQ==",
       "size": 6116712,
@@ -650,6 +676,19 @@
       "stackbarKit": "e2b141a0f16a523d6dd15c86b8e74ed93ad042cefb736916dcfad43400ef5bec",
       "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-e2b141a0f16a523d/Docker-6035d04255ff",
       "version": "1.10.0"
+    },
+    {
+      "arch": "arm64",
+      "id": "io.navbytes.stackbar.plugins.docker",
+      "protocol": 27,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "c7393995b42a78e9b2c1baa6752726eac708a533ad7ea75734a4ac7ace3503c5",
+      "signature": "7IY6nk20nPDxh9hOOVKB0I/AYz9/CyrSq4TU219QvNCtuF2auvxacbus78xFvwAMR8XatTtOOdC3gz247WITAA==",
+      "size": 6154056,
+      "sourceDigest": "b464dd69f2a5770541ceafdcc1fb4b4d5c9ac7e26c27c6011215e19810f3fab7",
+      "stackbarKit": "e2b141a0f16a523d6dd15c86b8e74ed93ad042cefb736916dcfad43400ef5bec",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-e2b141a0f16a523d/Docker-b464dd69f2a5",
+      "version": "1.10.1"
     },
     {
       "arch": "arm64",
@@ -1137,6 +1176,19 @@
       "id": "io.navbytes.stackbar.clipboard",
       "protocol": 28,
       "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "498164a908e68e4c3602296dfc407ef7dc209fde7637aa5ceb8159f2ddb416a4",
+      "signature": "yfqEJlBwv8EVJABju50VVW9414Q0vF69ein7usH0DDeLKgWa+pjwKPZqER0e/i22hGAAl+O/WFEcVZ9Jq6VRBQ==",
+      "size": 6279880,
+      "sourceDigest": "312ec30b3a5b25d56818ced6b9fe62969b8741cf0c55bf4a2b77f42f545f908a",
+      "stackbarKit": "5ad38b1e5c5d447ca192566cf87df66ceb09a7bbd9dcec9a7ad41654455adfa0",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-5ad38b1e5c5d447c/Clipboard-312ec30b3a5b",
+      "version": "1.16.0"
+    },
+    {
+      "arch": "arm64",
+      "id": "io.navbytes.stackbar.clipboard",
+      "protocol": 28,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
       "sha256": "7a55a13e417ba0a97434a607e9b2f31523e3e518cb9680f2e83ffb2a7de187ea",
       "signature": "lWfbaWV86BCiQwvJ0VuVxIem9+9si8CJA3tlzCJpRFOHBzh7D5/BKpLCbaVU/pA4CKYSzt7apQQAqASAb5URAQ==",
       "size": 6279880,
@@ -1183,6 +1235,19 @@
       "stackbarKit": "5ad38b1e5c5d447ca192566cf87df66ceb09a7bbd9dcec9a7ad41654455adfa0",
       "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-5ad38b1e5c5d447c/Docker-6035d04255ff",
       "version": "1.10.0"
+    },
+    {
+      "arch": "arm64",
+      "id": "io.navbytes.stackbar.plugins.docker",
+      "protocol": 28,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "43bbed6a0d75426fe1a3a7c2a36f0b9596acb8e47a22b4933fd34b7b0cb63fab",
+      "signature": "4apoFJqJ42wxvFwBvAHh0vURUuBcQ+dNJp5hIrWEbkftmiOiukOMz1rn+CSN/2S5aHShGYO2sFC5j2kwOruhDw==",
+      "size": 6317512,
+      "sourceDigest": "b464dd69f2a5770541ceafdcc1fb4b4d5c9ac7e26c27c6011215e19810f3fab7",
+      "stackbarKit": "5ad38b1e5c5d447ca192566cf87df66ceb09a7bbd9dcec9a7ad41654455adfa0",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-5ad38b1e5c5d447c/Docker-b464dd69f2a5",
+      "version": "1.10.1"
     },
     {
       "arch": "arm64",
@@ -1631,6 +1696,19 @@
       "id": "io.navbytes.stackbar.clipboard",
       "protocol": 29,
       "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "c70903ff5add84ba06ad03d617b45ad7cac7eb54b83c0faa475ddce25d16fba2",
+      "signature": "VMN5Pbb+Oe+SomraeYyBWkmt4ZuiDXNJi10zi+W0MQTxE0DeD7OsVMWNmyT9O8DNX+5oLRl9S49fVdruEuCADw==",
+      "size": 6308760,
+      "sourceDigest": "312ec30b3a5b25d56818ced6b9fe62969b8741cf0c55bf4a2b77f42f545f908a",
+      "stackbarKit": "60ade3a8f5de20d8a043c16d253285345bd81b5d686e024a28da0657d4d29425",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-60ade3a8f5de20d8/Clipboard-312ec30b3a5b",
+      "version": "1.16.0"
+    },
+    {
+      "arch": "arm64",
+      "id": "io.navbytes.stackbar.clipboard",
+      "protocol": 29,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
       "sha256": "68eb387bb8cfb802b697081c5669e44fb0ee16058550d1e930688aafd50df169",
       "signature": "xp1sfiuJEFqLQ/wzFkYlwitQ2PiP9+gSP8tLfldv+0RlxwmSlkpBtCE94+RQX2V5nx+3BcKCKsnQ2JwZ9WXOBw==",
       "size": 6308760,
@@ -1690,6 +1768,19 @@
       "stackbarKit": "60ade3a8f5de20d8a043c16d253285345bd81b5d686e024a28da0657d4d29425",
       "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-60ade3a8f5de20d8/Docker-6035d04255ff",
       "version": "1.10.0"
+    },
+    {
+      "arch": "arm64",
+      "id": "io.navbytes.stackbar.plugins.docker",
+      "protocol": 29,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "0abe1daa66a869b85bb1b0fa363f0c19a4c63a8c235f542c9a5d36314a8b9ca6",
+      "signature": "NANbI9MhodHhZUXyT1QJA26fsFVxxgciDotDFhqES+2AYMnJnxRkdRA2vOiaaETKnZgU/4x/NgyUffzaK3VfCg==",
+      "size": 6346392,
+      "sourceDigest": "b464dd69f2a5770541ceafdcc1fb4b4d5c9ac7e26c27c6011215e19810f3fab7",
+      "stackbarKit": "60ade3a8f5de20d8a043c16d253285345bd81b5d686e024a28da0657d4d29425",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-60ade3a8f5de20d8/Docker-b464dd69f2a5",
+      "version": "1.10.1"
     },
     {
       "arch": "arm64",
