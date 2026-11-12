@@ -15,7 +15,7 @@ final class Clipboard: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.clipboard",
         name: "Clipboard History",
-        version: "1.15.0",
+        version: "1.16.0",
         summary: "Everything you copy, searchable and one keystroke from pasting back.",
         surfaces: [.menuBar, .panel, .window, .settings],
         // The minute tick only lets secrets expire on time.
@@ -233,7 +233,7 @@ final class Clipboard: StackbarPlugin {
     @Stored("menuBarIcon") var menuBarIcon = false
     @Stored("plainByDefault") var plainByDefault = false
     /// Off by default: matching copies show in the palette's own results as
-    /// you type only once you turn this on. Search Clipboard History (⌘⇧V)
+    /// you type only once you turn this on. Clipboard History (⌘⇧V)
     /// works either way. A new key, so it starts off for everyone, including
     /// those who had the old on-by-default setting.
     @Stored("inPaletteResults") var inPalette = false
@@ -628,7 +628,7 @@ final class Clipboard: StackbarPlugin {
             Toggle("Show the icon in the menu bar", isOn: menuBarIcon) { self.menuBarIcon = $0 }
             Text("Without it, press ⌘⇧V or use the palette. The icon comes back by itself while recording is paused.").role(.secondary)
             // ⌘⇧V is taken from every app while Stackbar runs.
-            Text("⌘⇧V is also Paste and Match Style in Chrome, Slack, Pages and Mail, which can't get it while Clipboard has it. To keep theirs, give Search Clipboard History another hotkey (⌥⌘V, say) in Stackbar Settings › Commands.").role(.secondary)
+            Text("⌘⇧V is also Paste and Match Style in Chrome, Slack, Pages and Mail, which can't get it while Clipboard has it. To keep theirs, give Clipboard History another hotkey (⌥⌘V, say) in Stackbar Settings › Commands.").role(.secondary)
         }
         Section("History") {
             Picker("Order", options: Order.allCases.map(\.rawValue), selection: order.rawValue, style: .segmented) { self.order = Order(rawValue: $0) ?? .recent }
@@ -784,7 +784,7 @@ final class Clipboard: StackbarPlugin {
     // MARK: Commands
 
     var commands: [Command] {
-        let search = Command("search", title: "Search Clipboard History", subtitle: "Paste anything you copied", symbol: "list.clipboard", keywords: ["paste", "copy", "history"])
+        let search = Command("search", title: "Clipboard History", subtitle: "Paste anything you copied", symbol: "list.clipboard", keywords: ["paste", "copy", "history"])
             .view { invocation in
                 let all = self.sorted
                 let typed = invocation.text
@@ -822,7 +822,7 @@ final class Clipboard: StackbarPlugin {
             self.ignoreNext = true
             return .message("The next copy won't be kept")
         }
-        Command("clear", title: "Clear Clipboard History", subtitle: "Keeps pinned items", symbol: "trash", keywords: ["clipboard", "clear", "delete", "history"])
+        Command("clear", title: "Clear Clipboard History", subtitle: "Keeps pinned items", symbol: "trash", keywords: ["delete", "wipe"])
             .view { _ in
                 let all = self.entries
                 if all.isEmpty {

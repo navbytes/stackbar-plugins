@@ -35,6 +35,10 @@ and each project with Start all, Restart and Stop.
 - **Agent tool:** `containers` lists every container with its image, state,
   CPU and memory.
 
+## What's new in 1.10.1
+
+- Typing "containers" in the palette opens Docker Containers first, not Stop All Docker Containers.
+
 ## What's new in 1.10.0
 
 - Follow Logs in Terminal (⌘⇧L) runs `docker logs --follow` in your terminal, which you can pick in Stackbar's Settings from 0.36.0.

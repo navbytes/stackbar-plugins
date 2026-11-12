@@ -15,7 +15,7 @@ final class Docker: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.docker",
         name: "Docker",
-        version: "1.10.0",
+        version: "1.10.1",
         summary: "Your containers with live CPU and memory, Compose projects, and start, stop, restart and logs a click away.",
         surfaces: [.menuBar, .panel, .window, .widget, .settings],
         triggers: [.launch, .every(.seconds(15)), .wake],
@@ -688,7 +688,7 @@ final class Docker: StackbarPlugin {
                     List(self.composeProjects.map { ComposeProject(id: $0.name, containers: $0.containers) }, searchable: true) { project in self.projectRow(project) }
                 }
             }
-        Command("stop-all", title: "Stop All Docker Containers", symbol: "stop.circle", keywords: ["docker", "stop", "containers", "all"])
+        Command("stop-all", title: "Stop All Docker Containers", symbol: "stop.circle", keywords: ["docker", "stop", "all"])
             .view(search: { _ in await self.loadIfStale() }) { _ in
                 if let problem = self.problem {
                     ContentUnavailableView("Docker isn't available", symbol: "shippingbox", message: problem)
