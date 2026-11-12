@@ -287,7 +287,7 @@ final class PRCockpitTests: XCTestCase {
         XCTAssertTrue(panel.contains("PR 21"), panel)
         XCTAssertFalse(panel.contains("PR 23"), panel)
         XCTAssertTrue(panel.contains("o uses single sign-on"), panel)
-        await supervisor.press("picker/Show", value: .text("Mine 1"))
+        await supervisor.press("picker/Show", value: .text("Mine"))
         let mine = await waitUntil { await self.panelText(supervisor).contains("PR 22") }
         let shownMine = await panelText(supervisor)
         XCTAssertTrue(mine, shownMine)
@@ -311,12 +311,20 @@ final class PRCockpitTests: XCTestCase {
         await supervisor.refresh()
         try await Task.sleep(for: .milliseconds(300))
         let pressed = Date()
-        await supervisor.press("picker/Show", value: .text("Mine 1"))
+        await supervisor.press("picker/Show", value: .text("Mine"))
         let switched = await waitUntil(6) { await self.panelText(supervisor).contains("PR 2") }
         let shown = await panelText(supervisor)
         XCTAssertTrue(switched, shown)
         XCTAssertLessThan(Date().timeIntervalSince(pressed), 5, "the click waited for GitHub")
+        // The panel says what it's waiting for once it runs slow, then draws
+        // the answer as soon as it lands, without waiting for the next timer.
+        let waiting = await waitUntil(8) { await self.panelText(supervisor).contains("Still waiting on GitHub for") }
+        let waitingText = await panelText(supervisor)
+        XCTAssertTrue(waiting, waitingText)
         slow.change { $0 = false }
+        let landed = await waitUntil(12) { await self.panelText(supervisor).contains("Updated ") }
+        let landedText = await panelText(supervisor)
+        XCTAssertTrue(landed, landedText)
         await supervisor.stop()
     }
 
