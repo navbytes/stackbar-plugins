@@ -790,6 +790,12 @@
       "changes": [
         {
           "notes": [
+            "An agent asking for status before the first load waits for one fresh refresh instead of racing the one already running. Needs Stackbar 0.40.1, where clicks no longer wait for a refresh."
+          ],
+          "version": "1.2.1"
+        },
+        {
+          "notes": [
             "Type `gs`, a space and a repository name in the palette to search only your repositories. Change or clear the alias in Settings \u203a General \u203a Main Search.",
             "Stackbar 0.37.0 keeps free-text plugins out of the main search until you turn them on there; `gs` works either way."
           ],
@@ -844,7 +850,7 @@
           "text": "`repo_status` lists each repository's state."
         }
       ],
-      "version": "1.2.0"
+      "version": "1.2.1"
     },
     "io.navbytes.stackbar.plugins.homebrew": {
       "changes": [
@@ -915,6 +921,12 @@
     },
     "io.navbytes.stackbar.plugins.jira": {
       "changes": [
+        {
+          "notes": [
+            "Changing a setting or pressing Try Again cancels a refresh already running, so older results never replace newer ones. Needs Stackbar 0.40.1, where clicks no longer wait for a refresh."
+          ],
+          "version": "1.6.1"
+        },
         {
           "notes": [
             "Paste a Jira issue link into Search Jira to open that issue.",
@@ -994,7 +1006,7 @@
           "text": "`assigned` lists your open issues."
         }
       ],
-      "version": "1.6.0"
+      "version": "1.6.1"
     },
     "io.navbytes.stackbar.plugins.kill-process": {
       "changes": [
@@ -1057,6 +1069,12 @@
     },
     "io.navbytes.stackbar.plugins.linear": {
       "changes": [
+        {
+          "notes": [
+            "Adding your API key or pressing Try Again cancels a refresh already running, so older results never replace newer ones. Needs Stackbar 0.40.1, where clicks no longer wait for a refresh."
+          ],
+          "version": "1.8.1"
+        },
         {
           "notes": [
             "Create Linear Issue takes the title as you type it: `create linear issue Fix the login page` (or an alias and the title) opens the form with it filled in. It can now run from links and Spotlight too."
@@ -1148,10 +1166,16 @@
           "text": "`assigned` lists your open issues with their branch names."
         }
       ],
-      "version": "1.8.0"
+      "version": "1.8.1"
     },
     "io.navbytes.stackbar.plugins.litellm": {
       "changes": [
+        {
+          "notes": [
+            "Try Again cancels a refresh already running, so older numbers never replace newer ones. Needs Stackbar 0.40.1, where clicks no longer wait for a refresh."
+          ],
+          "version": "1.6.1"
+        },
         {
           "notes": [
             "Today by model: the panel, the window and LiteLLM Spend show what each model cost today."
@@ -1217,7 +1241,7 @@
           "text": "`usage_summary`."
         }
       ],
-      "version": "1.6.0"
+      "version": "1.6.1"
     },
     "io.navbytes.stackbar.plugins.menu-search": {
       "changes": [
@@ -1380,6 +1404,12 @@
       "changes": [
         {
           "notes": [
+            "Try Again cancels a refresh already running, so older numbers never replace newer ones. Needs Stackbar 0.40.1, where clicks no longer wait for a refresh."
+          ],
+          "version": "1.0.1"
+        },
+        {
+          "notes": [
             "First release: spend, credits, limits and model mix for your OpenRouter account."
           ],
           "version": "1.0.0"
@@ -1412,7 +1442,7 @@
           "text": "`usage_summary`."
         }
       ],
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     "io.navbytes.stackbar.plugins.pomodoro": {
       "changes": [
@@ -3648,6 +3678,16 @@
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.0/dark/panel.png",
           "light": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.0/light/panel.png"
         }
+      },
+      "1.2.1": {
+        "menuBar": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.1/dark/menuBar.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.1/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.1/dark/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.1/light/panel.png"
+        }
       }
     },
     "io.navbytes.stackbar.plugins.homebrew": {
@@ -3772,6 +3812,16 @@
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.6.0/dark/panel.png",
           "light": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.6.0/light/panel.png"
         }
+      },
+      "1.6.1": {
+        "menuBar": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.6.1/dark/menuBar.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.6.1/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.6.1/dark/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.6.1/light/panel.png"
+        }
       }
     },
     "io.navbytes.stackbar.plugins.kill-process": {
@@ -3890,6 +3940,16 @@
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.8.0/dark/panel.png",
           "light": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.8.0/light/panel.png"
         }
+      },
+      "1.8.1": {
+        "menuBar": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.8.1/dark/menuBar.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.8.1/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.8.1/dark/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.8.1/light/panel.png"
+        }
       }
     },
     "io.navbytes.stackbar.plugins.litellm": {
@@ -3961,6 +4021,16 @@
         "panel": {
           "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.6.0/dark/panel.png",
           "light": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.6.0/light/panel.png"
+        }
+      },
+      "1.6.1": {
+        "menuBar": {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.6.1/dark/menuBar.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.6.1/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.6.1/dark/panel.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.6.1/light/panel.png"
         }
       }
     },
@@ -4067,6 +4137,16 @@
         "panel": {
           "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.0.0/dark/panel.png",
           "light": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.0.0/light/panel.png"
+        }
+      },
+      "1.0.1": {
+        "menuBar": {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.0.1/dark/menuBar.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.0.1/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.0.1/dark/panel.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.0.1/light/panel.png"
         }
       }
     },
@@ -6270,6 +6350,36 @@
           "surface": "widget",
           "title": "Behind and unpushed at a glance"
         }
+      ],
+      "1.2.1": [
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.1/dark/previews/hero/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.1/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Which repositories are behind, and one click to update them"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.1/dark/previews/worktrees/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.1/light/previews/worktrees/panel.png",
+          "name": "worktrees",
+          "surface": "panel",
+          "title": "Every worktree under its repository, and the merged ones to clean up"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.1/dark/previews/dashboard/window.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.1/light/previews/dashboard/window.png",
+          "name": "dashboard",
+          "surface": "window",
+          "title": "Repositories, worktrees and stale branches"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.1/dark/previews/widget/widget.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.1/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "Behind and unpushed at a glance"
+        }
       ]
     },
     "io.navbytes.stackbar.plugins.homebrew": {
@@ -6391,6 +6501,22 @@
         {
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.6.0/dark/previews/widget/widget.png",
           "light": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.6.0/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "What you're on, on your desktop"
+        }
+      ],
+      "1.6.1": [
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.6.1/dark/previews/hero/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.6.1/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Your issues, grouped by where they stand"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.6.1/dark/previews/widget/widget.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.6.1/light/previews/widget/widget.png",
           "name": "widget",
           "surface": "widget",
           "title": "What you're on, on your desktop"
@@ -6568,6 +6694,22 @@
           "surface": "widget",
           "title": "What you're on, on your desktop"
         }
+      ],
+      "1.8.1": [
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.8.1/dark/previews/hero/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.8.1/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Your Linear issues, by state and priority"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.8.1/dark/previews/widget/widget.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.8.1/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "What you're on, on your desktop"
+        }
       ]
     },
     "io.navbytes.stackbar.plugins.litellm": {
@@ -6681,6 +6823,29 @@
         {
           "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.6.0/dark/previews/widget/widget.png",
           "light": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.6.0/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "Today's spend on the desktop"
+        }
+      ],
+      "1.6.1": [
+        {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.6.1/dark/previews/hero/panel.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.6.1/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Spend, tokens and budget for your LLM proxy"
+        },
+        {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.6.1/dark/previews/dashboard/window.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.6.1/light/previews/dashboard/window.png",
+          "name": "dashboard",
+          "surface": "window",
+          "title": "Half a year of usage, by model"
+        },
+        {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.6.1/dark/previews/widget/widget.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.6.1/light/previews/widget/widget.png",
           "name": "widget",
           "surface": "widget",
           "title": "Today's spend on the desktop"
@@ -6815,6 +6980,29 @@
         {
           "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.0.0/dark/previews/widget/widget.png",
           "light": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.0.0/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "Today's spend and credits on the desktop"
+        }
+      ],
+      "1.0.1": [
+        {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.0.1/dark/previews/hero/panel.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.0.1/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Spend, credits and models for OpenRouter"
+        },
+        {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.0.1/dark/previews/key-only/panel.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.0.1/light/previews/key-only/panel.png",
+          "name": "key-only",
+          "surface": "panel",
+          "title": "Just an API key: today, this week and its limit"
+        },
+        {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.0.1/dark/previews/widget/widget.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.0.1/light/previews/widget/widget.png",
           "name": "widget",
           "surface": "widget",
           "title": "Today's spend and credits on the desktop"

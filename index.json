@@ -1,6 +1,6 @@
 {
   "format" : 2,
-  "generated" : "2026-11-12T13:32:28Z",
+  "generated" : "2026-11-13T00:15:14Z",
   "homepage" : "https://github.com/navbytes/stackbar-plugins",
   "name" : "Stackbar Plugins by navbytes",
   "plugins" : [
@@ -27,7 +27,7 @@
         "window",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.1.1"
     },
     {
@@ -53,7 +53,7 @@
         "window",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.0"
     },
     {
@@ -81,7 +81,7 @@
         "settings"
       ],
       "symbol" : "doc.on.clipboard.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.1"
     },
     {
@@ -109,7 +109,7 @@
         "settings"
       ],
       "symbol" : "doc.on.clipboard.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.0"
     },
     {
@@ -137,7 +137,7 @@
         "settings"
       ],
       "symbol" : "doc.on.clipboard.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.6.0"
     },
     {
@@ -165,7 +165,7 @@
         "settings"
       ],
       "symbol" : "doc.on.clipboard.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.7.0"
     },
     {
@@ -193,7 +193,7 @@
         "settings"
       ],
       "symbol" : "doc.on.clipboard.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.8.0"
     },
     {
@@ -221,7 +221,7 @@
         "settings"
       ],
       "symbol" : "doc.on.clipboard.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.8.1"
     },
     {
@@ -249,7 +249,7 @@
         "settings"
       ],
       "symbol" : "doc.on.clipboard.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.9.0"
     },
     {
@@ -277,7 +277,7 @@
         "settings"
       ],
       "symbol" : "doc.on.clipboard.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.9.1"
     },
     {
@@ -305,7 +305,7 @@
         "settings"
       ],
       "symbol" : "doc.on.clipboard.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.11.0"
     },
     {
@@ -333,7 +333,7 @@
         "settings"
       ],
       "symbol" : "doc.on.clipboard.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.12.0"
     },
     {
@@ -361,7 +361,7 @@
         "settings"
       ],
       "symbol" : "doc.on.clipboard.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.13.0"
     },
     {
@@ -389,7 +389,7 @@
         "settings"
       ],
       "symbol" : "doc.on.clipboard.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.14.0"
     },
     {
@@ -417,7 +417,7 @@
         "settings"
       ],
       "symbol" : "doc.on.clipboard.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.15.0"
     },
     {
@@ -445,7 +445,7 @@
         "settings"
       ],
       "symbol" : "doc.on.clipboard.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.16.0"
     },
     {
@@ -476,7 +476,7 @@
         "settings"
       ],
       "symbol" : "command",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -507,7 +507,7 @@
         "settings"
       ],
       "symbol" : "command",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.1.0"
     },
     {
@@ -538,7 +538,7 @@
         "settings"
       ],
       "symbol" : "command",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.0"
     },
     {
@@ -569,7 +569,7 @@
         "settings"
       ],
       "symbol" : "command",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.1"
     },
     {
@@ -600,7 +600,7 @@
         "settings"
       ],
       "symbol" : "command",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.0"
     },
     {
@@ -631,7 +631,7 @@
         "settings"
       ],
       "symbol" : "command",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.0"
     },
     {
@@ -658,7 +658,7 @@
         "panel"
       ],
       "symbol" : "square.grid.3x3.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -685,7 +685,7 @@
         "panel"
       ],
       "symbol" : "square.grid.3x3.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.1"
     },
     {
@@ -712,7 +712,7 @@
         "panel"
       ],
       "symbol" : "square.grid.3x3.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.1.0"
     },
     {
@@ -739,7 +739,7 @@
         "panel"
       ],
       "symbol" : "square.grid.3x3.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.0"
     },
     {
@@ -766,7 +766,7 @@
         "panel"
       ],
       "symbol" : "square.grid.3x3.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.1"
     },
     {
@@ -793,7 +793,7 @@
         "panel"
       ],
       "symbol" : "square.grid.3x3.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.2"
     },
     {
@@ -829,7 +829,7 @@
         "settings"
       ],
       "symbol" : "sparkles",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -869,7 +869,7 @@
         "settings"
       ],
       "symbol" : "sparkles",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.1.0"
     },
     {
@@ -898,7 +898,7 @@
         "panel"
       ],
       "symbol" : "rectangle.stack.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -927,7 +927,7 @@
         "panel"
       ],
       "symbol" : "rectangle.stack.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.1"
     },
     {
@@ -956,7 +956,7 @@
         "panel"
       ],
       "symbol" : "rectangle.stack.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.1.0"
     },
     {
@@ -985,7 +985,7 @@
         "panel"
       ],
       "symbol" : "rectangle.stack.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.0"
     },
     {
@@ -1014,7 +1014,7 @@
         "panel"
       ],
       "symbol" : "rectangle.stack.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.1"
     },
     {
@@ -1039,7 +1039,7 @@
         "panel"
       ],
       "symbol" : "equal.square.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -1064,7 +1064,7 @@
         "panel"
       ],
       "symbol" : "equal.square.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.1.0"
     },
     {
@@ -1090,7 +1090,7 @@
         "settings"
       ],
       "symbol" : "equal.square.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.0"
     },
     {
@@ -1116,7 +1116,7 @@
         "settings"
       ],
       "symbol" : "equal.square.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.0"
     },
     {
@@ -1142,7 +1142,7 @@
         "settings"
       ],
       "symbol" : "equal.square.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.0"
     },
     {
@@ -1168,7 +1168,7 @@
         "settings"
       ],
       "symbol" : "equal.square.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.0"
     },
     {
@@ -1194,7 +1194,7 @@
         "settings"
       ],
       "symbol" : "equal.square.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.6.0"
     },
     {
@@ -1220,7 +1220,7 @@
         "settings"
       ],
       "symbol" : "equal.square.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.7.0"
     },
     {
@@ -1246,7 +1246,7 @@
         "settings"
       ],
       "symbol" : "eyedropper",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -1272,7 +1272,7 @@
         "settings"
       ],
       "symbol" : "eyedropper",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.1.0"
     },
     {
@@ -1298,7 +1298,7 @@
         "settings"
       ],
       "symbol" : "eyedropper",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.0"
     },
     {
@@ -1324,7 +1324,7 @@
         "settings"
       ],
       "symbol" : "eyedropper",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.0"
     },
     {
@@ -1349,7 +1349,7 @@
         "panel"
       ],
       "symbol" : "character.book.closed",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -1374,7 +1374,7 @@
         "panel"
       ],
       "symbol" : "character.book.closed",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.1.0"
     },
     {
@@ -1399,7 +1399,7 @@
         "panel"
       ],
       "symbol" : "character.book.closed",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.0"
     },
     {
@@ -1424,7 +1424,7 @@
         "panel",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -1450,7 +1450,7 @@
         "widget",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.0"
     },
     {
@@ -1478,7 +1478,7 @@
         "settings"
       ],
       "symbol" : "shippingbox.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.1"
     },
     {
@@ -1506,7 +1506,7 @@
         "settings"
       ],
       "symbol" : "shippingbox.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.0"
     },
     {
@@ -1535,7 +1535,7 @@
         "settings"
       ],
       "symbol" : "shippingbox.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.0"
     },
     {
@@ -1564,7 +1564,7 @@
         "settings"
       ],
       "symbol" : "shippingbox.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.6.0"
     },
     {
@@ -1595,7 +1595,7 @@
         "settings"
       ],
       "symbol" : "shippingbox.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.7.0"
     },
     {
@@ -1626,7 +1626,7 @@
         "settings"
       ],
       "symbol" : "shippingbox.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.7.1"
     },
     {
@@ -1657,7 +1657,7 @@
         "settings"
       ],
       "symbol" : "shippingbox.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.8.0"
     },
     {
@@ -1688,7 +1688,7 @@
         "settings"
       ],
       "symbol" : "shippingbox.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.9.0"
     },
     {
@@ -1719,7 +1719,7 @@
         "settings"
       ],
       "symbol" : "shippingbox.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.10.0"
     },
     {
@@ -1750,7 +1750,7 @@
         "settings"
       ],
       "symbol" : "shippingbox.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.10.1"
     },
     {
@@ -1775,7 +1775,7 @@
         "panel"
       ],
       "symbol" : "face.smiling",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -1800,7 +1800,7 @@
         "panel"
       ],
       "symbol" : "face.smiling",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.1.0"
     },
     {
@@ -1825,7 +1825,7 @@
         "panel"
       ],
       "symbol" : "face.smiling",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.1.1"
     },
     {
@@ -1851,7 +1851,7 @@
         "settings"
       ],
       "symbol" : "face.smiling",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.0"
     },
     {
@@ -1878,7 +1878,7 @@
         "panel"
       ],
       "symbol" : "doc.text.magnifyingglass",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -1905,7 +1905,7 @@
         "panel"
       ],
       "symbol" : "doc.text.magnifyingglass",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.1"
     },
     {
@@ -1932,7 +1932,7 @@
         "panel"
       ],
       "symbol" : "doc.text.magnifyingglass",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.2"
     },
     {
@@ -1965,7 +1965,7 @@
         "settings"
       ],
       "symbol" : "arrow.triangle.branch",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -1998,7 +1998,7 @@
         "settings"
       ],
       "symbol" : "arrow.triangle.branch",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.1.0"
     },
     {
@@ -2031,8 +2031,41 @@
         "settings"
       ],
       "symbol" : "arrow.triangle.branch",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.0"
+    },
+    {
+      "accent" : "green",
+      "bundle" : "Developer/io.navbytes.stackbar.plugins.git-sync-1.2.1.stackbarplugin",
+      "capabilities" : [
+        "Runs /opt/homebrew/bin/git, /usr/bin/find",
+        "Uses your SSH keys through the SSH agent, for the commands it runs",
+        "Opens any link, file or folder, in any app"
+      ],
+      "capabilityKinds" : [
+        "run",
+        "sshAgent",
+        "openURLs"
+      ],
+      "category" : "Developer",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/GitSync",
+      "id" : "io.navbytes.stackbar.plugins.git-sync",
+      "minimumStackbar" : "0.40.1",
+      "name" : "Git Sync",
+      "publisher" : "navbytes",
+      "screenshot" : "Developer/io.navbytes.stackbar.plugins.git-sync.png",
+      "sha256" : "df488b46e487e173225b02e20cb6b456dc89672a1ee0ed9f3d94af4b076a9b7f",
+      "summary" : "Which local repositories are behind or ahead of their remote, with the safe ones updated in one click.",
+      "surfaces" : [
+        "menuBar",
+        "panel",
+        "window",
+        "widget",
+        "settings"
+      ],
+      "symbol" : "arrow.triangle.branch",
+      "updated" : "2026-11-13",
+      "version" : "1.2.1"
     },
     {
       "bundle" : "Developer/io.navbytes.stackbar.plugins.github-1.0.0.stackbarplugin",
@@ -2057,7 +2090,7 @@
         "panel",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -2082,7 +2115,7 @@
         "panel",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -2108,7 +2141,7 @@
         "widget",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.0"
     },
     {
@@ -2136,7 +2169,7 @@
         "settings"
       ],
       "symbol" : "mug.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.1"
     },
     {
@@ -2164,7 +2197,7 @@
         "settings"
       ],
       "symbol" : "mug.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.0"
     },
     {
@@ -2192,7 +2225,7 @@
         "settings"
       ],
       "symbol" : "mug.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.0"
     },
     {
@@ -2220,7 +2253,7 @@
         "settings"
       ],
       "symbol" : "mug.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.6.0"
     },
     {
@@ -2247,7 +2280,7 @@
         "panel",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -2274,7 +2307,7 @@
         "panel",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.1"
     },
     {
@@ -2303,7 +2336,7 @@
         "settings"
       ],
       "symbol" : "ticket.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.2"
     },
     {
@@ -2332,7 +2365,7 @@
         "settings"
       ],
       "symbol" : "ticket.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.0"
     },
     {
@@ -2362,7 +2395,7 @@
         "settings"
       ],
       "symbol" : "ticket.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.0"
     },
     {
@@ -2394,7 +2427,7 @@
         "settings"
       ],
       "symbol" : "ticket.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.0"
     },
     {
@@ -2426,7 +2459,7 @@
         "settings"
       ],
       "symbol" : "ticket.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.1"
     },
     {
@@ -2458,8 +2491,40 @@
         "settings"
       ],
       "symbol" : "ticket.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.6.0"
+    },
+    {
+      "accent" : "blue",
+      "bundle" : "Developer/io.navbytes.stackbar.plugins.jira-1.6.1.stackbarplugin",
+      "capabilities" : [
+        "Connects to *.atlassian.net",
+        "Reads the secret JIRA_API_TOKEN",
+        "Connects to the server you enter as JIRA_SERVER_URL, and no other"
+      ],
+      "capabilityKinds" : [
+        "network",
+        "secret",
+        "userServer"
+      ],
+      "category" : "Developer",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/Jira",
+      "id" : "io.navbytes.stackbar.plugins.jira",
+      "minimumStackbar" : "0.40.1",
+      "name" : "Jira",
+      "publisher" : "navbytes",
+      "screenshot" : "Developer/io.navbytes.stackbar.plugins.jira.png",
+      "sha256" : "a81c23e1cb2e374f9d209d9f437129b163c9f2293c2bb900b57480068d1d27f2",
+      "summary" : "Your assigned Jira issues: change status, assign, comment and watch, with alerts and new issues from the palette.",
+      "surfaces" : [
+        "menuBar",
+        "panel",
+        "widget",
+        "settings"
+      ],
+      "symbol" : "ticket.fill",
+      "updated" : "2026-11-13",
+      "version" : "1.6.1"
     },
     {
       "accent" : "red",
@@ -2483,7 +2548,7 @@
         "panel"
       ],
       "symbol" : "xmark.octagon.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -2508,7 +2573,7 @@
         "panel"
       ],
       "symbol" : "xmark.octagon.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.1.0"
     },
     {
@@ -2534,7 +2599,7 @@
         "settings"
       ],
       "symbol" : "xmark.octagon.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.0"
     },
     {
@@ -2560,7 +2625,7 @@
         "settings"
       ],
       "symbol" : "xmark.octagon.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.0"
     },
     {
@@ -2587,7 +2652,7 @@
         "panel",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -2614,7 +2679,7 @@
         "panel",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.0"
     },
     {
@@ -2643,7 +2708,7 @@
         "settings"
       ],
       "symbol" : "circle.lefthalf.filled",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.1"
     },
     {
@@ -2672,7 +2737,7 @@
         "settings"
       ],
       "symbol" : "circle.lefthalf.filled",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.0"
     },
     {
@@ -2702,7 +2767,7 @@
         "settings"
       ],
       "symbol" : "circle.lefthalf.filled",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.0"
     },
     {
@@ -2732,7 +2797,7 @@
         "settings"
       ],
       "symbol" : "circle.lefthalf.filled",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.0"
     },
     {
@@ -2762,7 +2827,7 @@
         "settings"
       ],
       "symbol" : "circle.lefthalf.filled",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.1"
     },
     {
@@ -2792,7 +2857,7 @@
         "settings"
       ],
       "symbol" : "circle.lefthalf.filled",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.6.0"
     },
     {
@@ -2822,7 +2887,7 @@
         "settings"
       ],
       "symbol" : "circle.lefthalf.filled",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.7.0"
     },
     {
@@ -2852,8 +2917,38 @@
         "settings"
       ],
       "symbol" : "circle.lefthalf.filled",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.8.0"
+    },
+    {
+      "accent" : "indigo",
+      "bundle" : "Developer/io.navbytes.stackbar.plugins.linear-1.8.1.stackbarplugin",
+      "capabilities" : [
+        "Connects to api.linear.app",
+        "Reads the secret LINEAR_API_KEY"
+      ],
+      "capabilityKinds" : [
+        "network",
+        "secret"
+      ],
+      "category" : "Developer",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/Linear",
+      "id" : "io.navbytes.stackbar.plugins.linear",
+      "minimumStackbar" : "0.40.1",
+      "name" : "Linear",
+      "publisher" : "navbytes",
+      "screenshot" : "Developer/io.navbytes.stackbar.plugins.linear.png",
+      "sha256" : "4a7642fc5da7a84cc1d7b03a0ec26da0b2b20bae00801017e71967ea290b1e75",
+      "summary" : "Your assigned Linear issues and inbox: change status and priority, start work, comment, and new issues from the palette.",
+      "surfaces" : [
+        "menuBar",
+        "panel",
+        "widget",
+        "settings"
+      ],
+      "symbol" : "circle.lefthalf.filled",
+      "updated" : "2026-11-13",
+      "version" : "1.8.1"
     },
     {
       "bundle" : "Monitoring/io.navbytes.stackbar.plugins.litellm-1.0.0.stackbarplugin",
@@ -2881,7 +2976,7 @@
         "widget",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -2910,7 +3005,7 @@
         "widget",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.0"
     },
     {
@@ -2941,7 +3036,7 @@
         "settings"
       ],
       "symbol" : "sparkles",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.1"
     },
     {
@@ -2972,7 +3067,7 @@
         "settings"
       ],
       "symbol" : "sparkles",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.0"
     },
     {
@@ -3003,7 +3098,7 @@
         "settings"
       ],
       "symbol" : "sparkles",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.0"
     },
     {
@@ -3034,7 +3129,7 @@
         "settings"
       ],
       "symbol" : "sparkles",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.1"
     },
     {
@@ -3065,7 +3160,7 @@
         "settings"
       ],
       "symbol" : "sparkles",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.0"
     },
     {
@@ -3096,8 +3191,39 @@
         "settings"
       ],
       "symbol" : "sparkles",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.6.0"
+    },
+    {
+      "accent" : "pink",
+      "bundle" : "Monitoring/io.navbytes.stackbar.plugins.litellm-1.6.1.stackbarplugin",
+      "capabilities" : [
+        "Connects to the server you enter as LITELLM_PROXY_URL, and no other",
+        "Reads the secret LITELLM_API_KEY"
+      ],
+      "capabilityKinds" : [
+        "userServer",
+        "secret"
+      ],
+      "category" : "Monitoring",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Monitoring/LiteLLM",
+      "id" : "io.navbytes.stackbar.plugins.litellm",
+      "minimumStackbar" : "0.40.1",
+      "name" : "LiteLLM",
+      "publisher" : "navbytes",
+      "screenshot" : "Monitoring/io.navbytes.stackbar.plugins.litellm.png",
+      "sha256" : "767e4a7594685d582662471f0320a9c1e462bf8fc7377a729d6daea851dcb09f",
+      "summary" : "Tokens, spend, budget and model mix from your LiteLLM proxy, with charts.",
+      "surfaces" : [
+        "menuBar",
+        "panel",
+        "window",
+        "widget",
+        "settings"
+      ],
+      "symbol" : "sparkles",
+      "updated" : "2026-11-13",
+      "version" : "1.6.1"
     },
     {
       "accent" : "teal",
@@ -3121,7 +3247,7 @@
         "panel"
       ],
       "symbol" : "filemenu.and.selection",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -3146,7 +3272,7 @@
         "panel"
       ],
       "symbol" : "filemenu.and.selection",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.1"
     },
     {
@@ -3171,7 +3297,7 @@
         "panel"
       ],
       "symbol" : "filemenu.and.selection",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.1.0"
     },
     {
@@ -3197,7 +3323,7 @@
         "widget",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -3225,7 +3351,7 @@
         "widget",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.0"
     },
     {
@@ -3255,7 +3381,7 @@
         "settings"
       ],
       "symbol" : "music.note",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.1"
     },
     {
@@ -3285,7 +3411,7 @@
         "settings"
       ],
       "symbol" : "music.note",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.0"
     },
     {
@@ -3315,7 +3441,7 @@
         "settings"
       ],
       "symbol" : "music.note",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.0"
     },
     {
@@ -3345,7 +3471,7 @@
         "settings"
       ],
       "symbol" : "music.note",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.1"
     },
     {
@@ -3375,7 +3501,7 @@
         "settings"
       ],
       "symbol" : "music.note",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.0"
     },
     {
@@ -3402,7 +3528,7 @@
         "window"
       ],
       "symbol" : "note.text",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -3434,8 +3560,40 @@
         "settings"
       ],
       "symbol" : "point.3.connected.trianglepath.dotted",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
+    },
+    {
+      "accent" : "indigo",
+      "bundle" : "Monitoring/io.navbytes.stackbar.plugins.openrouter-1.0.1.stackbarplugin",
+      "capabilities" : [
+        "Connects to openrouter.ai",
+        "Reads the secret OPENROUTER_API_KEY",
+        "Reads the secret OPENROUTER_MANAGEMENT_KEY"
+      ],
+      "capabilityKinds" : [
+        "network",
+        "secret",
+        "secret"
+      ],
+      "category" : "Monitoring",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Monitoring/OpenRouter",
+      "id" : "io.navbytes.stackbar.plugins.openrouter",
+      "minimumStackbar" : "0.40.1",
+      "name" : "OpenRouter",
+      "publisher" : "navbytes",
+      "screenshot" : "Monitoring/io.navbytes.stackbar.plugins.openrouter.png",
+      "sha256" : "dcc536dfcb6fb2c17b72d646336a239cbd06af16f0a6ebdc23ef4badfa3de992",
+      "summary" : "Spend, credits, limits and model mix for your OpenRouter account, with charts.",
+      "surfaces" : [
+        "menuBar",
+        "panel",
+        "widget",
+        "settings"
+      ],
+      "symbol" : "point.3.connected.trianglepath.dotted",
+      "updated" : "2026-11-13",
+      "version" : "1.0.1"
     },
     {
       "bundle" : "Productivity/io.navbytes.stackbar.plugins.pomodoro-1.0.0.stackbarplugin",
@@ -3460,7 +3618,7 @@
         "settings",
         "widget"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -3486,7 +3644,7 @@
         "settings",
         "widget"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.0"
     },
     {
@@ -3514,7 +3672,7 @@
         "widget"
       ],
       "symbol" : "timer",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.1"
     },
     {
@@ -3542,7 +3700,7 @@
         "widget"
       ],
       "symbol" : "timer",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.0"
     },
     {
@@ -3570,7 +3728,7 @@
         "widget"
       ],
       "symbol" : "timer",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.0"
     },
     {
@@ -3598,7 +3756,7 @@
         "widget"
       ],
       "symbol" : "timer",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.6.0"
     },
     {
@@ -3626,7 +3784,7 @@
         "widget"
       ],
       "symbol" : "timer",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.7.0"
     },
     {
@@ -3654,7 +3812,7 @@
         "widget"
       ],
       "symbol" : "timer",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.7.1"
     },
     {
@@ -3682,7 +3840,7 @@
         "widget"
       ],
       "symbol" : "timer",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.8.0"
     },
     {
@@ -3706,7 +3864,7 @@
         "panel",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -3730,7 +3888,7 @@
         "panel",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.1"
     },
     {
@@ -3756,7 +3914,7 @@
         "settings"
       ],
       "symbol" : "point.3.connected.trianglepath.dotted",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.2"
     },
     {
@@ -3782,7 +3940,7 @@
         "settings"
       ],
       "symbol" : "point.3.connected.trianglepath.dotted",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.0"
     },
     {
@@ -3808,7 +3966,7 @@
         "settings"
       ],
       "symbol" : "point.3.connected.trianglepath.dotted",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.0"
     },
     {
@@ -3834,7 +3992,7 @@
         "settings"
       ],
       "symbol" : "point.3.connected.trianglepath.dotted",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.1"
     },
     {
@@ -3860,7 +4018,7 @@
         "settings"
       ],
       "symbol" : "point.3.connected.trianglepath.dotted",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.2"
     },
     {
@@ -3886,7 +4044,7 @@
         "settings"
       ],
       "symbol" : "point.3.connected.trianglepath.dotted",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.0"
     },
     {
@@ -3915,7 +4073,7 @@
         "panel"
       ],
       "symbol" : "folder.badge.gearshape",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -3947,7 +4105,7 @@
         "settings"
       ],
       "symbol" : "folder.badge.gearshape",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.1.0"
     },
     {
@@ -3979,7 +4137,7 @@
         "settings"
       ],
       "symbol" : "folder.badge.gearshape",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.0"
     },
     {
@@ -4011,7 +4169,7 @@
         "settings"
       ],
       "symbol" : "folder.badge.gearshape",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.0"
     },
     {
@@ -4043,7 +4201,7 @@
         "settings"
       ],
       "symbol" : "folder.badge.gearshape",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.0"
     },
     {
@@ -4075,7 +4233,7 @@
         "settings"
       ],
       "symbol" : "folder.badge.gearshape",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.0"
     },
     {
@@ -4102,7 +4260,7 @@
         "panel"
       ],
       "symbol" : "terminal.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -4129,7 +4287,7 @@
         "panel"
       ],
       "symbol" : "terminal.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.1.0"
     },
     {
@@ -4156,7 +4314,7 @@
         "panel"
       ],
       "symbol" : "terminal.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.0"
     },
     {
@@ -4183,7 +4341,7 @@
         "panel"
       ],
       "symbol" : "terminal.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.0"
     },
     {
@@ -4211,7 +4369,7 @@
         "settings"
       ],
       "symbol" : "terminal.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.0"
     },
     {
@@ -4236,7 +4394,7 @@
         "panel"
       ],
       "symbol" : "power.circle.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -4261,7 +4419,7 @@
         "panel"
       ],
       "symbol" : "power.circle.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.1"
     },
     {
@@ -4286,7 +4444,7 @@
         "panel"
       ],
       "symbol" : "power.circle.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.2"
     },
     {
@@ -4311,7 +4469,7 @@
         "panel"
       ],
       "symbol" : "power.circle.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.1.0"
     },
     {
@@ -4337,7 +4495,7 @@
         "widget",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -4363,7 +4521,7 @@
         "widget",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.0"
     },
     {
@@ -4391,7 +4549,7 @@
         "settings"
       ],
       "symbol" : "gauge.with.dots.needle.67percent",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.1"
     },
     {
@@ -4419,7 +4577,7 @@
         "settings"
       ],
       "symbol" : "gauge.with.dots.needle.67percent",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.0"
     },
     {
@@ -4447,7 +4605,7 @@
         "settings"
       ],
       "symbol" : "gauge.with.dots.needle.67percent",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.0"
     },
     {
@@ -4475,7 +4633,7 @@
         "settings"
       ],
       "symbol" : "gauge.with.dots.needle.67percent",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.0"
     },
     {
@@ -4505,7 +4663,7 @@
         "settings"
       ],
       "symbol" : "gauge.with.dots.needle.67percent",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.6.0"
     },
     {
@@ -4535,7 +4693,7 @@
         "settings"
       ],
       "symbol" : "gauge.with.dots.needle.67percent",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.6.1"
     },
     {
@@ -4565,7 +4723,7 @@
         "settings"
       ],
       "symbol" : "gauge.with.dots.needle.67percent",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.7.0"
     },
     {
@@ -4595,7 +4753,7 @@
         "settings"
       ],
       "symbol" : "gauge.with.dots.needle.67percent",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.8.0"
     },
     {
@@ -4622,7 +4780,7 @@
         "settings"
       ],
       "symbol" : "timer",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -4649,7 +4807,7 @@
         "settings"
       ],
       "symbol" : "timer",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.1"
     },
     {
@@ -4676,7 +4834,7 @@
         "settings"
       ],
       "symbol" : "timer",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.1.0"
     },
     {
@@ -4703,7 +4861,7 @@
         "settings"
       ],
       "symbol" : "timer",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.0"
     },
     {
@@ -4729,7 +4887,7 @@
         "settings",
         "widget"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -4757,7 +4915,7 @@
         "widget"
       ],
       "symbol" : "checklist",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.1"
     },
     {
@@ -4785,7 +4943,7 @@
         "widget"
       ],
       "symbol" : "checklist",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.1.0"
     },
     {
@@ -4813,7 +4971,7 @@
         "widget"
       ],
       "symbol" : "checklist",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "2.0.0"
     },
     {
@@ -4841,7 +4999,7 @@
         "widget"
       ],
       "symbol" : "checklist",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "2.1.0"
     },
     {
@@ -4869,7 +5027,7 @@
         "widget"
       ],
       "symbol" : "checklist",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "2.1.1"
     },
     {
@@ -4897,7 +5055,7 @@
         "widget"
       ],
       "symbol" : "checklist",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "2.2.0"
     },
     {
@@ -4925,7 +5083,7 @@
         "widget"
       ],
       "symbol" : "checklist",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "2.3.0"
     },
     {
@@ -4955,7 +5113,7 @@
         "panel",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -4985,7 +5143,7 @@
         "panel",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.0"
     },
     {
@@ -5017,7 +5175,7 @@
         "settings"
       ],
       "symbol" : "character.bubble.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.1"
     },
     {
@@ -5049,7 +5207,7 @@
         "settings"
       ],
       "symbol" : "character.bubble.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.0"
     },
     {
@@ -5081,7 +5239,7 @@
         "settings"
       ],
       "symbol" : "character.bubble.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.0"
     },
     {
@@ -5115,7 +5273,7 @@
         "settings"
       ],
       "symbol" : "character.bubble.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.6.0"
     },
     {
@@ -5149,7 +5307,7 @@
         "settings"
       ],
       "symbol" : "character.bubble.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.6.1"
     },
     {
@@ -5183,7 +5341,7 @@
         "settings"
       ],
       "symbol" : "character.bubble.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.7.0"
     },
     {
@@ -5209,7 +5367,7 @@
         "settings"
       ],
       "symbol" : "rectangle.split.2x1",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -5234,7 +5392,7 @@
         "panel"
       ],
       "symbol" : "macwindow.on.rectangle",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -5259,7 +5417,7 @@
         "panel"
       ],
       "symbol" : "macwindow.on.rectangle",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.1"
     },
     {
@@ -5284,7 +5442,7 @@
         "panel"
       ],
       "symbol" : "macwindow.on.rectangle",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.1.0"
     },
     {
@@ -5311,7 +5469,7 @@
         "settings"
       ],
       "symbol" : "rectangle.3.group",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -5338,7 +5496,7 @@
         "settings"
       ],
       "symbol" : "rectangle.3.group",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.1.0"
     },
     {
@@ -5365,7 +5523,7 @@
         "settings"
       ],
       "symbol" : "rectangle.3.group",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.0"
     },
     {
@@ -5395,7 +5553,7 @@
         "settings"
       ],
       "symbol" : "macwindow.on.rectangle",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "2.0.0"
     },
     {
@@ -5425,7 +5583,7 @@
         "settings"
       ],
       "symbol" : "macwindow.on.rectangle",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "2.1.0"
     },
     {
@@ -5455,7 +5613,7 @@
         "settings"
       ],
       "symbol" : "macwindow.on.rectangle",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "2.2.0"
     },
     {
@@ -5485,7 +5643,7 @@
         "settings"
       ],
       "symbol" : "macwindow.on.rectangle",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "2.4.0"
     },
     {
@@ -5511,7 +5669,7 @@
         "settings",
         "widget"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.0"
     },
     {
@@ -5537,7 +5695,7 @@
         "settings",
         "widget"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.0"
     },
     {
@@ -5565,7 +5723,7 @@
         "widget"
       ],
       "symbol" : "globe",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.1"
     },
     {
@@ -5593,7 +5751,7 @@
         "widget"
       ],
       "symbol" : "globe",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.0"
     },
     {
@@ -5621,7 +5779,7 @@
         "widget"
       ],
       "symbol" : "globe",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.0"
     },
     {
@@ -5649,7 +5807,7 @@
         "widget"
       ],
       "symbol" : "globe",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.1"
     },
     {
@@ -5677,7 +5835,7 @@
         "widget"
       ],
       "symbol" : "globe",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.6.0"
     },
     {
@@ -5705,7 +5863,7 @@
         "widget"
       ],
       "symbol" : "globe",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.7.0"
     },
     {
@@ -5734,7 +5892,7 @@
         "widget",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.1.1"
     },
     {
@@ -5763,7 +5921,7 @@
         "widget",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.0"
     },
     {
@@ -5792,7 +5950,7 @@
         "widget",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.1"
     },
     {
@@ -5821,7 +5979,7 @@
         "widget",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.2"
     },
     {
@@ -5852,7 +6010,7 @@
         "settings"
       ],
       "symbol" : "arrow.triangle.pull",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.3"
     },
     {
@@ -5883,7 +6041,7 @@
         "settings"
       ],
       "symbol" : "arrow.triangle.pull",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.0"
     },
     {
@@ -5914,7 +6072,7 @@
         "settings"
       ],
       "symbol" : "arrow.triangle.pull",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.6.0"
     },
     {
@@ -5945,7 +6103,7 @@
         "settings"
       ],
       "symbol" : "arrow.triangle.pull",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.7.0"
     },
     {
@@ -5978,7 +6136,7 @@
         "settings"
       ],
       "symbol" : "arrow.triangle.pull",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.8.0"
     },
     {
@@ -6011,7 +6169,7 @@
         "settings"
       ],
       "symbol" : "arrow.triangle.pull",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.8.1"
     },
     {
@@ -6044,7 +6202,7 @@
         "settings"
       ],
       "symbol" : "arrow.triangle.pull",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.9.0"
     },
     {
@@ -6077,7 +6235,7 @@
         "settings"
       ],
       "symbol" : "arrow.triangle.pull",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.10.0"
     },
     {
@@ -6110,7 +6268,7 @@
         "settings"
       ],
       "symbol" : "arrow.triangle.pull",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.11.0"
     },
     {
@@ -6143,7 +6301,7 @@
         "settings"
       ],
       "symbol" : "arrow.triangle.pull",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.12.0"
     },
     {
@@ -6176,7 +6334,7 @@
         "settings"
       ],
       "symbol" : "arrow.triangle.pull",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.13.0"
     },
     {
@@ -6209,7 +6367,7 @@
         "settings"
       ],
       "symbol" : "arrow.triangle.pull",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.14.0"
     },
     {
@@ -6242,7 +6400,7 @@
         "settings"
       ],
       "symbol" : "arrow.triangle.pull",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.15.0"
     },
     {
@@ -6277,7 +6435,7 @@
         "settings"
       ],
       "symbol" : "arrow.triangle.pull",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.16.0"
     },
     {
@@ -6312,7 +6470,7 @@
         "settings"
       ],
       "symbol" : "arrow.triangle.pull",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.17.0"
     },
     {
@@ -6347,7 +6505,7 @@
         "settings"
       ],
       "symbol" : "arrow.triangle.pull",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.18.0"
     },
     {
@@ -6382,7 +6540,7 @@
         "settings"
       ],
       "symbol" : "arrow.triangle.pull",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.18.1"
     },
     {
@@ -6410,7 +6568,7 @@
         "panel",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.1"
     },
     {
@@ -6440,7 +6598,7 @@
         "panel",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.0"
     },
     {
@@ -6472,7 +6630,7 @@
         "settings"
       ],
       "symbol" : "link",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.1"
     },
     {
@@ -6504,7 +6662,7 @@
         "settings"
       ],
       "symbol" : "link",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.0"
     },
     {
@@ -6536,7 +6694,7 @@
         "settings"
       ],
       "symbol" : "link",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.0"
     },
     {
@@ -6568,7 +6726,7 @@
         "settings"
       ],
       "symbol" : "link",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.1"
     },
     {
@@ -6600,7 +6758,7 @@
         "settings"
       ],
       "symbol" : "link",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.6.0"
     },
     {
@@ -6632,7 +6790,7 @@
         "settings"
       ],
       "symbol" : "link",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.6.1"
     },
     {
@@ -6664,7 +6822,7 @@
         "settings"
       ],
       "symbol" : "link",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.7.0"
     },
     {
@@ -6692,7 +6850,7 @@
         "panel",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.1"
     },
     {
@@ -6720,7 +6878,7 @@
         "panel",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.0"
     },
     {
@@ -6750,7 +6908,7 @@
         "settings"
       ],
       "symbol" : "text.insert",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.2.1"
     },
     {
@@ -6780,7 +6938,7 @@
         "settings"
       ],
       "symbol" : "text.insert",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.0"
     },
     {
@@ -6812,7 +6970,7 @@
         "settings"
       ],
       "symbol" : "text.insert",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.0"
     },
     {
@@ -6844,7 +7002,7 @@
         "settings"
       ],
       "symbol" : "text.insert",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.0"
     },
     {
@@ -6876,7 +7034,7 @@
         "settings"
       ],
       "symbol" : "text.insert",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.1"
     },
     {
@@ -6908,7 +7066,7 @@
         "settings"
       ],
       "symbol" : "text.insert",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.6.0"
     },
     {
@@ -6940,7 +7098,7 @@
         "settings"
       ],
       "symbol" : "text.insert",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.7.0"
     },
     {
@@ -6966,7 +7124,7 @@
         "widget",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.1"
     },
     {
@@ -6992,7 +7150,7 @@
         "widget",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.0"
     },
     {
@@ -7020,7 +7178,7 @@
         "settings"
       ],
       "symbol" : "cup.and.saucer.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.1"
     },
     {
@@ -7048,7 +7206,7 @@
         "settings"
       ],
       "symbol" : "cup.and.saucer.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.0"
     },
     {
@@ -7076,7 +7234,7 @@
         "settings"
       ],
       "symbol" : "cup.and.saucer.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.0"
     },
     {
@@ -7104,7 +7262,7 @@
         "settings"
       ],
       "symbol" : "cup.and.saucer.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.1"
     },
     {
@@ -7132,7 +7290,7 @@
         "settings"
       ],
       "symbol" : "cup.and.saucer.fill",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.6.0"
     },
     {
@@ -7159,7 +7317,7 @@
         "widget",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.0.1"
     },
     {
@@ -7186,7 +7344,7 @@
         "widget",
         "settings"
       ],
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.0"
     },
     {
@@ -7215,7 +7373,7 @@
         "settings"
       ],
       "symbol" : "calendar",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.3.1"
     },
     {
@@ -7244,7 +7402,7 @@
         "settings"
       ],
       "symbol" : "calendar",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.0"
     },
     {
@@ -7273,7 +7431,7 @@
         "settings"
       ],
       "symbol" : "calendar",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.4.1"
     },
     {
@@ -7302,7 +7460,7 @@
         "settings"
       ],
       "symbol" : "calendar",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.5.0"
     },
     {
@@ -7333,7 +7491,7 @@
         "settings"
       ],
       "symbol" : "calendar",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.6.0"
     },
     {
@@ -7364,7 +7522,7 @@
         "settings"
       ],
       "symbol" : "calendar",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.6.1"
     },
     {
@@ -7395,7 +7553,7 @@
         "settings"
       ],
       "symbol" : "calendar",
-      "updated" : "2026-11-12",
+      "updated" : "2026-11-13",
       "version" : "1.7.0"
     }
   ],
@@ -7405,5 +7563,5 @@
       "reason" : "GitHub is now part of PR Cockpit, which has the same features and more. Install PR Cockpit from the store."
     }
   ],
-  "signature" : "XC1YsnFpXOnSUMP6jGBKDa6Umkq/zIsQWn00VMcNPT/lv8mmge6GnSHudWl0gXbO4wiMR9N3NMaKDfGKIWSJBQ=="
+  "signature" : "9U8vBUwz5W1+bfjS8Nm3+w3Ued9Ltyai7nDYc3o8IKZ2sGoUSODj5jgW/nPbqpHK175frsMh7IgrVTQAqXAnCA=="
 }
