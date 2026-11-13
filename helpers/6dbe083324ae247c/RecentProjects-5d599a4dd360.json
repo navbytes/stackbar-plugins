@@ -1,0 +1,13 @@
+{
+  "arch" : "arm64",
+  "id" : "io.navbytes.stackbar.plugins.recent-projects",
+  "protocol" : 29,
+  "publicKey" : "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+  "sha256" : "3b72122dd4f4eba5360d217163edaf63084eec344c25c1f691cf275ba7dff41c",
+  "signature" : "319yo2TqYYH5FDMdHNBX079t25sXfIqc98Gne5pQh8x2OMZfcS0THfrPRtYZgurZ1NMeJhUBnLLccsWd4wP9AQ==",
+  "size" : 6199952,
+  "sourceDigest" : "5d599a4dd36006397433836ca146ee1fa9316353885eb1d2ccbe8e72489976cd",
+  "stackbarKit" : "6dbe083324ae247cee98f129b8fedd6a3ef50662a494a0020caf7fb9c4ef3544",
+  "url" : "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-6dbe083324ae247c/RecentProjects-5d599a4dd360",
+  "version" : "1.5.0"
+}

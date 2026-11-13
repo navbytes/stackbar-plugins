@@ -1,0 +1,13 @@
+{
+  "arch" : "arm64",
+  "id" : "io.navbytes.stackbar.up-next",
+  "protocol" : 29,
+  "publicKey" : "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+  "sha256" : "44e6476e31dc84d00676dc74b16e37484546ab086b33cd57845b7c8f4ad9de15",
+  "signature" : "DAPvpGgxghXAGVnAeKeQx/WhhLjOL3oAOigKEfxJoxZb2k1R8rj1WfaXFptYFfvnUF9iXATAxQo/YX4zuHsHBA==",
+  "size" : 6407880,
+  "sourceDigest" : "1ce3423a24ede0b85e04496320089da3788cf3c4b1ab54ab7b7e1b20f922a2f8",
+  "stackbarKit" : "6dbe083324ae247cee98f129b8fedd6a3ef50662a494a0020caf7fb9c4ef3544",
+  "url" : "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-6dbe083324ae247c/UpNext-1ce3423a24ed",
+  "version" : "1.7.0"
+}
