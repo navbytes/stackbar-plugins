@@ -1732,6 +1732,19 @@
     },
     {
       "arch": "arm64",
+      "id": "io.navbytes.stackbar.plugins.git-sync",
+      "protocol": 29,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "ae5ee1a15a8d0d3ca4207b7b913892c8ad29ec5cf5af936615ad37ea3655f84a",
+      "signature": "AH00Snxp5le8nQO4W6Ag4kdoBt6wrYlX9z4d/HCVp8YOFNV8wymlf6qoACMoNtwr5eknw10hSqUC2g5jpI/ZDg==",
+      "size": 6775832,
+      "sourceDigest": "e408bbe3cfb13799f14d5506842db1d0eca8e8ee260d4531ee5c5e8457a7f306",
+      "stackbarKit": "6dbe083324ae247cee98f129b8fedd6a3ef50662a494a0020caf7fb9c4ef3544",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-6dbe083324ae247c/GitSync-e408bbe3cfb1",
+      "version": "1.2.1"
+    },
+    {
+      "arch": "arm64",
       "id": "io.navbytes.stackbar.plugins.homebrew",
       "protocol": 29,
       "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
@@ -1758,6 +1771,19 @@
     },
     {
       "arch": "arm64",
+      "id": "io.navbytes.stackbar.plugins.jira",
+      "protocol": 29,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "bac9d85db2da0b2621c9d6320c977933c2650747302d26f0c05f5836d05a0b25",
+      "signature": "IWTf5UOESwx/OEYEl3kp5HyY8ZY6r9TXPNsCAcrj7ml1AiVZwypZXB51oHBmHVm9s81PVbYi++gSFmkwR8ToCQ==",
+      "size": 6544728,
+      "sourceDigest": "dd423cfe389537b3d147d580811a702318f43548f984a802afa5b449d37cfe92",
+      "stackbarKit": "6dbe083324ae247cee98f129b8fedd6a3ef50662a494a0020caf7fb9c4ef3544",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-6dbe083324ae247c/Jira-dd423cfe3895",
+      "version": "1.6.1"
+    },
+    {
+      "arch": "arm64",
       "id": "io.navbytes.stackbar.plugins.kill-process",
       "protocol": 29,
       "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
@@ -1781,6 +1807,32 @@
       "stackbarKit": "6dbe083324ae247cee98f129b8fedd6a3ef50662a494a0020caf7fb9c4ef3544",
       "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-6dbe083324ae247c/Linear-3301d0dffa6a",
       "version": "1.8.0"
+    },
+    {
+      "arch": "arm64",
+      "id": "io.navbytes.stackbar.plugins.linear",
+      "protocol": 29,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "b01404ead834ce3a36c2bc2f9caf59fe0a0313a896563170790e6d46c48dc0db",
+      "signature": "6r7lz21g43/ai4OGIgcMP731DHjq6LyLNxaP6uWquo/VASJKmQuXs2rE5bXCTQxpUWkyMMjl6LE8oUsbMc2LCg==",
+      "size": 6965800,
+      "sourceDigest": "ee92367b1932d31ee9d639218b1d20b1d65f2d16a1b62e7f0137415b139c59b1",
+      "stackbarKit": "6dbe083324ae247cee98f129b8fedd6a3ef50662a494a0020caf7fb9c4ef3544",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-6dbe083324ae247c/Linear-ee92367b1932",
+      "version": "1.8.1"
+    },
+    {
+      "arch": "arm64",
+      "id": "io.navbytes.stackbar.plugins.litellm",
+      "protocol": 29,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "ac7b15d64d8e60f68d905e1bee1329e4ea794920dd46b7fc2d723fea3d5f930b",
+      "signature": "AsrsvwwPNLPqT53g732tv4QAO4Otl3Syen+kZYZR5bgrYV5ypfVmyi/RypCt7yE798EWORjXBGqr9gBWpLHeAQ==",
+      "size": 6479256,
+      "sourceDigest": "2b312d9b8adbb7982b6e69ceeea5f4383e0859893d116c9e78c99f15cdb95083",
+      "stackbarKit": "6dbe083324ae247cee98f129b8fedd6a3ef50662a494a0020caf7fb9c4ef3544",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-6dbe083324ae247c/LiteLLM-2b312d9b8adb",
+      "version": "1.6.1"
     },
     {
       "arch": "arm64",
@@ -1846,6 +1898,19 @@
       "stackbarKit": "6dbe083324ae247cee98f129b8fedd6a3ef50662a494a0020caf7fb9c4ef3544",
       "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-6dbe083324ae247c/OpenRouter-1fbec05ffd3d",
       "version": "1.0.0"
+    },
+    {
+      "arch": "arm64",
+      "id": "io.navbytes.stackbar.plugins.openrouter",
+      "protocol": 29,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "1668249509c6ffa08610229f9acabee4c53e15ad2444896490f2a0587e51cf89",
+      "signature": "3Q0joRq2Alwxi7UX8gKLzB/W13RLmsVvDVYrcssz5bdKCh0SErYrx64zyqx5KDB4VM9r6uw3Km2/ru4/Euj5AQ==",
+      "size": 6478904,
+      "sourceDigest": "3c5f097e687bfebe8fa88df3f4d38187039f18a7805fe7e9989c87d1127482a2",
+      "stackbarKit": "6dbe083324ae247cee98f129b8fedd6a3ef50662a494a0020caf7fb9c4ef3544",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-6dbe083324ae247c/OpenRouter-3c5f097e687b",
+      "version": "1.0.1"
     },
     {
       "arch": "arm64",

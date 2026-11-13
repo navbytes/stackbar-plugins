@@ -1,0 +1,13 @@
+{
+  "arch" : "arm64",
+  "id" : "io.navbytes.stackbar.plugins.git-sync",
+  "protocol" : 29,
+  "publicKey" : "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+  "sha256" : "ae5ee1a15a8d0d3ca4207b7b913892c8ad29ec5cf5af936615ad37ea3655f84a",
+  "signature" : "AH00Snxp5le8nQO4W6Ag4kdoBt6wrYlX9z4d/HCVp8YOFNV8wymlf6qoACMoNtwr5eknw10hSqUC2g5jpI/ZDg==",
+  "size" : 6775832,
+  "sourceDigest" : "e408bbe3cfb13799f14d5506842db1d0eca8e8ee260d4531ee5c5e8457a7f306",
+  "stackbarKit" : "6dbe083324ae247cee98f129b8fedd6a3ef50662a494a0020caf7fb9c4ef3544",
+  "url" : "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-6dbe083324ae247c/GitSync-e408bbe3cfb1",
+  "version" : "1.2.1"
+}
