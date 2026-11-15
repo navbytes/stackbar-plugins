@@ -8,7 +8,8 @@ import Foundation
 /// Tabs come from Safari, Chrome, Arc, Brave and Edge while they run, read
 /// with AppleScript (macOS asks once to let Stackbar control each browser).
 /// Bookmarks come from the bookmark file Chrome, Brave, Edge and Vivaldi
-/// keep; Safari's are behind Full Disk Access, so they aren't read.
+/// keep in every profile; Safari's are behind Full Disk Access, so they
+/// aren't read.
 @main
 final class BrowserTabs: StackbarPlugin {
     struct Browser: Sendable {
@@ -16,23 +17,25 @@ final class BrowserTabs: StackbarPlugin {
         var bundleID: String
         /// AppleScript dialect for tabs: Safari's or Chromium's.
         var safari: Bool
-        /// The profile folder holding `Bookmarks`, for Chromium browsers.
-        var profile: String?
+        /// The user-data folder of a Chromium browser: `Local State` names
+        /// its profiles, and each profile folder (`Default`, `Profile 1`…)
+        /// holds a `Bookmarks` file.
+        var dataFolder: String?
     }
 
     static let browsers: [Browser] = [
         Browser(name: "Safari", bundleID: "com.apple.Safari", safari: true),
-        Browser(name: "Google Chrome", bundleID: "com.google.Chrome", safari: false, profile: "~/Library/Application Support/Google/Chrome/Default"),
+        Browser(name: "Google Chrome", bundleID: "com.google.Chrome", safari: false, dataFolder: "~/Library/Application Support/Google/Chrome"),
         Browser(name: "Arc", bundleID: "company.thebrowser.Browser", safari: false),
-        Browser(name: "Brave Browser", bundleID: "com.brave.Browser", safari: false, profile: "~/Library/Application Support/BraveSoftware/Brave-Browser/Default"),
-        Browser(name: "Microsoft Edge", bundleID: "com.microsoft.edgemac", safari: false, profile: "~/Library/Application Support/Microsoft Edge/Default"),
-        Browser(name: "Vivaldi", bundleID: "com.vivaldi.Vivaldi", safari: false, profile: "~/Library/Application Support/Vivaldi/Default"),
+        Browser(name: "Brave Browser", bundleID: "com.brave.Browser", safari: false, dataFolder: "~/Library/Application Support/BraveSoftware/Brave-Browser"),
+        Browser(name: "Microsoft Edge", bundleID: "com.microsoft.edgemac", safari: false, dataFolder: "~/Library/Application Support/Microsoft Edge"),
+        Browser(name: "Vivaldi", bundleID: "com.vivaldi.Vivaldi", safari: false, dataFolder: "~/Library/Application Support/Vivaldi"),
     ]
 
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.browser-tabs",
         name: "Browser Tabs",
-        version: "1.2.1",
+        version: "1.3.0",
         summary: "Switch to any open tab in Safari, Chrome, Arc, Brave or Edge, and search your bookmarks.",
         surfaces: [.panel],
         triggers: [.launch],
@@ -41,7 +44,7 @@ final class BrowserTabs: StackbarPlugin {
             // Which browsers are running, so a browser that isn't is never
             // started or asked for.
             .apps,
-            .files(paths: browsers.compactMap(\.profile)),
+            .files(paths: browsers.compactMap(\.dataFolder)),
         ],
         minimumStackbar: "0.35.0",
         homepage: "https://github.com/navbytes/stackbar-plugins/tree/main/Productivity/BrowserTabs",
@@ -95,13 +98,15 @@ final class BrowserTabs: StackbarPlugin {
         var url: String
         var folder: String
         var browser: String
+        /// The profile's name ("Work"), when the browser has more than one.
+        var profile: String?
         /// Lowercased once, at load: a profile can hold thousands of bookmarks.
         let lowerTitle: String
         let lowerURL: String
-        var id: String { "\(browser)|\(folder)|\(url)" }
+        var id: String { "\(browser)|\(profile ?? "")|\(folder)|\(url)" }
 
-        init(title: String, url: String, folder: String, browser: String) {
-            (self.title, self.url, self.folder, self.browser) = (title, url, folder, browser)
+        init(title: String, url: String, folder: String, browser: String, profile: String? = nil) {
+            (self.title, self.url, self.folder, self.browser, self.profile) = (title, url, folder, browser, profile)
             (lowerTitle, lowerURL) = (title.lowercased(), url.lowercased())
         }
     }
@@ -268,8 +273,43 @@ final class BrowserTabs: StackbarPlugin {
 
     // MARK: Bookmarks
 
+    /// Bookmarks kept in memory across every browser and profile. Search is
+    /// a scan of lowercased strings, so this is about memory, not speed;
+    /// past it the panel says how many were left out.
+    static let maxBookmarks = 20_000
+
+    /// A Chromium browser's profiles from its `Local State` file, as
+    /// (folder, name) pairs in the order the browser lists them, `Default`
+    /// first. Unreadable or empty: just `Default`, which every install has.
+    static func parseProfiles(_ data: Data) -> [(folder: String, name: String)] {
+        struct Info: Decodable { var name: String? }
+        struct Profiles: Decodable {
+            var info_cache: [String: Info]? // swiftlint:disable:this identifier_name
+            var profiles_order: [String]? // swiftlint:disable:this identifier_name
+        }
+        struct LocalState: Decodable { var profile: Profiles? }
+        guard let state = try? JSONDecoder().decode(LocalState.self, from: data),
+              let cache = state.profile?.info_cache, !cache.isEmpty else { return [("Default", "Default")] }
+        // A folder name is used as a path, so nothing that could leave the
+        // browser's folder.
+        let folders = cache.keys.filter { !$0.isEmpty && !$0.contains("/") && $0 != "." && $0 != ".." }
+        let order = state.profile?.profiles_order ?? []
+        let sorted = folders.sorted { lhs, rhs in
+            let rank = { (folder: String) -> (Int, Int, String) in
+                if folder == "Default" { return (0, 0, folder) }
+                if let index = order.firstIndex(of: folder) { return (1, index, folder) }
+                return (2, 0, folder)
+            }
+            return rank(lhs) < rank(rhs)
+        }
+        return sorted.map { folder in
+            let name = cache[folder]?.name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            return (folder, name.isEmpty ? folder : name)
+        }
+    }
+
     /// Chromium's `Bookmarks` JSON: `roots` of folders with `children`.
-    static func parseBookmarks(_ data: Data, browser: String) -> [Bookmark] {
+    static func parseBookmarks(_ data: Data, browser: String, profile: String? = nil) -> [Bookmark] {
         struct Node: Decodable {
             var type: String?
             var name: String?
@@ -281,7 +321,7 @@ final class BrowserTabs: StackbarPlugin {
         var found: [Bookmark] = []
         func walk(_ node: Node, path: [String]) {
             if node.type == "url", let url = node.url, url.hasPrefix("http") {
-                found.append(Bookmark(title: node.name?.isEmpty == false ? node.name! : url, url: url, folder: path.joined(separator: " › "), browser: browser))
+                found.append(Bookmark(title: node.name?.isEmpty == false ? node.name! : url, url: url, folder: path.joined(separator: " › "), browser: browser, profile: profile))
             }
             for child in node.children ?? [] {
                 walk(child, path: node.type == "folder" ? path + [node.name ?? ""] : path)
@@ -290,7 +330,23 @@ final class BrowserTabs: StackbarPlugin {
         for key in ["bookmark_bar", "other", "synced"] {
             if let root = file.roots[key] { walk(root, path: []) }
         }
-        return Array(found.prefix(5000))
+        return found
+    }
+
+    /// The bookmarks to keep: each address once (the first browser and
+    /// profile that has it wins), at most `limit`, and how many were left out.
+    static func kept(_ found: [Bookmark], limit: Int = maxBookmarks) -> (bookmarks: [Bookmark], leftOut: Int) {
+        var seen = Set<String>()
+        let unique = found.filter { seen.insert($0.url).inserted }
+        return (Array(unique.prefix(limit)), max(0, unique.count - limit))
+    }
+
+    /// A count in words: "12,345".
+    static func counted(_ number: Int) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.locale = Locale(identifier: "en_US")
+        return formatter.string(from: NSNumber(value: number)) ?? "\(number)"
     }
 
     func loadBookmarks(force: Bool = false) async {
@@ -298,35 +354,54 @@ final class BrowserTabs: StackbarPlugin {
         var found: [Bookmark] = []
         var failed: [String] = []
         for browser in Self.browsers {
-            guard let profile = browser.profile else { continue }
-            let result: RunResult
+            guard let dataFolder = browser.dataFolder else { continue }
+            // Which profiles there are. No folder means the browser isn't
+            // installed: as quiet as a missing file.
+            let profiles: [(folder: String, name: String)]
             do {
-                result = try await Stackbar.run("cat", ["Bookmarks"], workingDirectory: profile, timeout: .seconds(10))
+                let state = try await Stackbar.run("cat", ["Local State"], workingDirectory: dataFolder, timeout: .seconds(10))
+                profiles = Self.parseProfiles(state.succeeded && !state.truncated ? state.stdout : Data())
             } catch {
-                // No profile folder means the browser isn't installed: as quiet as a missing file.
                 if !"\(error)".contains("is not a folder") {
                     failed.append("Couldn't read \(browser.name)'s bookmarks: \(error)")
                 }
                 continue
             }
-            // A missing file means the browser isn't installed, so that stays quiet.
-            guard result.succeeded else {
-                if !result.errorText.contains("No such file") {
-                    failed.append("Couldn't read \(browser.name)'s bookmarks: \(result.errorText.split(separator: "\n").first.map(String.init) ?? "it didn't answer")")
+            for profile in profiles {
+                let label = profiles.count > 1 ? profile.name : nil
+                let named = label.map { "\(browser.name) (\($0))" } ?? browser.name
+                let result: RunResult
+                do {
+                    result = try await Stackbar.run("cat", ["Bookmarks"], workingDirectory: dataFolder + "/" + profile.folder, timeout: .seconds(10))
+                } catch {
+                    // A profile listed but never opened has no folder yet.
+                    if !"\(error)".contains("is not a folder") {
+                        failed.append("Couldn't read \(named)'s bookmarks: \(error)")
+                    }
+                    continue
                 }
-                continue
+                // A profile with no bookmarks has no file: that stays quiet.
+                guard result.succeeded else {
+                    if !result.errorText.contains("No such file") {
+                        failed.append("Couldn't read \(named)'s bookmarks: \(result.errorText.split(separator: "\n").first.map(String.init) ?? "it didn't answer")")
+                    }
+                    continue
+                }
+                // Output past 8 MB is cut and the JSON would not decode, so say so
+                // instead of showing no bookmarks.
+                if result.truncated {
+                    failed.append("\(named)'s bookmarks file is too large to read.")
+                    continue
+                }
+                found += Self.parseBookmarks(result.stdout, browser: browser.name, profile: label)
             }
-            // Output past 8 MB is cut and the JSON would not decode, so say so
-            // instead of showing no bookmarks.
-            if result.truncated {
-                failed.append("\(browser.name)'s bookmarks file is too large to read.")
-                continue
-            }
-            found += Self.parseBookmarks(result.stdout, browser: browser.name)
+        }
+        let kept = Self.kept(found)
+        if kept.leftOut > 0 {
+            failed.append("Showing the first \(Self.counted(Self.maxBookmarks)) bookmarks; \(Self.counted(kept.leftOut)) more are left out.")
         }
         bookmarkProblems = failed
-        var seen = Set<String>()
-        bookmarks = found.filter { seen.insert($0.url).inserted }
+        bookmarks = kept.bookmarks
         bookmarksReadAt = Date()
     }
 
@@ -382,7 +457,7 @@ final class BrowserTabs: StackbarPlugin {
 
     func row(_ bookmark: Bookmark) -> Row {
         let bundleID = Self.browsers.first { $0.name == bookmark.browser }?.bundleID
-        return Row(bookmark.title, subtitle: [bookmark.folder, Self.host(bookmark.url)].filter { !$0.isEmpty }.joined(separator: " · "), symbol: "bookmark", key: bookmark.id)
+        return Row(bookmark.title, subtitle: [bookmark.profile ?? "", bookmark.folder, Self.host(bookmark.url)].filter { !$0.isEmpty }.joined(separator: " · "), symbol: "bookmark", key: bookmark.id)
             .appIcon(bundleID)
             .action("Open in \(bookmark.browser)") { try await Stackbar.open(bookmark.url, with: bundleID) }
             .action("Open in Default Browser") { Stackbar.open(bookmark.url) }

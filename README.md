@@ -40,7 +40,7 @@ An update that asks for something new waits for your approval.
 | [Linear](Developer/Linear) | Developer | Your assigned Linear issues and inbox: change status and priority, start work, comment, and new issues from the palette. |
 | [PR Cockpit](Developer/PRCockpit) | Developer | Your pull requests, reviews and issues with CI and review state, and your repositories a keystroke away. |
 | [Ports](Developer/Ports) | Developer | Which process is listening on which port, and a way to stop it. |
-| [Recent Projects](Developer/RecentProjects) | Developer | Open the projects you used lately in VS Code, Cursor, Windsurf or VSCodium from the palette. |
+| [Recent Projects](Developer/RecentProjects) | Developer | Open the projects you used lately in VS Code, Cursor, Windsurf, VSCodium or Zed from the palette. |
 | [Script Commands](Developer/ScriptCommands) | Developer | Run your own scripts from the palette, in Raycast's Script Commands format. |
 | [LiteLLM](Monitoring/LiteLLM) | Monitoring | Tokens, spend, budget and model mix from your LiteLLM proxy, with charts. |
 | [OpenRouter](Monitoring/OpenRouter) | Monitoring | Spend, credits, limits and model mix for your OpenRouter account, with charts. |
