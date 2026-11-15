@@ -313,6 +313,13 @@
       "changes": [
         {
           "notes": [
+            "Search Bookmarks reads every browser profile, not just the first one. If you use Chrome, Brave, Edge or Vivaldi with a second profile (a work sign-in, say), its bookmarks show up too, with the profile's name beside each one. Stackbar asks you to approve the plugin again, because it now reads the browser's whole folder instead of one profile.",
+            "A very large bookmark set no longer loses bookmarks quietly. Up to 20,000 are kept (it was 5,000 per browser), and past that the panel says how many were left out."
+          ],
+          "version": "1.3.0"
+        },
+        {
+          "notes": [
             "Search Browser Tabs lists your tabs again. It said \"No tabs open\" for every browser, because the script that reads them wrote the word \"tab\" where it meant a tab character."
           ],
           "version": "1.2.1"
@@ -349,11 +356,11 @@
           "version": "1.0.0"
         }
       ],
-      "description": "Your open browser tabs and your bookmarks in the palette. Search Browser\nTabs lists every tab in Safari, Chrome, Arc, Brave and Edge while they run;\ntype part of a title or address and Return switches to it (\u2318W closes it,\n\u2318\u21e7C copies the link). Search Bookmarks finds the bookmarks Chrome, Brave,\nEdge and Vivaldi keep, and opens one in its browser.",
+      "description": "Your open browser tabs and your bookmarks in the palette. Search Browser\nTabs lists every tab in Safari, Chrome, Arc, Brave and Edge while they run;\ntype part of a title or address and Return switches to it (\u2318W closes it,\n\u2318\u21e7C copies the link). Search Bookmarks finds the bookmarks Chrome, Brave,\nEdge and Vivaldi keep in every profile, and opens one in its browser.",
       "facts": [
         {
           "label": "Needs",
-          "text": "running `osascript` to read and switch tabs (macOS asks once to let Stackbar control each browser), `cat` to read each Chromium browser's `Bookmarks` file in its profile folder, and the list of running apps, so a browser that isn't open is never started. Stackbar 0.35.0 or later."
+          "text": "running `osascript` to read and switch tabs (macOS asks once to let Stackbar control each browser), `cat` to read each Chromium browser's `Local State` and each profile's `Bookmarks` file in its folder, and the list of running apps, so a browser that isn't open is never started. Stackbar 0.35.0 or later."
         },
         {
           "label": "Surfaces",
@@ -365,10 +372,10 @@
         },
         {
           "label": "Leaves out",
-          "text": "Safari's bookmarks, which macOS keeps behind Full Disk Access, and browser profiles other than the default one."
+          "text": "Safari's bookmarks, which macOS keeps behind Full Disk Access, and Arc's sidebar."
         }
       ],
-      "version": "1.2.1"
+      "version": "1.3.0"
     },
     "io.navbytes.stackbar.plugins.calculator": {
       "changes": [
@@ -1613,6 +1620,14 @@
       "changes": [
         {
           "notes": [
+            "Zed and Zed Preview projects show up, alongside the VS Code family. Return opens them in Zed.",
+            "VS Code Insiders' recent projects show up too. It used to be offered only as the default editor.",
+            "Cursor, Windsurf and VSCodium keep working when they adopt the change that VS Code 1.118 made, which moved the recent list into a shared folder in your home folder. Raycast's VS Code extension broke on exactly that change. Stackbar asks you to approve the plugin again, because it reads those folders now."
+          ],
+          "version": "1.6.0"
+        },
+        {
+          "notes": [
             "Type `proj`, a space and a name in the palette to search only your recent projects. Change or clear the alias in Settings \u203a General \u203a Main Search.",
             "Stackbar 0.37.0 keeps free-text plugins out of the main search until you turn them on there; `proj` works either way."
           ],
@@ -1653,11 +1668,11 @@
           "version": "1.0.0"
         }
       ],
-      "description": "The folders and workspaces you opened lately in VS Code, Cursor, Windsurf\nand VSCodium, in the palette. Type a few letters of a project's name or path\nand Return opens it in the editor you last used it in, or in the default\neditor you pick in Settings; \u2318K opens it in another editor you have or\ncopies its path. The projects you open from here\nrank higher, and they show up in the palette's own results too.",
+      "description": "The folders and workspaces you opened lately in VS Code, Cursor, Windsurf,\nVSCodium, VS Code Insiders and Zed, in the palette. Type a few letters of a project's name or path\nand Return opens it in the editor you last used it in, or in the default\neditor you pick in Settings; \u2318K opens it in another editor you have or\ncopies its path. The projects you open from here\nrank higher, and they show up in the palette's own results too.",
       "facts": [
         {
           "label": "How it finds projects",
-          "text": "VS Code, Cursor, Windsurf and VSCodium each keep their recently opened list in `state.vscdb` under `~/Library/Application Support/<Editor>/User/globalStorage`. The plugin reads its `history.recentlyOpenedPathsList` entry, up to 30 from each editor, and lists each folder or workspace once. VS Code 1.118 and later keep this list in `~/.vscode-shared/sharedStorage/state.vscdb` instead, which is read too."
+          "text": "VS Code, Cursor, Windsurf and VSCodium each keep their recently opened list in `state.vscdb` under `~/Library/Application Support/<Editor>/User/globalStorage`. The plugin reads its `history.recentlyOpenedPathsList` entry, up to 30 from each editor, and lists each folder or workspace once. VS Code 1.118 and later keep this list in `~/.vscode-shared/sharedStorage/state.vscdb` instead, which is read too, and the same shared folder is read for each fork (`~/.cursor-shared`, `~/.windsurf-shared`, `~/.vscode-oss-shared`, `~/.vscode-insiders-shared`) for when they pick up that change. Zed keeps its recent workspaces in `~/Library/Application Support/Zed/db/0-stable/db.sqlite` (`0-preview` for Zed Preview); the plugin reads the local ones from its `workspaces` table, and a workspace of several folders is listed by its first."
         },
         {
           "label": "Settings",
@@ -1665,7 +1680,7 @@
         },
         {
           "label": "Needs",
-          "text": "running `sqlite3` (part of macOS) in read-only mode on each editor's `state.vscdb`, the editors' storage folders under Application Support and VS Code's `~/.vscode-shared/sharedStorage`, opening links and folders in any app (to hand a folder to your default editor), and the list of installed apps (to show which editors you have). Stackbar 0.22.0 or later."
+          "text": "running `sqlite3` (part of macOS) in read-only mode on each editor's `state.vscdb` and Zed's `db.sqlite`, the editors' storage folders under Application Support and their shared folders in your home folder, opening links and folders in any app (to hand a folder to your default editor), and the list of installed apps (to show which editors you have). Stackbar 0.22.0 or later."
         },
         {
           "label": "Surfaces",
@@ -1680,7 +1695,7 @@
           "text": "single files and remote (SSH, container) projects."
         }
       ],
-      "version": "1.5.0"
+      "version": "1.6.0"
     },
     "io.navbytes.stackbar.plugins.script-commands": {
       "changes": [
@@ -3392,6 +3407,12 @@
           "dark": "Productivity/shots/io.navbytes.stackbar.plugins.browser-tabs/1.2.1/dark/panel.png",
           "light": "Productivity/shots/io.navbytes.stackbar.plugins.browser-tabs/1.2.1/light/panel.png"
         }
+      },
+      "1.3.0": {
+        "panel": {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.browser-tabs/1.3.0/dark/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.browser-tabs/1.3.0/light/panel.png"
+        }
       }
     },
     "io.navbytes.stackbar.plugins.calculator": {
@@ -4311,6 +4332,12 @@
         "panel": {
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.recent-projects/1.5.0/dark/panel.png",
           "light": "Developer/shots/io.navbytes.stackbar.plugins.recent-projects/1.5.0/light/panel.png"
+        }
+      },
+      "1.6.0": {
+        "panel": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.recent-projects/1.6.0/dark/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.recent-projects/1.6.0/light/panel.png"
         }
       }
     },
@@ -5773,6 +5800,22 @@
         {
           "dark": "Productivity/shots/io.navbytes.stackbar.plugins.browser-tabs/1.2.1/dark/previews/browsers/panel.png",
           "light": "Productivity/shots/io.navbytes.stackbar.plugins.browser-tabs/1.2.1/light/previews/browsers/panel.png",
+          "name": "browsers",
+          "surface": "panel",
+          "title": "Safari, Chrome, Arc, Brave and Edge in one list"
+        }
+      ],
+      "1.3.0": [
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.browser-tabs/1.3.0/dark/previews/hero/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.browser-tabs/1.3.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Every tab, a few letters away"
+        },
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.browser-tabs/1.3.0/dark/previews/browsers/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.browser-tabs/1.3.0/light/previews/browsers/panel.png",
           "name": "browsers",
           "surface": "panel",
           "title": "Safari, Chrome, Arc, Brave and Edge in one list"
@@ -7281,6 +7324,22 @@
         {
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.recent-projects/1.5.0/dark/previews/editors/settings.png",
           "light": "Developer/shots/io.navbytes.stackbar.plugins.recent-projects/1.5.0/light/previews/editors/settings.png",
+          "name": "editors",
+          "surface": "settings",
+          "title": "Open projects in the editor you prefer"
+        }
+      ],
+      "1.6.0": [
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.recent-projects/1.6.0/dark/previews/hero/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.recent-projects/1.6.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Your projects, a few letters away"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.recent-projects/1.6.0/dark/previews/editors/settings.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.recent-projects/1.6.0/light/previews/editors/settings.png",
           "name": "editors",
           "surface": "settings",
           "title": "Open projects in the editor you prefer"
