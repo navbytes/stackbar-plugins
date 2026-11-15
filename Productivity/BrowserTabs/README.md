@@ -4,16 +4,21 @@ Your open browser tabs and your bookmarks in the palette. Search Browser
 Tabs lists every tab in Safari, Chrome, Arc, Brave and Edge while they run;
 type part of a title or address and Return switches to it (⌘W closes it,
 ⌘⇧C copies the link). Search Bookmarks finds the bookmarks Chrome, Brave,
-Edge and Vivaldi keep, and opens one in its browser.
+Edge and Vivaldi keep in every profile, and opens one in its browser.
 
 - **Needs:** running `osascript` to read and switch tabs (macOS asks once to
   let Stackbar control each browser), `cat` to read each Chromium browser's
-  `Bookmarks` file in its profile folder, and the list of running apps, so a
+  `Local State` and each profile's `Bookmarks` file in its folder, and the list of running apps, so a
   browser that isn't open is never started. Stackbar 0.35.0 or later.
 - **Surfaces:** panel (the open tabs).
 - **Commands:** Search Browser Tabs, Search Bookmarks.
 - **Leaves out:** Safari's bookmarks, which macOS keeps behind Full Disk
-  Access, and browser profiles other than the default one.
+  Access, and Arc's sidebar.
+
+## What's new in 1.3.0
+
+- Search Bookmarks reads every browser profile, not just the first one. If you use Chrome, Brave, Edge or Vivaldi with a second profile (a work sign-in, say), its bookmarks show up too, with the profile's name beside each one. Stackbar asks you to approve the plugin again, because it now reads the browser's whole folder instead of one profile.
+- A very large bookmark set no longer loses bookmarks quietly. Up to 20,000 are kept (it was 5,000 per browser), and past that the panel says how many were left out.
 
 ## What's new in 1.2.1
 

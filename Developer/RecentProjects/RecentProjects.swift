@@ -2,41 +2,60 @@ import StackbarKit
 import Foundation
 
 /// The folders and workspaces you opened lately in VS Code, Cursor,
-/// Windsurf and VSCodium, in the palette: type a few letters of the project
-/// and Return opens it in the editor you last used it in, or in the default
-/// editor picked in Settings (Zed, Xcode, Sublime Text, a JetBrains IDE…).
+/// Windsurf, VSCodium and Zed, in the palette: type a few letters of the
+/// project and Return opens it in the editor you last used it in, or in the
+/// default editor picked in Settings (Xcode, Sublime Text, a JetBrains IDE…).
 ///
-/// Each editor keeps its recent list in a small database in Application
-/// Support; Stackbar reads it with `sqlite3` in read-only mode, so the
-/// editor's own files are never changed.
+/// Each editor keeps its recent list in a small database of its own;
+/// Stackbar reads it with `sqlite3` in read-only mode, so the editor's own
+/// files are never changed.
 @main
 final class RecentProjects: StackbarPlugin {
     struct Editor: Equatable, Sendable {
+        /// Where the editor keeps its recent list.
+        enum Store: Equatable, Sendable {
+            /// The VS Code family: `state.vscdb`, key
+            /// `history.recentlyOpenedPathsList`.
+            case vscode
+            /// Zed: `db.sqlite`, table `workspaces`, column `paths`.
+            case zed
+        }
+
         var name: String
         var bundleID: String
-        /// The folders that hold a `state.vscdb` with the recent list,
-        /// read in order: VS Code 1.118 moved it from Application Support to
-        /// `~/.vscode-shared/sharedStorage`, so both are read.
+        /// The folders that hold the recent list, read in order. VS Code
+        /// 1.118 moved it from Application Support to
+        /// `~/<dataFolderName>-shared/sharedStorage`, so the VS Code family
+        /// has both: forks pick up the move when they rebase on 1.118.
         var folders: [String]
-        var scheme: String
+        /// The editor's own link (`vscode://file/…`); nil opens the folder
+        /// with the app, as Finder's Open With does.
+        var scheme: String?
+        var store: Store
 
-        init(name: String, bundleID: String, folders: [String], scheme: String) {
+        init(name: String, bundleID: String, folders: [String], scheme: String?, store: Store = .vscode) {
             self.name = name
             self.bundleID = bundleID
             self.folders = folders
             self.scheme = scheme
+            self.store = store
         }
 
-        init(name: String, bundleID: String, folder: String, scheme: String) {
-            self.init(name: name, bundleID: bundleID, folders: [folder], scheme: scheme)
+        /// A VS Code fork: its shared folder (`~/.cursor-shared`), then its
+        /// Application Support one.
+        static func vscode(_ name: String, _ bundleID: String, dataFolder: String, support: String, scheme: String) -> Editor {
+            Editor(name: name, bundleID: bundleID, folders: ["~/\(dataFolder)-shared/sharedStorage", "~/Library/Application Support/\(support)/User/globalStorage"], scheme: scheme)
         }
     }
 
     static let editors: [Editor] = [
-        Editor(name: "VS Code", bundleID: "com.microsoft.VSCode", folders: ["~/.vscode-shared/sharedStorage", "~/Library/Application Support/Code/User/globalStorage"], scheme: "vscode"),
-        Editor(name: "Cursor", bundleID: "com.todesktop.230313mzl4w4u92", folder: "~/Library/Application Support/Cursor/User/globalStorage", scheme: "cursor"),
-        Editor(name: "Windsurf", bundleID: "com.exafunction.windsurf", folder: "~/Library/Application Support/Windsurf/User/globalStorage", scheme: "windsurf"),
-        Editor(name: "VSCodium", bundleID: "com.vscodium", folder: "~/Library/Application Support/VSCodium/User/globalStorage", scheme: "vscodium"),
+        .vscode("VS Code", "com.microsoft.VSCode", dataFolder: ".vscode", support: "Code", scheme: "vscode"),
+        .vscode("Cursor", "com.todesktop.230313mzl4w4u92", dataFolder: ".cursor", support: "Cursor", scheme: "cursor"),
+        .vscode("Windsurf", "com.exafunction.windsurf", dataFolder: ".windsurf", support: "Windsurf", scheme: "windsurf"),
+        .vscode("VSCodium", "com.vscodium", dataFolder: ".vscode-oss", support: "VSCodium", scheme: "vscodium"),
+        .vscode("VS Code Insiders", "com.microsoft.VSCodeInsiders", dataFolder: ".vscode-insiders", support: "Code - Insiders", scheme: "vscode-insiders"),
+        Editor(name: "Zed", bundleID: "dev.zed.Zed", folders: ["~/Library/Application Support/Zed/db/0-stable"], scheme: nil, store: .zed),
+        Editor(name: "Zed Preview", bundleID: "dev.zed.Zed-Preview", folders: ["~/Library/Application Support/Zed/db/0-preview"], scheme: nil, store: .zed),
     ]
 
     /// An app a project can open in. The VS Code family opens through its
@@ -52,9 +71,6 @@ final class RecentProjects: StackbarPlugin {
 
     /// The editors Settings offers as the default, when installed.
     static let apps: [App] = editors.map { App(name: $0.name, bundleID: $0.bundleID, scheme: $0.scheme) } + [
-        App(name: "VS Code Insiders", bundleID: "com.microsoft.VSCodeInsiders", scheme: "vscode-insiders"),
-        App(name: "Zed", bundleID: "dev.zed.Zed"),
-        App(name: "Zed Preview", bundleID: "dev.zed.Zed-Preview"),
         App(name: "Xcode", bundleID: "com.apple.dt.Xcode"),
         App(name: "Sublime Text", bundleID: "com.sublimetext.4"),
         App(name: "Nova", bundleID: "com.panic.Nova"),
@@ -77,8 +93,8 @@ final class RecentProjects: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.recent-projects",
         name: "Recent Projects",
-        version: "1.5.0",
-        summary: "Open the projects you used lately in VS Code, Cursor, Windsurf or VSCodium from the palette.",
+        version: "1.6.0",
+        summary: "Open the projects you used lately in VS Code, Cursor, Windsurf, VSCodium or Zed from the palette.",
         surfaces: [.panel, .settings],
         triggers: [.launch, .minutes(5), .wake],
         capabilities: [
@@ -167,7 +183,12 @@ final class RecentProjects: StackbarPlugin {
             for folder in editor.folders {
                 let result: RunResult
                 do {
-                    result = try await Stackbar.run("sqlite3", ["-readonly", "state.vscdb", "SELECT value FROM ItemTable WHERE key = 'history.recentlyOpenedPathsList'"], workingDirectory: folder, timeout: .seconds(10))
+                    switch editor.store {
+                    case .vscode:
+                        result = try await Stackbar.run("sqlite3", ["-readonly", "state.vscdb", "SELECT value FROM ItemTable WHERE key = 'history.recentlyOpenedPathsList'"], workingDirectory: folder, timeout: .seconds(10))
+                    case .zed:
+                        result = try await Self.readZed(in: folder)
+                    }
                 } catch {
                     // An editor that isn't installed has no folder: the run is
                     // refused and it is skipped. Any other refusal is a failed read.
@@ -179,8 +200,13 @@ final class RecentProjects: StackbarPlugin {
                     continue
                 }
                 read = true
-                list += Self.parse(result.text, editor: editor.name)
-                remote += Self.remoteCount(result.text)
+                switch editor.store {
+                case .vscode:
+                    list += Self.parse(result.text, editor: editor.name)
+                    remote += Self.remoteCount(result.text)
+                case .zed:
+                    list += Self.parseZed(result.text, editor: editor.name)
+                }
             }
             // A folder that couldn't be read counts only when no other one
             // of this editor's could: VS Code before 1.118 has no shared one.
@@ -233,6 +259,37 @@ final class RecentProjects: StackbarPlugin {
             if let uri = entry.folderUri, let path = localPath(uri) { return Project(path: path, kind: .folder, editor: editor) }
             if let uri = entry.workspace?.configPath, let path = localPath(uri) { return Project(path: path, kind: .workspace, editor: editor) }
             return nil
+        }
+    }
+
+    /// Zed's recent workspaces, newest first, local ones only. Zed renamed
+    /// `ssh_connection_id` to `remote_connection_id` in 2025, so a database
+    /// either one wrote is read; a Zed that hasn't run yet has no file,
+    /// which reads as an empty list.
+    static func readZed(in folder: String) async throws -> RunResult {
+        func query(_ remote: String) -> String {
+            "SELECT paths FROM workspaces WHERE paths IS NOT NULL AND paths != '' AND \(remote) IS NULL ORDER BY timestamp DESC LIMIT 200"
+        }
+        var result = try await Stackbar.run("sqlite3", ["-readonly", "-json", "db.sqlite", query("remote_connection_id")], workingDirectory: folder, timeout: .seconds(10))
+        if !result.succeeded, result.errorText.contains("no such column") {
+            result = try await Stackbar.run("sqlite3", ["-readonly", "-json", "db.sqlite", query("ssh_connection_id")], workingDirectory: folder, timeout: .seconds(10))
+        }
+        return result
+    }
+
+    /// `sqlite3 -json` rows of Zed's `paths` column: one workspace each,
+    /// its folders one a line. A workspace of several folders is listed by
+    /// its first; files and relative paths are left out.
+    static func parseZed(_ text: String, editor: String) -> [Project] {
+        struct Row: Decodable { var paths: String? }
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        // No rows prints nothing at all, not "[]".
+        guard !trimmed.isEmpty, let data = trimmed.data(using: .utf8),
+              let rows = try? JSONDecoder().decode([Row].self, from: data) else { return [] }
+        return rows.compactMap { row in
+            guard let first = row.paths?.split(separator: "\n").first.map(String.init),
+                  first.hasPrefix("/") else { return nil }
+            return Project(path: first, kind: .folder, editor: editor)
         }
     }
 
@@ -353,7 +410,7 @@ final class RecentProjects: StackbarPlugin {
                 self.results = self.matches(invocation.text)
             }) { _ in
                 if self.projects.isEmpty {
-                    ContentUnavailableView("No recent projects", symbol: "folder", message: "Open a folder in VS Code, Cursor, Windsurf or VSCodium and it shows up here.")
+                    ContentUnavailableView("No recent projects", symbol: "folder", message: "Open a folder in VS Code, Cursor, Windsurf, VSCodium or Zed and it shows up here.")
                 } else if self.results.isEmpty {
                     ContentUnavailableView("No project matches", symbol: "magnifyingglass", message: "Type part of a project's name or path.")
                 } else {
@@ -372,7 +429,7 @@ final class RecentProjects: StackbarPlugin {
         PanelHeader("Recent Projects", subtitle: found.isEmpty ? "No editor found yet" : found.joined(separator: " · "), symbol: "folder.badge.gearshape", theme: theme)
         if let first = problems.first { Banner("Couldn't read " + first, theme: .warning) }
         if projects.isEmpty {
-            EmptyState("Open a project in your editor", symbol: "folder", message: "Folders and workspaces you open in VS Code, Cursor, Windsurf or VSCodium show up here and in the palette.", theme: theme)
+            EmptyState("Open a project in your editor", symbol: "folder", message: "Folders and workspaces you open in VS Code, Cursor, Windsurf, VSCodium or Zed show up here and in the palette.", theme: theme)
         } else {
             List(projects, searchable: projects.count > 8) { project in self.row(project) }
         }

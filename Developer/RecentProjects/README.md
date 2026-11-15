@@ -1,7 +1,7 @@
 # Recent Projects
 
-The folders and workspaces you opened lately in VS Code, Cursor, Windsurf
-and VSCodium, in the palette. Type a few letters of a project's name or path
+The folders and workspaces you opened lately in VS Code, Cursor, Windsurf,
+VSCodium, VS Code Insiders and Zed, in the palette. Type a few letters of a project's name or path
 and Return opens it in the editor you last used it in, or in the default
 editor you pick in Settings; ⌘K opens it in another editor you have or
 copies its path. The projects you open from here
@@ -13,7 +13,12 @@ rank higher, and they show up in the palette's own results too.
   reads its `history.recentlyOpenedPathsList` entry, up to 30 from each editor,
   and lists each folder or workspace once. VS Code 1.118 and later keep this
   list in `~/.vscode-shared/sharedStorage/state.vscdb` instead, which is read
-  too.
+  too, and the same shared folder is read for each fork (`~/.cursor-shared`,
+  `~/.windsurf-shared`, `~/.vscode-oss-shared`, `~/.vscode-insiders-shared`)
+  for when they pick up that change. Zed keeps its recent workspaces in
+  `~/Library/Application Support/Zed/db/0-stable/db.sqlite` (`0-preview` for
+  Zed Preview); the plugin reads the local ones from its `workspaces` table,
+  and a workspace of several folders is listed by its first.
 - **Settings:** the default editor. "Where it was last opened" (the
   default) keeps each project in the editor it came from; or pick any
   installed editor: the VS Code family, Zed, Xcode, Sublime Text, Nova,
@@ -21,14 +26,20 @@ rank higher, and they show up in the palette's own results too.
   Android Studio. Workspace files (`.code-workspace`) still open in a VS
   Code-style editor.
 - **Needs:** running `sqlite3` (part of macOS) in read-only mode on each
-  editor's `state.vscdb`, the editors' storage folders under Application
-  Support and VS Code's `~/.vscode-shared/sharedStorage`, opening links and folders in any app (to hand a folder to your
+  editor's `state.vscdb` and Zed's `db.sqlite`, the editors' storage folders
+  under Application Support and their shared folders in your home folder, opening links and folders in any app (to hand a folder to your
   default editor), and the list of installed apps (to show which editors
   you have). Stackbar 0.22.0 or later.
 - **Surfaces:** panel (your recent projects, searchable) and settings.
 - **Commands:** Search Recent Projects, which also feeds the palette's
   results.
 - **Leaves out:** single files and remote (SSH, container) projects.
+
+## What's new in 1.6.0
+
+- Zed and Zed Preview projects show up, alongside the VS Code family. Return opens them in Zed.
+- VS Code Insiders' recent projects show up too. It used to be offered only as the default editor.
+- Cursor, Windsurf and VSCodium keep working when they adopt the change that VS Code 1.118 made, which moved the recent list into a shared folder in your home folder. Raycast's VS Code extension broke on exactly that change. Stackbar asks you to approve the plugin again, because it reads those folders now.
 
 ## What's new in 1.5.0
 
