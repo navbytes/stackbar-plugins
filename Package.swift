@@ -41,7 +41,7 @@ let plugins: [(category: String, name: String, target: String)] = categories.fla
 }
 
 /// The plugins Tests/PluginTests runs.
-let testedPlugins = ["AppSwitcher", "Applications", "AskAI", "BrowserTabs", "Calculator", "Clipboard", "ColorPicker", "Dictionary", "Emoji", "FileSearch", "Jira", "KillProcess", "Linear", "LiteLLM", "MenuSearch", "Music", "Notes", "OpenRouter", "PRCockpit", "Pomodoro", "Ports", "Quicklinks", "RecentProjects", "ScriptCommands", "Snippets", "StayAwake", "SystemCommands", "SystemMonitor", "Timers", "Todo", "Translate", "UpNext", "WindowSwitcher", "Windows", "WorldClock"]
+let testedPlugins = ["AppSwitcher", "Applications", "AskAI", "BrowserTabs", "Calculator", "Clipboard", "ColorPicker", "Dictionary", "Emoji", "FileSearch", "Jira", "KillProcess", "Linear", "LiteLLM", "MenuSearch", "Music", "Notes", "OpenRouter", "PRCockpit", "Pomodoro", "Ports", "Quicklinks", "RecentProjects", "ScriptCommands", "Slack", "Snippets", "StayAwake", "SystemCommands", "SystemMonitor", "Timers", "Todo", "Translate", "UpNext", "WindowSwitcher", "Windows", "WorldClock"]
 
 /// The Stackbar repository: store.json's `stackbar`, or an organization's
 /// store.override.json pointing at its private copy (which keeps upstream's

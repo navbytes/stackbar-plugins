@@ -58,6 +58,7 @@ An update that asks for something new waits for your approval.
 | [Notes](Productivity/Notes) | Productivity | A floating Markdown note pad on a hotkey, with checklists, pins and search. |
 | [Pomodoro](Productivity/Pomodoro) | Productivity | A focus timer with presets, a progress ring, tags, long breaks and a week of focus in a chart. |
 | [Quicklinks](Productivity/Quicklinks) | Productivity | Open links and folders by name, with placeholders filled in. |
+| [Slack](Productivity/Slack) | Productivity | Unread Slack conversations in the menu bar; search messages, jump to channels, send messages, set your status and snooze from the palette. |
 | [Snippets](Productivity/Snippets) | Productivity | Paste text by name, with placeholders filled in. |
 | [Timers](Productivity/Timers) | Productivity | Countdown timers from the palette, several at once, the soonest in the menu bar. |
 | [Todo](Productivity/Todo) | Productivity | A calm to-do list that understands dates as you type them, kept in Apple Reminders so it's on all your devices. |
