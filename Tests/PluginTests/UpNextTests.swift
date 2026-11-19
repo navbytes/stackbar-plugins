@@ -245,6 +245,9 @@ final class UpNextTests: XCTestCase {
         guard case .message = await supervisor.runCommand("join-event", arguments: ["event": "soon"], source: .palette) else {
             return XCTFail("join-event joins the meeting")
         }
+        // The open is a host call the command doesn't wait for: on a busy
+        // runner it lands a moment after the command's answer.
+        _ = await waitUntil(5) { !host.opened.all.isEmpty }
         XCTAssertEqual(host.opened.all.map(\.url), ["zoommtg://acme.zoom.us/join?action=join&confno=111222333"])
         try await turnOn(supervisor, "Open the call when it starts")
         await reread(supervisor)

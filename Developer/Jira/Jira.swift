@@ -14,7 +14,7 @@ final class Jira: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.jira",
         name: "Jira",
-        version: "1.6.1",
+        version: "1.7.0",
         summary: "Your assigned Jira issues: change status, assign, comment and watch, with alerts and new issues from the palette.",
         surfaces: [.menuBar, .panel, .widget, .settings],
         triggers: [.launch, .minutes(5), .wake],
@@ -269,9 +269,13 @@ final class Jira: StackbarPlugin {
     /// keystroke, can keep a recent list.
     var refreshed: Date?
 
+    /// A view opening answers from what is loaded and refreshes behind it,
+    /// stale-while-revalidate: the view redraws when the refresh lands, so
+    /// only the very first load keeps it waiting on the network.
     func refresh(maxAge: TimeInterval) async throws {
         if loaded, let at = refreshed, Date().timeIntervalSince(at) < (problem == nil ? maxAge : max(maxAge, 30)) { return }
-        try await Stackbar.refresh()
+        guard loaded else { return try await Stackbar.refresh() }
+        if !Stackbar.isRefreshing { Task { try? await Stackbar.refresh() } }
     }
 
     func refresh() async throws {

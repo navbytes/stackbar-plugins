@@ -35,10 +35,12 @@ final class BrowserTabs: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.browser-tabs",
         name: "Browser Tabs",
-        version: "1.3.0",
+        version: "1.4.0",
         summary: "Switch to any open tab in Safari, Chrome, Arc, Brave or Edge, and search your bookmarks.",
         surfaces: [.panel],
-        triggers: [.launch],
+        // Leaving a browser is when its tabs change: they're read again then, in
+        // the background, so the next search starts from a fresh list.
+        triggers: [.launch, .frontApp],
         capabilities: [
             .run(commands: ["osascript", "cat"]),
             // Which browsers are running, so a browser that isn't is never
@@ -46,7 +48,7 @@ final class BrowserTabs: StackbarPlugin {
             .apps,
             .files(paths: browsers.compactMap(\.dataFolder)),
         ],
-        minimumStackbar: "0.35.0",
+        minimumStackbar: "0.36.0",
         homepage: "https://github.com/navbytes/stackbar-plugins/tree/main/Productivity/BrowserTabs",
         accent: .cyan,
         symbol: "rectangle.stack.fill"
@@ -113,6 +115,14 @@ final class BrowserTabs: StackbarPlugin {
 
     var tabs: [Tab] = []
     var tabsReadAt: Date?
+    /// The read running now: a search, a switch and a refresh that want the
+    /// tabs at once share it instead of each asking every browser.
+    var tabsReading: Task<Bool, Never>?
+    /// What the open Search Browser Tabs view has typed, so a read that lands
+    /// later shows the matches for it.
+    var tabQuery = ""
+    /// The app that was in front at the last `.frontApp`.
+    var frontApp: String?
     var bookmarks: [Bookmark] = []
     var bookmarksReadAt: Date?
     var problems: [String] = []
@@ -122,13 +132,41 @@ final class BrowserTabs: StackbarPlugin {
 
     // MARK: Tabs
 
-    /// Prints `window⇥tab⇥title⇥url` a line for every tab. Only run for a
-    /// browser that is running, so it never starts one.
     /// One line per tab: window, index, title and URL, split by tab
     /// characters. The separators are made before `tell`: inside it, `tab`
     /// is the browser's tab class, which joins as the word "tab", so no line
     /// would split and every browser would look empty.
+    ///
+    /// Titles and addresses come in two Apple Events for the whole browser
+    /// (`… of every tab of every window`, one list per window), not two per
+    /// tab: on a Mac measured 2026-11-19 that took a Chrome read from about
+    /// 340 ms to 215 ms at 8 tabs, and the gap grows with every tab. The
+    /// lines are joined after `end tell`, which costs the browser nothing.
+    /// Only run for a browser that is running, so it never starts one.
     static func listScript(_ browser: Browser) -> String {
+        let title = browser.safari ? "name" : "title"
+        return """
+        set sep to character id 9
+        set nl to character id 10
+        set out to ""
+        tell application "\(browser.name)"
+            set allTitles to \(title) of every tab of every window
+            set allURLs to URL of every tab of every window
+        end tell
+        repeat with w from 1 to (count of allTitles)
+            set titles to item w of allTitles
+            set addresses to item w of allURLs
+            repeat with i from 1 to (count of titles)
+                set out to out & w & sep & i & sep & ((item i of titles) as text) & sep & ((item i of addresses) as text) & nl
+            end repeat
+        end repeat
+        return out
+        """
+    }
+
+    /// The same lines read a tab at a time: for a browser whose dictionary
+    /// refuses the bulk form above.
+    static func perTabListScript(_ browser: Browser) -> String {
         let title = browser.safari ? "name of t" : "title of t"
         return """
         set sep to character id 9
@@ -144,6 +182,27 @@ final class BrowserTabs: StackbarPlugin {
             end repeat
         end tell
         return out
+        """
+    }
+
+    /// A Swift string as an AppleScript string literal.
+    static func quoted(_ text: String) -> String {
+        "\"" + text.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"") + "\""
+    }
+
+    /// Switches only when the tab read last is still in that slot with that
+    /// page, and says `moved` otherwise, so a switch needs no fresh read of
+    /// every tab first. Window numbers follow the browser's window order,
+    /// which changes as windows come forward: then the caller reads again.
+    static func checkedFocusScript(_ tab: Tab, safari: Bool) -> String {
+        """
+        tell application "\(tab.browser)"
+            if (count of windows) < \(tab.window) then return "moved"
+            if (count of tabs of window \(tab.window)) < \(tab.index) then return "moved"
+            if (URL of tab \(tab.index) of window \(tab.window)) as text is not \(quoted(tab.url)) then return "moved"
+        end tell
+        \(focusScript(tab, safari: safari))
+        return "ok"
         """
     }
 
@@ -188,11 +247,52 @@ final class BrowserTabs: StackbarPlugin {
         }
     }
 
-    /// False when the browsers couldn't be listed, so the tabs kept are older
-    /// than asked for.
+    /// How old the tabs may be before a search reads them again behind the
+    /// list it shows.
+    static let tabsFreshFor: TimeInterval = 2
+
+    /// Makes sure the tabs are read: at once when none have been read yet,
+    /// and not at all while the list is younger than `maxAge`. False when the
+    /// browsers couldn't be listed, so the tabs kept are older than asked for.
     @discardableResult
-    func loadTabs(force: Bool = false) async -> Bool {
-        if !force, let tabsReadAt, Date().timeIntervalSince(tabsReadAt) < 5 { return true }
+    func loadTabs(force: Bool = false, maxAge: TimeInterval = 5) async -> Bool {
+        if !force, let tabsReadAt, Date().timeIntervalSince(tabsReadAt) < maxAge { return true }
+        return await readTabs()
+    }
+
+    /// Reads every running browser's tabs. A read already running is shared,
+    /// unless `afterChange`: then the tabs changed since it started (a tab was
+    /// just closed), so a new read follows it.
+    @discardableResult
+    func readTabs(afterChange: Bool = false) async -> Bool {
+        if let running = tabsReading {
+            let read = await running.value
+            if !afterChange { return read }
+            // Someone else started the follow-up while this one waited.
+            if let next = tabsReading, next != running { return await next.value }
+        }
+        let task = Task { @MainActor in await self.readAllTabs() }
+        tabsReading = task
+        let read = await task.value
+        if tabsReading == task { tabsReading = nil }
+        return read
+    }
+
+    /// Stale-while-revalidate, as Raycast's `useCachedPromise` does it: a
+    /// search answers from the tabs already read and, when they are older
+    /// than `tabsFreshFor`, reads again behind them. The open view then
+    /// redraws with the matches for what is typed by then.
+    func revalidateTabs() {
+        guard tabsReading == nil else { return }
+        if let tabsReadAt, Date().timeIntervalSince(tabsReadAt) < Self.tabsFreshFor { return }
+        Task { @MainActor in
+            await self.readTabs()
+            self.tabResults = Self.matches(self.tabQuery, in: self.tabs, title: \.lowerTitle, url: \.lowerURL)
+            Stackbar.redraw()
+        }
+    }
+
+    private func readAllTabs() async -> Bool {
         var found: [Tab] = []
         var failed: [String] = []
         let running: Set<String>
@@ -208,8 +308,14 @@ final class BrowserTabs: StackbarPlugin {
         let outcomes = await withTaskGroup(of: (Int, String?, String?).self) { group in
             for (position, browser) in Self.browsers.enumerated() where running.contains(browser.bundleID) {
                 group.addTask {
-                    guard let result = try? await Stackbar.run("osascript", ["-e", Self.listScript(browser)], timeout: .seconds(10)) else { return (position, nil, "it didn't answer") }
-                    return (position, result.succeeded ? result.text : nil, result.succeeded ? nil : result.errorText)
+                    let outcome = await Self.list(browser, script: Self.listScript(browser))
+                    // A browser that refuses the bulk form (not one that
+                    // refuses Stackbar) is read a tab at a time.
+                    if outcome.text == nil, let error = outcome.error, !Self.isAuthorization(error), error != Self.noAnswer {
+                        let again = await Self.list(browser, script: Self.perTabListScript(browser))
+                        return (position, again.text, again.error)
+                    }
+                    return (position, outcome.text, outcome.error)
                 }
             }
             var all: [(Int, String?, String?)] = []
@@ -220,10 +326,10 @@ final class BrowserTabs: StackbarPlugin {
             let browser = Self.browsers[position]
             if let text {
                 found += Self.parseTabs(text, browser: browser.name)
-            } else if let errorText, errorText.contains("-1743") || errorText.contains("Not authorized") {
+            } else if let errorText, Self.isAuthorization(errorText) {
                 failed.append("Allow Stackbar to control \(browser.name) in System Settings › Privacy & Security › Automation.")
             } else if let errorText {
-                failed.append("Couldn't read \(browser.name)'s tabs: \(errorText.split(separator: "\n").first.map(String.init) ?? "it didn't answer")")
+                failed.append("Couldn't read \(browser.name)'s tabs: \(errorText.split(separator: "\n").first.map(String.init) ?? Self.noAnswer)")
             }
         }
         tabs = found
@@ -232,11 +338,23 @@ final class BrowserTabs: StackbarPlugin {
         return true
     }
 
+    nonisolated static let noAnswer = "it didn't answer"
+
+    nonisolated static func isAuthorization(_ errorText: String) -> Bool {
+        errorText.contains("-1743") || errorText.contains("Not authorized")
+    }
+
+    /// One list script's output, or why there is none.
+    nonisolated static func list(_ browser: Browser, script: String) async -> (text: String?, error: String?) {
+        guard let result = try? await Stackbar.run("osascript", ["-e", script], timeout: .seconds(10)) else { return (nil, noAnswer) }
+        return result.succeeded ? (result.text, nil) : (nil, result.errorText)
+    }
+
     /// The tab as it is now, found by its page. Closing needs a sure match: the
     /// same slot with the same title, or the page's only tab. Switching takes
     /// the copy nearest the old place.
-    func current(_ tab: Tab, fresh: Bool) async throws -> Tab {
-        let read = await loadTabs(force: fresh)
+    func current(_ tab: Tab, fresh: Bool, maxAge: TimeInterval = 5) async throws -> Tab {
+        let read = await loadTabs(force: fresh, maxAge: maxAge)
         if fresh && !read { throw HostError("Couldn't check the tab. Try again.") }
         let pages = tabs.filter { $0.browser == tab.browser && $0.url == tab.url }
         let sameTitle = pages.filter { $0.title == tab.title }
@@ -257,10 +375,17 @@ final class BrowserTabs: StackbarPlugin {
         throw HostError("That tab has closed. Search your tabs again.")
     }
 
+    /// Switches to the tab as last read, checking in the same script that it
+    /// is still there; only when it moved are the tabs read again first.
     func focus(_ tab: Tab) async throws {
-        let tab = try await current(tab, fresh: false)
         let safari = Self.browsers.first { $0.name == tab.browser }?.safari ?? false
-        let result = try await Stackbar.run("osascript", ["-e", Self.focusScript(tab, safari: safari)], timeout: .seconds(10))
+        let first = try await Stackbar.run("osascript", ["-e", Self.checkedFocusScript(tab, safari: safari)], timeout: .seconds(10))
+        if first.succeeded, first.text.trimmingCharacters(in: .whitespacesAndNewlines) != "moved" { return }
+        if !first.succeeded, Self.isAuthorization(first.errorText) {
+            throw HostError("Allow Stackbar to control \(tab.browser) in System Settings › Privacy & Security › Automation.")
+        }
+        let moved = try await current(tab, fresh: false, maxAge: 0)
+        let result = try await Stackbar.run("osascript", ["-e", Self.focusScript(moved, safari: safari)], timeout: .seconds(10))
         guard result.succeeded else { throw HostError("Couldn't switch to the tab: \(result.errorText.prefix(160))") }
     }
 
@@ -268,7 +393,7 @@ final class BrowserTabs: StackbarPlugin {
         let tab = try await current(tab, fresh: true)
         let result = try await Stackbar.run("osascript", ["-e", Self.closeScript(tab)], timeout: .seconds(10))
         guard result.succeeded else { throw HostError("Couldn't close the tab: \(result.errorText.prefix(160))") }
-        await loadTabs(force: true)
+        await readTabs(afterChange: true)
     }
 
     // MARK: Bookmarks
@@ -406,7 +531,18 @@ final class BrowserTabs: StackbarPlugin {
     }
 
     func refresh() async throws {
-        await loadTabs(force: true)
+        if Stackbar.refreshReason == .frontApp {
+            // Read again only on leaving a browser, where tabs were opened or
+            // closed; other app switches cost nothing.
+            let front = (try? await Stackbar.runningApps())?.first(where: \.isActive)?.id
+            let left = frontApp
+            frontApp = front
+            if let left, left != front, Self.browsers.contains(where: { $0.bundleID == left }) {
+                await readTabs()
+            }
+            return
+        }
+        await readTabs(afterChange: true)
         await loadBookmarks(force: true)
     }
 
@@ -470,7 +606,10 @@ final class BrowserTabs: StackbarPlugin {
     var commands: [Command] {
         Command("tabs", title: "Search Browser Tabs", subtitle: "Switch to any open tab", symbol: "rectangle.stack", keywords: ["tab", "browser", "safari", "chrome", "arc", "switch"])
             .view(search: { invocation in
-                await self.loadTabs(force: invocation.text.isEmpty)
+                // Only the first read waits: after it the view answers from
+                // the tabs in hand at once and reads again behind them.
+                self.tabQuery = invocation.text
+                if self.tabsReadAt == nil { await self.readTabs() } else { self.revalidateTabs() }
                 self.tabResults = Self.matches(invocation.text, in: self.tabs, title: \.lowerTitle, url: \.lowerURL)
             }) { _ in
                 if self.tabResults.isEmpty {

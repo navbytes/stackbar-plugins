@@ -11,7 +11,7 @@ final class Ports: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.ports",
         name: "Ports",
-        version: "1.5.0",
+        version: "1.6.0",
         summary: "Which process is listening on which port, and a way to stop it.",
         surfaces: [.panel, .settings],
         triggers: [.launch, .every(.seconds(30))],
@@ -114,11 +114,23 @@ final class Ports: StackbarPlugin {
         loaded = true
     }
 
-    /// For views that ask on every keystroke: a list read in the last ten
-    /// seconds is as good as a new one.
+    /// For views, which ask on every keystroke: only the first scan keeps it waiting. After that it
+    /// answers from the ports in hand and, when they are older than 10 s,
+    /// runs lsof again behind them (stale-while-revalidate); the view
+    /// redraws when the scan lands.
     func loadIfStale() async {
-        if loadedAt.map({ Date().timeIntervalSince($0) > 10 }) ?? true { await load() }
+        guard let loadedAt else { return await load() }
+        guard !reloading, Date().timeIntervalSince(loadedAt) > 10 else { return }
+        reloading = true
+        Task {
+            await self.load()
+            self.reloading = false
+            Stackbar.redraw()
+        }
     }
+
+    /// A scan started behind a view is running.
+    var reloading = false
 
     /// Parses `lsof -F pcLn` output; one entry per process and port.
     static func parse(_ output: String) -> [Listener] {

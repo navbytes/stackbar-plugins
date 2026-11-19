@@ -15,7 +15,7 @@ final class Docker: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.docker",
         name: "Docker",
-        version: "1.10.1",
+        version: "1.11.0",
         summary: "Your containers with live CPU and memory, Compose projects, and start, stop, restart and logs a click away.",
         surfaces: [.menuBar, .panel, .window, .widget, .settings],
         triggers: [.launch, .every(.seconds(15)), .wake],
@@ -213,11 +213,23 @@ final class Docker: StackbarPlugin {
         if let watched, Date() < followLogsUntil, containers.contains(where: { $0.id == watched }) { await loadLogs(watched) }
     }
 
-    /// For views that ask on every keystroke (and filter the list locally): a
-    /// list read in the last few seconds is as good as a new one.
+    /// For views, which ask on every keystroke and filter the list locally: only the first list keeps it waiting. After that it
+    /// answers from the list in hand and, when that is older than 5 s, asks
+    /// docker again behind it (stale-while-revalidate); the view redraws
+    /// when the answer lands. Docker Desktop can take seconds to answer.
     func loadIfStale() async {
-        if !loaded || Date().timeIntervalSince(lastSlowCheck) > 5 { await load() }
+        guard loaded else { return await load() }
+        guard !reloading, Date().timeIntervalSince(lastSlowCheck) > 5 else { return }
+        reloading = true
+        Task {
+            await self.load()
+            self.reloading = false
+            Stackbar.redraw()
+        }
     }
+
+    /// A list read behind a view is running.
+    var reloading = false
 
     func load() async {
         lastSlowCheck = Date()

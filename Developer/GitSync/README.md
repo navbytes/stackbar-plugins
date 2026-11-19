@@ -65,6 +65,10 @@ up the merged ones.
 A widget with what's behind and unpushed, and an Update button.
 <!-- preview: widget -->
 
+## What's new in 1.3.0
+
+- The repository and worktree views open at once. They show your repositories as last checked and check them again in the background when that was over a minute ago, which takes seconds with many repositories; the list updates when the check lands.
+
 ## What's new in 1.2.1
 
 - An agent asking for status before the first load waits for one fresh refresh instead of racing the one already running. Needs Stackbar 0.40.1, where clicks no longer wait for a refresh.

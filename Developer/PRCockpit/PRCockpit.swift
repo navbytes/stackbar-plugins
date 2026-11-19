@@ -25,7 +25,7 @@ final class PRCockpit: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.pr-cockpit",
         name: "PR Cockpit",
-        version: "1.18.1",
+        version: "1.19.0",
         summary: "Your pull requests, reviews and issues with CI and review state, and your repositories a keystroke away.",
         surfaces: [.menuBar, .panel, .window, .widget, .settings],
         triggers: [.launch, .every(.seconds(20)), .wake],
@@ -1183,6 +1183,24 @@ final class PRCockpit: StackbarPlugin {
 
     /// The inbox for the palette, which asks on every keystroke. A fetch less
     /// than `maxAge` old is kept, and a failed one waits 30 s.
+    /// Lists a view is reading again behind what it shows.
+    var reloadingViews: Set<String> = []
+
+    /// Stale-while-revalidate for a view that asks on every keystroke: only
+    /// the first `load` keeps it waiting on GitHub. After that the view
+    /// answers from what is in hand, `load` (which skips a recent fetch)
+    /// runs behind it, and the view redraws when it lands.
+    func behindView(_ list: String, loaded: Bool, _ load: @escaping @MainActor () async -> Void) async {
+        guard loaded else { return await load() }
+        guard !reloadingViews.contains(list) else { return }
+        reloadingViews.insert(list)
+        Task {
+            await load()
+            self.reloadingViews.remove(list)
+            Stackbar.redraw()
+        }
+    }
+
     func loadInbox(maxAge: TimeInterval) async {
         if let at = inboxFetched, Date().timeIntervalSince(at) < (inboxError == nil ? maxAge : max(maxAge, 30)) { return }
         guard (try? await loadEnterpriseServer()) == true else {
@@ -2263,7 +2281,7 @@ final class PRCockpit: StackbarPlugin {
                 }
             }
         Command("issues", title: "My GitHub Issues", subtitle: "Open issues assigned to you", symbol: "smallcircle.filled.circle", keywords: ["github", "issue", "assigned", "gh"])
-            .view(search: { _ in await self.loadIssues(maxAge: 30) }) { _ in
+            .view(search: { _ in await self.behindView("issues", loaded: self.issuesFetched != nil) { await self.loadIssues(maxAge: 30) } }) { _ in
                 if let problem = self.issuesError {
                     ContentUnavailableView("Can't reach GitHub", symbol: "exclamationmark.triangle", message: problem)
                 } else if self.shownIssues.isEmpty {
@@ -2273,7 +2291,7 @@ final class PRCockpit: StackbarPlugin {
                 }
             }
         Command("inbox", title: "GitHub Inbox", subtitle: "Mentions, review requests and everything GitHub notifies you about", symbol: "tray", keywords: ["github", "notifications", "mentions", "inbox", "gh"])
-            .view(search: { _ in await self.loadInbox(maxAge: 30) }) { _ in
+            .view(search: { _ in await self.behindView("inbox", loaded: self.inboxFetched != nil) { await self.loadInbox(maxAge: 30) } }) { _ in
                 if let inboxError = self.inboxError, self.inbox.isEmpty {
                     ContentUnavailableView("Can't read your GitHub inbox", symbol: "exclamationmark.triangle", message: inboxError)
                 } else if self.inbox.isEmpty {

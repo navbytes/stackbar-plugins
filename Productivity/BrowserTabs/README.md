@@ -9,11 +9,18 @@ Edge and Vivaldi keep in every profile, and opens one in its browser.
 - **Needs:** running `osascript` to read and switch tabs (macOS asks once to
   let Stackbar control each browser), `cat` to read each Chromium browser's
   `Local State` and each profile's `Bookmarks` file in its folder, and the list of running apps, so a
-  browser that isn't open is never started. Stackbar 0.35.0 or later.
+  browser that isn't open is never started. Stackbar 0.36.0 or later.
 - **Surfaces:** panel (the open tabs).
 - **Commands:** Search Browser Tabs, Search Bookmarks.
 - **Leaves out:** Safari's bookmarks, which macOS keeps behind Full Disk
   Access, and Arc's sidebar.
+
+## What's new in 1.4.0
+
+- Search Browser Tabs opens at once. It shows the tabs it already knows and reads them again in the background, and the list updates when that read finishes. Before, every open waited for every browser to answer.
+- Reading tabs is faster. Each browser is asked for all its titles and addresses at once, instead of twice for every tab.
+- Switching to a tab no longer reads every tab first. The switch checks that the page is still in that spot, and reads again only if it moved.
+- Tabs are read again in the background when you leave a browser, so the next search starts from a fresh list.
 
 ## What's new in 1.3.0
 

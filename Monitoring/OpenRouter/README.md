@@ -32,6 +32,10 @@ at 90% or when credits run low.
   (5 dollars to start).
 - **Agent tool:** `usage_summary`.
 
+## What's new in 1.1.0
+
+- The usage view opens at once after the first fetch. It shows the last numbers and asks OpenRouter again in the background; they update when it answers.
+
 ## What's new in 1.0.1
 
 - Try Again cancels a refresh already running, so older numbers never replace newer ones. Needs Stackbar 0.40.1, where clicks no longer wait for a refresh.

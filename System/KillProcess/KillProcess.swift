@@ -11,7 +11,7 @@ final class KillProcess: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.kill-process",
         name: "Kill Process",
-        version: "1.3.0",
+        version: "1.4.0",
         summary: "Find a process by name, see its CPU and memory, and quit or force quit it.",
         surfaces: [.panel, .settings],
         triggers: [.launch, .every(.seconds(60))],
@@ -183,6 +183,24 @@ final class KillProcess: StackbarPlugin {
     /// Processes whose name or command line holds every word typed, or whose
     /// pid is what was typed; the heaviest first, names that start with the
     /// first word before the rest.
+    /// What the open view has typed, for a list that lands after it.
+    var query = ""
+    var reloading = false
+
+    /// Stale-while-revalidate: reads the processes again when the list is
+    /// over 3 s old, then redraws the open view with the matches for what
+    /// is typed by then.
+    func reloadBehindView() {
+        guard !reloading, let loadedAt, Date().timeIntervalSince(loadedAt) >= 3 else { return }
+        reloading = true
+        Task {
+            await self.load(force: true)
+            self.reloading = false
+            self.results = self.matches(self.query)
+            Stackbar.redraw()
+        }
+    }
+
     func matches(_ query: String) -> [Proc] {
         let words = query.lowercased().split(separator: " ").map(String.init)
         guard !words.isEmpty else { return Array(sorted(processes).prefix(60)) }
@@ -327,9 +345,12 @@ final class KillProcess: StackbarPlugin {
     var commands: [Command] {
         Command("search", title: "Kill Process", subtitle: "Quit or force quit a process by name", symbol: "xmark.octagon", keywords: ["kill", "process", "quit", "force", "cpu", "memory", "activity"])
             .view(search: { invocation in
-                await self.load()
                 // A notification's Show button passes the name as an argument, not as typed text.
                 let text = invocation.text.isEmpty ? invocation["text"] ?? "" : invocation.text
+                self.query = text
+                // Only the first list waits for ps; after it the view answers
+                // from the list in hand and reads again behind it.
+                if self.loadedAt == nil { await self.load() } else { self.reloadBehindView() }
                 self.results = self.matches(text)
             }) { _ in
                 if self.processes.isEmpty, let problem = self.problem {

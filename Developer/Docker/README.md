@@ -35,6 +35,10 @@ and each project with Start all, Restart and Stop.
 - **Agent tool:** `containers` lists every container with its image, state,
   CPU and memory.
 
+## What's new in 1.11.0
+
+- Containers, Running, Compose projects and Prune the container lists open at once. They show the last list and ask Docker again in the background, so a slow Docker Desktop no longer holds up the palette; the list updates when Docker answers.
+
 ## What's new in 1.10.1
 
 - Typing "containers" in the palette opens Docker Containers first, not Stop All Docker Containers.
