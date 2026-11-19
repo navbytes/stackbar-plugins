@@ -16,7 +16,7 @@ final class OpenRouter: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.openrouter",
         name: "OpenRouter",
-        version: "1.1.0",
+        version: "1.2.0",
         summary: "Spend, credits, limits and model mix for your OpenRouter account, with charts.",
         surfaces: [.menuBar, .panel, .widget, .settings],
         triggers: [.launch, .minutes(2), .wake],
@@ -224,7 +224,7 @@ final class OpenRouter: StackbarPlugin {
     func refresh(maxAge: TimeInterval) async throws {
         if let at = lastAttempt, Date().timeIntervalSince(at) < (problem == nil ? maxAge : max(maxAge, 30)) { return }
         guard lastAttempt != nil else { return try await Stackbar.refresh() }
-        if !Stackbar.isRefreshing { Task { try? await Stackbar.refresh() } }
+        if !Stackbar.isRefreshing { Task { try? await Stackbar.updating { try await Stackbar.refresh() } } }
     }
 
     static func trimmedSecret(_ name: String) async throws -> String? {

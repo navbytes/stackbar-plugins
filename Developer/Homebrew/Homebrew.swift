@@ -14,7 +14,7 @@ final class Homebrew: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.homebrew",
         name: "Homebrew",
-        version: "1.7.0",
+        version: "1.8.0",
         summary: "Outdated formulae and casks, with upgrades a click away.",
         surfaces: [.menuBar, .panel, .widget, .settings],
         triggers: [.launch, .minutes(60), .wake],
@@ -188,7 +188,7 @@ final class Homebrew: StackbarPlugin {
         guard !rechecking, problem != nil || checked.map({ Date().timeIntervalSince($0) > 60 }) ?? true else { return }
         rechecking = true
         Task {
-            await self.check()
+            await Stackbar.updating { await self.check() }
             self.rechecking = false
             Stackbar.redraw()
         }
@@ -283,7 +283,7 @@ final class Homebrew: StackbarPlugin {
         guard !reloadingServices, Date().timeIntervalSince(at) >= 30 else { return }
         reloadingServices = true
         Task {
-            await self.loadServices(force: true)
+            await Stackbar.updating { await self.loadServices(force: true) }
             self.reloadingServices = false
             Stackbar.redraw()
         }

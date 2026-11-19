@@ -18,7 +18,7 @@ final class GitSync: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.git-sync",
         name: "Git Sync",
-        version: "1.3.0",
+        version: "1.4.0",
         summary: "Which local repositories are behind or ahead of their remote, with the safe ones updated in one click.",
         surfaces: [.menuBar, .panel, .window, .widget, .settings],
         triggers: [.launch, .every(.seconds(60)), .wake],
@@ -423,7 +423,7 @@ final class GitSync: StackbarPlugin {
         guard !rechecking, Date().timeIntervalSince(checkedAt) > 60 else { return }
         rechecking = true
         Task {
-            await self.checkAll()
+            await Stackbar.updating { await self.checkAll() }
             self.rechecking = false
             Stackbar.redraw()
         }

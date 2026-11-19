@@ -14,7 +14,7 @@ final class Jira: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.jira",
         name: "Jira",
-        version: "1.7.0",
+        version: "1.8.0",
         summary: "Your assigned Jira issues: change status, assign, comment and watch, with alerts and new issues from the palette.",
         surfaces: [.menuBar, .panel, .widget, .settings],
         triggers: [.launch, .minutes(5), .wake],
@@ -275,7 +275,7 @@ final class Jira: StackbarPlugin {
     func refresh(maxAge: TimeInterval) async throws {
         if loaded, let at = refreshed, Date().timeIntervalSince(at) < (problem == nil ? maxAge : max(maxAge, 30)) { return }
         guard loaded else { return try await Stackbar.refresh() }
-        if !Stackbar.isRefreshing { Task { try? await Stackbar.refresh() } }
+        if !Stackbar.isRefreshing { Task { try? await Stackbar.updating { try await Stackbar.refresh() } } }
     }
 
     func refresh() async throws {

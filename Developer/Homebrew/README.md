@@ -22,6 +22,10 @@ Upgrade All at the top.
 - **Agent tool:** `outdated` lists what can be upgraded.
 - **Requires:** Stackbar 0.26.0 or later.
 
+## What's new in 1.8.0
+
+- While it checks for fresh data behind the list it shows, the palette's loading bar stays on, so you can tell the list may still change (Stackbar 0.41.0 and later).
+
 ## What's new in 1.7.0
 
 - Outdated and Services open at once after the first check. They show the last list and run `brew outdated` or `brew services` again in the background, which can take several seconds; the list updates when Homebrew answers.

@@ -84,6 +84,10 @@ settings:
 You can leave out the groups of scopes for commands you won't use; that
 command then says which scope it is missing.
 
+## What's new in 1.1.0
+
+- While it checks for fresh data behind the list it shows, the palette's loading bar stays on, so you can tell the list may still change (Stackbar 0.41.0 and later).
+
 ## What's new in 1.0.1
 
 - Slack Unread Messages opens at once with the messages already fetched, and checks Slack again behind them when they are more than 15 seconds old. Before, every open and every keystroke waited for Slack to answer.

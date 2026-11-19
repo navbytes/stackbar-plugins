@@ -11,7 +11,7 @@ final class KillProcess: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.kill-process",
         name: "Kill Process",
-        version: "1.4.0",
+        version: "1.5.0",
         summary: "Find a process by name, see its CPU and memory, and quit or force quit it.",
         surfaces: [.panel, .settings],
         triggers: [.launch, .every(.seconds(60))],
@@ -194,7 +194,7 @@ final class KillProcess: StackbarPlugin {
         guard !reloading, let loadedAt, Date().timeIntervalSince(loadedAt) >= 3 else { return }
         reloading = true
         Task {
-            await self.load(force: true)
+            await Stackbar.updating { await self.load(force: true) }
             self.reloading = false
             self.results = self.matches(self.query)
             Stackbar.redraw()

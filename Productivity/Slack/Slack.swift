@@ -15,7 +15,7 @@ final class Slack: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.slack",
         name: "Slack",
-        version: "1.0.1",
+        version: "1.1.0",
         summary: "Unread Slack conversations in the menu bar; search messages, jump to channels, send messages, set your status and snooze from the palette.",
         surfaces: [.menuBar, .panel, .settings],
         triggers: [.launch, .minutes(2), .wake],
@@ -269,7 +269,7 @@ final class Slack: StackbarPlugin {
     func refresh(maxAge: TimeInterval) async throws {
         if loaded, let at = refreshedAt, Date().timeIntervalSince(at) < maxAge { return }
         guard loaded else { return try await Stackbar.refresh() }
-        if !Stackbar.isRefreshing { Task { try? await Stackbar.refresh() } }
+        if !Stackbar.isRefreshing { Task { try? await Stackbar.updating { try await Stackbar.refresh() } } }
     }
 
     func refresh() async throws {

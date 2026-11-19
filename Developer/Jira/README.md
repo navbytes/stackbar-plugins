@@ -25,6 +25,10 @@ first.
   and the default project for new issues.
 - **Agent tool:** `assigned` lists your open issues.
 
+## What's new in 1.8.0
+
+- While it checks for fresh data behind the list it shows, the palette's loading bar stays on, so you can tell the list may still change (Stackbar 0.41.0 and later).
+
 ## What's new in 1.7.0
 
 - My Issues opens at once after the first fetch. It shows your issues as last fetched and asks Jira again in the background; the list updates when Jira answers.

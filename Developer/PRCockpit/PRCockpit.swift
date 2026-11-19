@@ -25,7 +25,7 @@ final class PRCockpit: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.pr-cockpit",
         name: "PR Cockpit",
-        version: "1.19.0",
+        version: "1.20.0",
         summary: "Your pull requests, reviews and issues with CI and review state, and your repositories a keystroke away.",
         surfaces: [.menuBar, .panel, .window, .widget, .settings],
         triggers: [.launch, .every(.seconds(20)), .wake],
@@ -1195,7 +1195,7 @@ final class PRCockpit: StackbarPlugin {
         guard !reloadingViews.contains(list) else { return }
         reloadingViews.insert(list)
         Task {
-            await load()
+            await Stackbar.updating { await load() }
             self.reloadingViews.remove(list)
             Stackbar.redraw()
         }

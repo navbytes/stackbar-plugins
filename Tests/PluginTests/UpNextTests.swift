@@ -86,6 +86,8 @@ final class UpNextTests: XCTestCase {
         XCTAssertEqual(host.alerts.all.first?.actions.last?.url, dial, "then call in")
         // The alert's Join runs join-event, which opens the Zoom app.
         _ = await supervisor.runCommand("join-event", arguments: ["event": "z"], source: .palette)
+        // The open is a host call the command makes; on a busy runner it can land after the answer.
+        _ = await waitUntil(5) { host.opened.all.contains { $0.url.hasPrefix("zoommtg:") } }
         XCTAssertTrue(host.opened.all.contains { $0.url == "zoommtg://acme.zoom.us/join?action=join&confno=123456789" }, "\(host.opened.all)")
         await supervisor.stop()
     }
