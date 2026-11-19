@@ -84,6 +84,10 @@ settings:
 You can leave out the groups of scopes for commands you won't use; that
 command then says which scope it is missing.
 
+## What's new in 1.0.1
+
+- Slack Unread Messages opens at once with the messages already fetched, and checks Slack again behind them when they are more than 15 seconds old. Before, every open and every keystroke waited for Slack to answer.
+
 ## What's new in 1.0.0
 
 - First release: unread messages from the conversations you watch in the menu bar and panel, message search, a channel and people switcher, sending messages, status, snooze, presence and custom emoji from the palette.
