@@ -401,7 +401,9 @@ final class Slack: StackbarPlugin {
             let who = latest.user.flatMap { personName($0) } ?? "Someone"
             let title = conversation.kind == .dm ? who : "\(who) in \(conversation.title)"
             let body = fresh.count > 1 ? "\(plain(latest.text)) (+\(fresh.count - 1) more)" : plain(latest.text)
-            Stackbar.notify(title, body: body, actions: [NotificationAction("Open", url: link(conversation))])
+            // A notification button opens only web links itself, so it runs
+            // a command, which may open the Slack app.
+            Stackbar.notify(title, body: body, actions: [NotificationAction("Open", command: "open-conversation", arguments: ["id": conversation.id])])
         }
     }
 
@@ -915,6 +917,12 @@ final class Slack: StackbarPlugin {
                     }
                 }
             }
+        Command("open-conversation", title: "Open Slack Conversation") { invocation in
+            guard let conversation = self.conversation(invocation["id"] ?? "") else { return .failure("Slack doesn't list that conversation") }
+            return .open(url: self.link(conversation), app: nil)
+        }
+        .argument("id", placeholder: "Conversation ID")
+        .stackbarOnly()
         Command("unread", title: "Slack Unread Messages", symbol: "bubble.left", keywords: ["slack", "unread", "new"])
             .view(search: { _ in try await Stackbar.refresh() }) { _ in
                 if let problem = self.problem, self.unread.isEmpty {
