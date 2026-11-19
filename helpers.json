@@ -2369,6 +2369,19 @@
     },
     {
       "arch": "arm64",
+      "id": "io.navbytes.stackbar.plugins.slack",
+      "protocol": 29,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "bc5b338948b62ec882ce3332172150cfc5f7ec18c3bf229bc5147f4775610a9e",
+      "signature": "qvJjGJCpIS48wKG7FB3dlyRXLkvMkaC3PMtLNDYmjwbkIxu6/XUswVpF0JU4WDR6pe9NiqATJZBZTv+M//OIDQ==",
+      "size": 6877208,
+      "sourceDigest": "b1d679d3aaf38cd38ababbe874a1a76649cb91a7059549f6084934abcb70bacd",
+      "stackbarKit": "6dbe083324ae247cee98f129b8fedd6a3ef50662a494a0020caf7fb9c4ef3544",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-6dbe083324ae247c/Slack-b1d679d3aaf3",
+      "version": "1.0.1"
+    },
+    {
+      "arch": "arm64",
       "id": "io.navbytes.stackbar.snippets",
       "protocol": 29,
       "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
