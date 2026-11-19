@@ -1,6 +1,6 @@
 {
   "format" : 2,
-  "generated" : "2026-11-19T17:47:41Z",
+  "generated" : "2026-11-19T18:32:11Z",
   "homepage" : "https://github.com/navbytes/stackbar-plugins",
   "name" : "Stackbar Plugins by navbytes",
   "plugins" : [
@@ -1047,6 +1047,35 @@
       "version" : "1.3.0"
     },
     {
+      "accent" : "cyan",
+      "bundle" : "Productivity/io.navbytes.stackbar.plugins.browser-tabs-1.4.0.stackbarplugin",
+      "capabilities" : [
+        "Runs /usr/bin/osascript (can run any program), /bin/cat",
+        "Sees which apps are installed and running, and switches to, opens or hides them",
+        "Reads and writes ~/Library/Application Support/Google/Chrome, ~/Library/Application Support/BraveSoftware/Brave-Browser, ~/Library/Application Support/Microsoft Edge, ~/Library/Application Support/Vivaldi"
+      ],
+      "capabilityKinds" : [
+        "run",
+        "apps",
+        "files"
+      ],
+      "category" : "Productivity",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Productivity/BrowserTabs",
+      "id" : "io.navbytes.stackbar.plugins.browser-tabs",
+      "minimumStackbar" : "0.36.0",
+      "name" : "Browser Tabs",
+      "publisher" : "navbytes",
+      "screenshot" : "Productivity/io.navbytes.stackbar.plugins.browser-tabs.png",
+      "sha256" : "fd8be41b031276c544b42e2c96717de45970362c8f5a1fe9e4a3809a574b6601",
+      "summary" : "Switch to any open tab in Safari, Chrome, Arc, Brave or Edge, and search your bookmarks.",
+      "surfaces" : [
+        "panel"
+      ],
+      "symbol" : "rectangle.stack.fill",
+      "updated" : "2026-11-19",
+      "version" : "1.4.0"
+    },
+    {
       "accent" : "orange",
       "bundle" : "Productivity/io.navbytes.stackbar.plugins.calculator-1.0.0.stackbarplugin",
       "capabilities" : [
@@ -1783,6 +1812,37 @@
       "version" : "1.10.1"
     },
     {
+      "accent" : "cyan",
+      "bundle" : "Developer/io.navbytes.stackbar.plugins.docker-1.11.0.stackbarplugin",
+      "capabilities" : [
+        "Runs docker (not installed)",
+        "Opens your terminal app running a command it names, where you see it run"
+      ],
+      "capabilityKinds" : [
+        "run",
+        "terminal"
+      ],
+      "category" : "Developer",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/Docker",
+      "id" : "io.navbytes.stackbar.plugins.docker",
+      "minimumStackbar" : "0.35.0",
+      "name" : "Docker",
+      "publisher" : "navbytes",
+      "screenshot" : "Developer/io.navbytes.stackbar.plugins.docker.png",
+      "sha256" : "a75c9b0b2d3117c78e90a767855da1d6e659ee51243d5ae28c2b6e727f5aec99",
+      "summary" : "Your containers with live CPU and memory, Compose projects, and start, stop, restart and logs a click away.",
+      "surfaces" : [
+        "menuBar",
+        "panel",
+        "window",
+        "widget",
+        "settings"
+      ],
+      "symbol" : "shippingbox.fill",
+      "updated" : "2026-11-19",
+      "version" : "1.11.0"
+    },
+    {
       "accent" : "amber",
       "bundle" : "Productivity/io.navbytes.stackbar.plugins.emoji-1.0.0.stackbarplugin",
       "capabilities" : [
@@ -2097,6 +2157,39 @@
       "version" : "1.2.1"
     },
     {
+      "accent" : "green",
+      "bundle" : "Developer/io.navbytes.stackbar.plugins.git-sync-1.3.0.stackbarplugin",
+      "capabilities" : [
+        "Runs /opt/homebrew/bin/git, /usr/bin/find",
+        "Uses your SSH keys through the SSH agent, for the commands it runs",
+        "Opens any link, file or folder, in any app"
+      ],
+      "capabilityKinds" : [
+        "run",
+        "sshAgent",
+        "openURLs"
+      ],
+      "category" : "Developer",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/GitSync",
+      "id" : "io.navbytes.stackbar.plugins.git-sync",
+      "minimumStackbar" : "0.40.1",
+      "name" : "Git Sync",
+      "publisher" : "navbytes",
+      "screenshot" : "Developer/io.navbytes.stackbar.plugins.git-sync.png",
+      "sha256" : "c1c06258952f100ea6aa8cac230dcbdeb53368fd10af8b92b84cafc318c3837b",
+      "summary" : "Which local repositories are behind or ahead of their remote, with the safe ones updated in one click.",
+      "surfaces" : [
+        "menuBar",
+        "panel",
+        "window",
+        "widget",
+        "settings"
+      ],
+      "symbol" : "arrow.triangle.branch",
+      "updated" : "2026-11-19",
+      "version" : "1.3.0"
+    },
+    {
       "bundle" : "Developer/io.navbytes.stackbar.plugins.github-1.0.0.stackbarplugin",
       "capabilities" : [
         "Connects to api.github.com",
@@ -2284,6 +2377,34 @@
       "symbol" : "mug.fill",
       "updated" : "2026-11-19",
       "version" : "1.6.0"
+    },
+    {
+      "accent" : "amber",
+      "bundle" : "Developer/io.navbytes.stackbar.plugins.homebrew-1.7.0.stackbarplugin",
+      "capabilities" : [
+        "Runs /opt/homebrew/bin/brew"
+      ],
+      "capabilityKinds" : [
+        "run"
+      ],
+      "category" : "Developer",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/Homebrew",
+      "id" : "io.navbytes.stackbar.plugins.homebrew",
+      "minimumStackbar" : "0.26.0",
+      "name" : "Homebrew",
+      "publisher" : "navbytes",
+      "screenshot" : "Developer/io.navbytes.stackbar.plugins.homebrew.png",
+      "sha256" : "ed506ec4b01dc82154a69049bb2dcab7c840682a3c2d28b234f6c921fa7426fd",
+      "summary" : "Outdated formulae and casks, with upgrades a click away.",
+      "surfaces" : [
+        "menuBar",
+        "panel",
+        "widget",
+        "settings"
+      ],
+      "symbol" : "mug.fill",
+      "updated" : "2026-11-19",
+      "version" : "1.7.0"
     },
     {
       "bundle" : "Developer/io.navbytes.stackbar.plugins.jira-1.0.0.stackbarplugin",
@@ -2556,6 +2677,38 @@
       "version" : "1.6.1"
     },
     {
+      "accent" : "blue",
+      "bundle" : "Developer/io.navbytes.stackbar.plugins.jira-1.7.0.stackbarplugin",
+      "capabilities" : [
+        "Connects to *.atlassian.net",
+        "Reads the secret JIRA_API_TOKEN",
+        "Connects to the server you enter as JIRA_SERVER_URL, and no other"
+      ],
+      "capabilityKinds" : [
+        "network",
+        "secret",
+        "userServer"
+      ],
+      "category" : "Developer",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/Jira",
+      "id" : "io.navbytes.stackbar.plugins.jira",
+      "minimumStackbar" : "0.40.1",
+      "name" : "Jira",
+      "publisher" : "navbytes",
+      "screenshot" : "Developer/io.navbytes.stackbar.plugins.jira.png",
+      "sha256" : "54ba4327f5343ae6ed073e2c281bb3cd0cc0646a3cba61e0c3854b0160c4b5dd",
+      "summary" : "Your assigned Jira issues: change status, assign, comment and watch, with alerts and new issues from the palette.",
+      "surfaces" : [
+        "menuBar",
+        "panel",
+        "widget",
+        "settings"
+      ],
+      "symbol" : "ticket.fill",
+      "updated" : "2026-11-19",
+      "version" : "1.7.0"
+    },
+    {
       "accent" : "red",
       "bundle" : "System/io.navbytes.stackbar.plugins.kill-process-1.0.0.stackbarplugin",
       "capabilities" : [
@@ -2656,6 +2809,32 @@
       "symbol" : "xmark.octagon.fill",
       "updated" : "2026-11-19",
       "version" : "1.3.0"
+    },
+    {
+      "accent" : "red",
+      "bundle" : "System/io.navbytes.stackbar.plugins.kill-process-1.4.0.stackbarplugin",
+      "capabilities" : [
+        "Runs /bin/ps, /bin/kill"
+      ],
+      "capabilityKinds" : [
+        "run"
+      ],
+      "category" : "System",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/System/KillProcess",
+      "id" : "io.navbytes.stackbar.plugins.kill-process",
+      "minimumStackbar" : "0.35.0",
+      "name" : "Kill Process",
+      "publisher" : "navbytes",
+      "screenshot" : "System/io.navbytes.stackbar.plugins.kill-process.png",
+      "sha256" : "09c566fdd3b0aa170c7c510c133d79fd1b90701b6f3f2775517c14b3a5f7771b",
+      "summary" : "Find a process by name, see its CPU and memory, and quit or force quit it.",
+      "surfaces" : [
+        "panel",
+        "settings"
+      ],
+      "symbol" : "xmark.octagon.fill",
+      "updated" : "2026-11-19",
+      "version" : "1.4.0"
     },
     {
       "bundle" : "Developer/io.navbytes.stackbar.plugins.linear-1.0.0.stackbarplugin",
@@ -2980,6 +3159,36 @@
       "version" : "1.8.1"
     },
     {
+      "accent" : "indigo",
+      "bundle" : "Developer/io.navbytes.stackbar.plugins.linear-1.9.0.stackbarplugin",
+      "capabilities" : [
+        "Connects to api.linear.app",
+        "Reads the secret LINEAR_API_KEY"
+      ],
+      "capabilityKinds" : [
+        "network",
+        "secret"
+      ],
+      "category" : "Developer",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/Linear",
+      "id" : "io.navbytes.stackbar.plugins.linear",
+      "minimumStackbar" : "0.40.1",
+      "name" : "Linear",
+      "publisher" : "navbytes",
+      "screenshot" : "Developer/io.navbytes.stackbar.plugins.linear.png",
+      "sha256" : "912ebd3593b68566fd4b1dd4d2d441a9cec437bfe6b310ae23a95e105546174d",
+      "summary" : "Your assigned Linear issues and inbox: change status and priority, start work, comment, and new issues from the palette.",
+      "surfaces" : [
+        "menuBar",
+        "panel",
+        "widget",
+        "settings"
+      ],
+      "symbol" : "circle.lefthalf.filled",
+      "updated" : "2026-11-19",
+      "version" : "1.9.0"
+    },
+    {
       "bundle" : "Monitoring/io.navbytes.stackbar.plugins.litellm-1.0.0.stackbarplugin",
       "capabilities" : [
         "Connects to the server you enter as LITELLM_PROXY_URL, and no other",
@@ -3253,6 +3462,37 @@
       "symbol" : "sparkles",
       "updated" : "2026-11-19",
       "version" : "1.6.1"
+    },
+    {
+      "accent" : "pink",
+      "bundle" : "Monitoring/io.navbytes.stackbar.plugins.litellm-1.7.0.stackbarplugin",
+      "capabilities" : [
+        "Connects to the server you enter as LITELLM_PROXY_URL, and no other",
+        "Reads the secret LITELLM_API_KEY"
+      ],
+      "capabilityKinds" : [
+        "userServer",
+        "secret"
+      ],
+      "category" : "Monitoring",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Monitoring/LiteLLM",
+      "id" : "io.navbytes.stackbar.plugins.litellm",
+      "minimumStackbar" : "0.40.1",
+      "name" : "LiteLLM",
+      "publisher" : "navbytes",
+      "screenshot" : "Monitoring/io.navbytes.stackbar.plugins.litellm.png",
+      "sha256" : "3fda9a0a6b9d89eeabc967f8135f74763ea34cc2fa9e9f92a1d3471dc96a1740",
+      "summary" : "Tokens, spend, budget and model mix from your LiteLLM proxy, with charts.",
+      "surfaces" : [
+        "menuBar",
+        "panel",
+        "window",
+        "widget",
+        "settings"
+      ],
+      "symbol" : "sparkles",
+      "updated" : "2026-11-19",
+      "version" : "1.7.0"
     },
     {
       "accent" : "teal",
@@ -3623,6 +3863,38 @@
       "symbol" : "point.3.connected.trianglepath.dotted",
       "updated" : "2026-11-19",
       "version" : "1.0.1"
+    },
+    {
+      "accent" : "indigo",
+      "bundle" : "Monitoring/io.navbytes.stackbar.plugins.openrouter-1.1.0.stackbarplugin",
+      "capabilities" : [
+        "Connects to openrouter.ai",
+        "Reads the secret OPENROUTER_API_KEY",
+        "Reads the secret OPENROUTER_MANAGEMENT_KEY"
+      ],
+      "capabilityKinds" : [
+        "network",
+        "secret",
+        "secret"
+      ],
+      "category" : "Monitoring",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Monitoring/OpenRouter",
+      "id" : "io.navbytes.stackbar.plugins.openrouter",
+      "minimumStackbar" : "0.40.1",
+      "name" : "OpenRouter",
+      "publisher" : "navbytes",
+      "screenshot" : "Monitoring/io.navbytes.stackbar.plugins.openrouter.png",
+      "sha256" : "48e949f322909bbac1dab88b3212e0bbd2b66f82577d9965f2d4e1cac710f1fa",
+      "summary" : "Spend, credits, limits and model mix for your OpenRouter account, with charts.",
+      "surfaces" : [
+        "menuBar",
+        "panel",
+        "widget",
+        "settings"
+      ],
+      "symbol" : "point.3.connected.trianglepath.dotted",
+      "updated" : "2026-11-19",
+      "version" : "1.1.0"
     },
     {
       "bundle" : "Productivity/io.navbytes.stackbar.plugins.pomodoro-1.0.0.stackbarplugin",
@@ -4077,6 +4349,32 @@
       "version" : "1.5.0"
     },
     {
+      "accent" : "teal",
+      "bundle" : "Developer/io.navbytes.stackbar.plugins.ports-1.6.0.stackbarplugin",
+      "capabilities" : [
+        "Runs /usr/sbin/lsof, /bin/kill"
+      ],
+      "capabilityKinds" : [
+        "run"
+      ],
+      "category" : "Developer",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/Ports",
+      "id" : "io.navbytes.stackbar.plugins.ports",
+      "minimumStackbar" : "0.35.0",
+      "name" : "Ports",
+      "publisher" : "navbytes",
+      "screenshot" : "Developer/io.navbytes.stackbar.plugins.ports.png",
+      "sha256" : "da15919989bd3ea636d81610be5d9e31723347c232c5f4e7fcc341f6160f44a9",
+      "summary" : "Which process is listening on which port, and a way to stop it.",
+      "surfaces" : [
+        "panel",
+        "settings"
+      ],
+      "symbol" : "point.3.connected.trianglepath.dotted",
+      "updated" : "2026-11-19",
+      "version" : "1.6.0"
+    },
+    {
       "accent" : "blue",
       "bundle" : "Developer/io.navbytes.stackbar.plugins.recent-projects-1.0.0.stackbarplugin",
       "capabilities" : [
@@ -4432,6 +4730,34 @@
       "symbol" : "terminal.fill",
       "updated" : "2026-11-19",
       "version" : "1.4.0"
+    },
+    {
+      "accent" : "graphite",
+      "bundle" : "Developer/io.navbytes.stackbar.plugins.script-commands-1.5.0.stackbarplugin",
+      "capabilities" : [
+        "Reads and writes ~/Script Commands",
+        "Runs /usr/bin/grep, /bin/bash (can run any program), /bin/zsh (can run any program), /bin/sh (can run any program), /opt/homebrew/bin/python3 (can run any program), /opt/homebrew/bin/node (can run any program), /opt/homebrew/bin/ruby (can run any program), /opt/homebrew/bin/perl (can run any program), php (not installed), /usr/bin/swift (can run any program), /usr/bin/osascript (can run any program)"
+      ],
+      "capabilityKinds" : [
+        "files",
+        "run"
+      ],
+      "category" : "Developer",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/ScriptCommands",
+      "id" : "io.navbytes.stackbar.plugins.script-commands",
+      "minimumStackbar" : "0.35.0",
+      "name" : "Script Commands",
+      "publisher" : "navbytes",
+      "screenshot" : "Developer/io.navbytes.stackbar.plugins.script-commands.png",
+      "sha256" : "d058f5b995807109e181f7da3eed6e7af566989ca69c31206a9dedcdf6893c35",
+      "summary" : "Run your own scripts from the palette, in Raycast's Script Commands format.",
+      "surfaces" : [
+        "panel",
+        "settings"
+      ],
+      "symbol" : "terminal.fill",
+      "updated" : "2026-11-19",
+      "version" : "1.5.0"
     },
     {
       "accent" : "violet",
@@ -4849,6 +5175,36 @@
       "symbol" : "gauge.with.dots.needle.67percent",
       "updated" : "2026-11-19",
       "version" : "1.8.0"
+    },
+    {
+      "accent" : "green",
+      "bundle" : "Monitoring/io.navbytes.stackbar.plugins.system-monitor-1.9.0.stackbarplugin",
+      "capabilities" : [
+        "Runs /bin/ps, /usr/sbin/sysctl, /usr/bin/vm_stat, /usr/sbin/netstat, /bin/df, /bin/kill",
+        "Reads your Mac's temperatures and fan speeds"
+      ],
+      "capabilityKinds" : [
+        "run",
+        "sensors"
+      ],
+      "category" : "Monitoring",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Monitoring/SystemMonitor",
+      "id" : "io.navbytes.stackbar.plugins.system-monitor",
+      "minimumStackbar" : "0.35.0",
+      "name" : "System Monitor",
+      "publisher" : "navbytes",
+      "screenshot" : "Monitoring/io.navbytes.stackbar.plugins.system-monitor.png",
+      "sha256" : "e60fef7730d84ca09862edf2e91fc5f4f7b151b3f2eed54e4d2eb6e48751e78a",
+      "summary" : "CPU, memory, disk and network speed in the menu bar, the processes using the most, and alerts when one stays high.",
+      "surfaces" : [
+        "menuBar",
+        "panel",
+        "widget",
+        "settings"
+      ],
+      "symbol" : "gauge.with.dots.needle.67percent",
+      "updated" : "2026-11-19",
+      "version" : "1.9.0"
     },
     {
       "accent" : "orange",
@@ -6638,6 +6994,41 @@
       "version" : "1.18.1"
     },
     {
+      "accent" : "violet",
+      "bundle" : "Developer/io.navbytes.stackbar.pr-cockpit-1.19.0.stackbarplugin",
+      "capabilities" : [
+        "Connects to api.github.com",
+        "Reads the secret GITHUB_TOKEN",
+        "Runs /opt/homebrew/bin/gh",
+        "Connects to the server you enter as GITHUB_ENTERPRISE_URL, and no other"
+      ],
+      "capabilityKinds" : [
+        "network",
+        "secret",
+        "run",
+        "userServer"
+      ],
+      "category" : "Developer",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/PRCockpit",
+      "id" : "io.navbytes.stackbar.pr-cockpit",
+      "minimumStackbar" : "0.37.0",
+      "name" : "PR Cockpit",
+      "publisher" : "navbytes",
+      "screenshot" : "Developer/io.navbytes.stackbar.pr-cockpit.png",
+      "sha256" : "c69961d33920dcd35252d2b9b6bd7f618de7c68b2584e79bfe9b831202cd8e15",
+      "summary" : "Your pull requests, reviews and issues with CI and review state, and your repositories a keystroke away.",
+      "surfaces" : [
+        "menuBar",
+        "panel",
+        "window",
+        "widget",
+        "settings"
+      ],
+      "symbol" : "arrow.triangle.pull",
+      "updated" : "2026-11-19",
+      "version" : "1.19.0"
+    },
+    {
       "bundle" : "Productivity/io.navbytes.stackbar.quicklinks-1.0.1.stackbarplugin",
       "capabilities" : [
         "Opens any link, file or folder, in any app",
@@ -7657,5 +8048,5 @@
       "reason" : "GitHub is now part of PR Cockpit, which has the same features and more. Install PR Cockpit from the store."
     }
   ],
-  "signature" : "z5gHTaAaUXRfOUH8N48QJpasQ/vBVIP/VgVGVkWce5RM+cZ/Oi55jHAzAneCoUtkZ4W1xmdyECVwaJNojoadDA=="
+  "signature" : "22dInU9Qv5oMU4OQJRTvijeuXdO60Udiw71wWBLIy4GoCY0DIClPTXjUs/XeP6pDknkyoDwjaaIKZmk5N+GRCg=="
 }

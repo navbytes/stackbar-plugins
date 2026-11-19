@@ -313,6 +313,15 @@
       "changes": [
         {
           "notes": [
+            "Search Browser Tabs opens at once. It shows the tabs it already knows and reads them again in the background, and the list updates when that read finishes. Before, every open waited for every browser to answer.",
+            "Reading tabs is faster. Each browser is asked for all its titles and addresses at once, instead of twice for every tab.",
+            "Switching to a tab no longer reads every tab first. The switch checks that the page is still in that spot, and reads again only if it moved.",
+            "Tabs are read again in the background when you leave a browser, so the next search starts from a fresh list."
+          ],
+          "version": "1.4.0"
+        },
+        {
+          "notes": [
             "Search Bookmarks reads every browser profile, not just the first one. If you use Chrome, Brave, Edge or Vivaldi with a second profile (a work sign-in, say), its bookmarks show up too, with the profile's name beside each one. Stackbar asks you to approve the plugin again, because it now reads the browser's whole folder instead of one profile.",
             "A very large bookmark set no longer loses bookmarks quietly. Up to 20,000 are kept (it was 5,000 per browser), and past that the panel says how many were left out."
           ],
@@ -360,7 +369,7 @@
       "facts": [
         {
           "label": "Needs",
-          "text": "running `osascript` to read and switch tabs (macOS asks once to let Stackbar control each browser), `cat` to read each Chromium browser's `Local State` and each profile's `Bookmarks` file in its folder, and the list of running apps, so a browser that isn't open is never started. Stackbar 0.35.0 or later."
+          "text": "running `osascript` to read and switch tabs (macOS asks once to let Stackbar control each browser), `cat` to read each Chromium browser's `Local State` and each profile's `Bookmarks` file in its folder, and the list of running apps, so a browser that isn't open is never started. Stackbar 0.36.0 or later."
         },
         {
           "label": "Surfaces",
@@ -375,7 +384,7 @@
           "text": "Safari's bookmarks, which macOS keeps behind Full Disk Access, and Arc's sidebar."
         }
       ],
-      "version": "1.3.0"
+      "version": "1.4.0"
     },
     "io.navbytes.stackbar.plugins.calculator": {
       "changes": [
@@ -583,6 +592,12 @@
       "changes": [
         {
           "notes": [
+            "Containers, Running, Compose projects and Prune the container lists open at once. They show the last list and ask Docker again in the background, so a slow Docker Desktop no longer holds up the palette; the list updates when Docker answers."
+          ],
+          "version": "1.11.0"
+        },
+        {
+          "notes": [
             "Typing \"containers\" in the palette opens Docker Containers first, not Stop All Docker Containers."
           ],
           "version": "1.10.1"
@@ -693,7 +708,7 @@
           "text": "`containers` lists every container with its image, state, CPU and memory."
         }
       ],
-      "version": "1.10.1"
+      "version": "1.11.0"
     },
     "io.navbytes.stackbar.plugins.emoji": {
       "changes": [
@@ -797,6 +812,12 @@
       "changes": [
         {
           "notes": [
+            "The repository and worktree views open at once. They show your repositories as last checked and check them again in the background when that was over a minute ago, which takes seconds with many repositories; the list updates when the check lands."
+          ],
+          "version": "1.3.0"
+        },
+        {
+          "notes": [
             "An agent asking for status before the first load waits for one fresh refresh instead of racing the one already running. Needs Stackbar 0.40.1, where clicks no longer wait for a refresh."
           ],
           "version": "1.2.1"
@@ -857,10 +878,16 @@
           "text": "`repo_status` lists each repository's state."
         }
       ],
-      "version": "1.2.1"
+      "version": "1.3.0"
     },
     "io.navbytes.stackbar.plugins.homebrew": {
       "changes": [
+        {
+          "notes": [
+            "Outdated and Services open at once after the first check. They show the last list and run `brew outdated` or `brew services` again in the background, which can take several seconds; the list updates when Homebrew answers."
+          ],
+          "version": "1.7.0"
+        },
         {
           "notes": [
             "Homebrew Services: see which background services are running, and start, stop or restart them from the palette.",
@@ -924,10 +951,16 @@
           "text": "Stackbar 0.26.0 or later."
         }
       ],
-      "version": "1.6.0"
+      "version": "1.7.0"
     },
     "io.navbytes.stackbar.plugins.jira": {
       "changes": [
+        {
+          "notes": [
+            "My Issues opens at once after the first fetch. It shows your issues as last fetched and asks Jira again in the background; the list updates when Jira answers."
+          ],
+          "version": "1.7.0"
+        },
         {
           "notes": [
             "Changing a setting or pressing Try Again cancels a refresh already running, so older results never replace newer ones. Needs Stackbar 0.40.1, where clicks no longer wait for a refresh."
@@ -1013,10 +1046,16 @@
           "text": "`assigned` lists your open issues."
         }
       ],
-      "version": "1.6.1"
+      "version": "1.7.0"
     },
     "io.navbytes.stackbar.plugins.kill-process": {
       "changes": [
+        {
+          "notes": [
+            "Kill Process opens at once after the first list. It shows the processes already read and reads them again in the background as you type; the list updates when that lands. Ending a process still checks it is the same one first."
+          ],
+          "version": "1.4.0"
+        },
         {
           "notes": [
             "Quit, Force Quit and Quit All ask through Stackbar, naming the process and its pid.",
@@ -1072,10 +1111,16 @@
           "text": "other users' processes, and loginwindow, WindowServer, Dock, launchd and Stackbar itself, which would log you out or freeze the screen."
         }
       ],
-      "version": "1.3.0"
+      "version": "1.4.0"
     },
     "io.navbytes.stackbar.plugins.linear": {
       "changes": [
+        {
+          "notes": [
+            "My Issues and the inbox open at once after the first fetch. They show what was fetched last and ask Linear again in the background; the list updates when Linear answers."
+          ],
+          "version": "1.9.0"
+        },
         {
           "notes": [
             "Adding your API key or pressing Try Again cancels a refresh already running, so older results never replace newer ones. Needs Stackbar 0.40.1, where clicks no longer wait for a refresh."
@@ -1173,10 +1218,16 @@
           "text": "`assigned` lists your open issues with their branch names."
         }
       ],
-      "version": "1.8.1"
+      "version": "1.9.0"
     },
     "io.navbytes.stackbar.plugins.litellm": {
       "changes": [
+        {
+          "notes": [
+            "The usage view opens at once after the first fetch. It shows the last numbers and asks your proxy again in the background; they update when it answers."
+          ],
+          "version": "1.7.0"
+        },
         {
           "notes": [
             "Try Again cancels a refresh already running, so older numbers never replace newer ones. Needs Stackbar 0.40.1, where clicks no longer wait for a refresh."
@@ -1248,7 +1299,7 @@
           "text": "`usage_summary`."
         }
       ],
-      "version": "1.6.1"
+      "version": "1.7.0"
     },
     "io.navbytes.stackbar.plugins.menu-search": {
       "changes": [
@@ -1411,6 +1462,12 @@
       "changes": [
         {
           "notes": [
+            "The usage view opens at once after the first fetch. It shows the last numbers and asks OpenRouter again in the background; they update when it answers."
+          ],
+          "version": "1.1.0"
+        },
+        {
+          "notes": [
             "Try Again cancels a refresh already running, so older numbers never replace newer ones. Needs Stackbar 0.40.1, where clicks no longer wait for a refresh."
           ],
           "version": "1.0.1"
@@ -1449,7 +1506,7 @@
           "text": "`usage_summary`."
         }
       ],
-      "version": "1.0.1"
+      "version": "1.1.0"
     },
     "io.navbytes.stackbar.plugins.pomodoro": {
       "changes": [
@@ -1547,6 +1604,12 @@
       "changes": [
         {
           "notes": [
+            "The port views open at once after the first scan. They show the ports already found and run lsof again in the background; the list updates when it lands."
+          ],
+          "version": "1.6.0"
+        },
+        {
+          "notes": [
             "Stop and Force Quit ask through Stackbar, naming the process and port. Kill Port's confirm row still acts at once.",
             "Stackbar 0.35.0 now asks for the second press itself, the same way in the panel, the palette and every window, and VoiceOver reads the question."
           ],
@@ -1614,7 +1677,7 @@
           "text": "`listening` lists ports with their processes."
         }
       ],
-      "version": "1.5.0"
+      "version": "1.6.0"
     },
     "io.navbytes.stackbar.plugins.recent-projects": {
       "changes": [
@@ -1701,6 +1764,12 @@
       "changes": [
         {
           "notes": [
+            "The Script Commands view opens at once after the first scan. It shows the scripts already found and looks for new ones in the background; the list updates when the scan lands."
+          ],
+          "version": "1.5.0"
+        },
+        {
+          "notes": [
             "Scripts can run for up to ten minutes instead of 30 seconds (Stackbar 0.36).",
             "`inline` scripts with a refresh time run on their own and show their output in the palette.",
             "Add more folders of scripts in Settings.",
@@ -1775,7 +1844,7 @@
           "text": "one for each script, Script Commands (the list), and Reload Script Commands."
         }
       ],
-      "version": "1.4.0"
+      "version": "1.5.0"
     },
     "io.navbytes.stackbar.plugins.slack": {
       "changes": [
@@ -1859,6 +1928,12 @@
     },
     "io.navbytes.stackbar.plugins.system-monitor": {
       "changes": [
+        {
+          "notes": [
+            "Top Processes opens at once. It shows the last reading and takes a new one in the background; the list updates when it lands."
+          ],
+          "version": "1.9.0"
+        },
         {
           "notes": [
             "Quit Process asks through Stackbar, naming the process and its pid.",
@@ -1958,7 +2033,7 @@
           "text": "Stackbar 0.35.0 or later."
         }
       ],
-      "version": "1.8.0"
+      "version": "1.9.0"
     },
     "io.navbytes.stackbar.plugins.timers": {
       "changes": [
@@ -2450,6 +2525,12 @@
       "changes": [
         {
           "notes": [
+            "Assigned issues and the GitHub inbox open at once after the first fetch. They show what was fetched last and ask GitHub again in the background; the list updates when GitHub answers."
+          ],
+          "version": "1.19.0"
+        },
+        {
+          "notes": [
             "Switching tabs no longer hangs while PR Cockpit waits on GitHub. Refreshing happens in the background, so a click is handled at once.",
             "You can always see what it's doing: the header says Refreshing\u2026 and, when GitHub is slow, what it's still waiting for. Each list shows up the moment it arrives. A spinning Refresh button replaces the old wait, and the Issues and Inbox tabs say they're loading instead of looking empty.",
             "When GitHub doesn't answer, it says so in words, keeps what was loaded before, and says when it tries again.",
@@ -2619,7 +2700,7 @@
           "text": "`review_queue`, `my_pull_requests` and `my_issues`."
         }
       ],
-      "version": "1.18.1"
+      "version": "1.19.0"
     },
     "io.navbytes.stackbar.quicklinks": {
       "changes": [
@@ -3140,6 +3221,12 @@
         "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.1/light/demo/cbb7eda2f6be/panel.png",
         "seconds": 5.0,
         "surface": "panel"
+      },
+      "1.19.0": {
+        "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.19.0/dark/demo/cbb7eda2f6be/panel.png",
+        "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.19.0/light/demo/cbb7eda2f6be/panel.png",
+        "seconds": 5.0,
+        "surface": "panel"
       }
     }
   },
@@ -3447,6 +3534,12 @@
           "dark": "Productivity/shots/io.navbytes.stackbar.plugins.browser-tabs/1.3.0/dark/panel.png",
           "light": "Productivity/shots/io.navbytes.stackbar.plugins.browser-tabs/1.3.0/light/panel.png"
         }
+      },
+      "1.4.0": {
+        "panel": {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.browser-tabs/1.4.0/dark/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.browser-tabs/1.4.0/light/panel.png"
+        }
       }
     },
     "io.navbytes.stackbar.plugins.calculator": {
@@ -3564,6 +3657,16 @@
         "panel": {
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.docker/1.10.1/dark/panel.png",
           "light": "Developer/shots/io.navbytes.stackbar.plugins.docker/1.10.1/light/panel.png"
+        }
+      },
+      "1.11.0": {
+        "menuBar": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.docker/1.11.0/dark/menuBar.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.docker/1.11.0/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.docker/1.11.0/dark/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.docker/1.11.0/light/panel.png"
         }
       },
       "1.3.0": {
@@ -3743,6 +3846,16 @@
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.1/dark/panel.png",
           "light": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.2.1/light/panel.png"
         }
+      },
+      "1.3.0": {
+        "menuBar": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.3.0/dark/menuBar.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.3.0/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.3.0/dark/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.3.0/light/panel.png"
+        }
       }
     },
     "io.navbytes.stackbar.plugins.homebrew": {
@@ -3794,6 +3907,16 @@
         "panel": {
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.homebrew/1.6.0/dark/panel.png",
           "light": "Developer/shots/io.navbytes.stackbar.plugins.homebrew/1.6.0/light/panel.png"
+        }
+      },
+      "1.7.0": {
+        "menuBar": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.homebrew/1.7.0/dark/menuBar.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.homebrew/1.7.0/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.homebrew/1.7.0/dark/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.homebrew/1.7.0/light/panel.png"
         }
       }
     },
@@ -3877,6 +4000,16 @@
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.6.1/dark/panel.png",
           "light": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.6.1/light/panel.png"
         }
+      },
+      "1.7.0": {
+        "menuBar": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.7.0/dark/menuBar.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.7.0/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.7.0/dark/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.7.0/light/panel.png"
+        }
       }
     },
     "io.navbytes.stackbar.plugins.kill-process": {
@@ -3902,6 +4035,12 @@
         "panel": {
           "dark": "System/shots/io.navbytes.stackbar.plugins.kill-process/1.3.0/dark/panel.png",
           "light": "System/shots/io.navbytes.stackbar.plugins.kill-process/1.3.0/light/panel.png"
+        }
+      },
+      "1.4.0": {
+        "panel": {
+          "dark": "System/shots/io.navbytes.stackbar.plugins.kill-process/1.4.0/dark/panel.png",
+          "light": "System/shots/io.navbytes.stackbar.plugins.kill-process/1.4.0/light/panel.png"
         }
       }
     },
@@ -4005,6 +4144,16 @@
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.8.1/dark/panel.png",
           "light": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.8.1/light/panel.png"
         }
+      },
+      "1.9.0": {
+        "menuBar": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.9.0/dark/menuBar.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.9.0/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.9.0/dark/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.9.0/light/panel.png"
+        }
       }
     },
     "io.navbytes.stackbar.plugins.litellm": {
@@ -4086,6 +4235,16 @@
         "panel": {
           "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.6.1/dark/panel.png",
           "light": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.6.1/light/panel.png"
+        }
+      },
+      "1.7.0": {
+        "menuBar": {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.7.0/dark/menuBar.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.7.0/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.7.0/dark/panel.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.7.0/light/panel.png"
         }
       }
     },
@@ -4202,6 +4361,16 @@
         "panel": {
           "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.0.1/dark/panel.png",
           "light": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.0.1/light/panel.png"
+        }
+      },
+      "1.1.0": {
+        "menuBar": {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.1.0/dark/menuBar.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.1.0/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.1.0/dark/panel.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.1.0/light/panel.png"
         }
       }
     },
@@ -4329,6 +4498,12 @@
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.ports/1.5.0/dark/panel.png",
           "light": "Developer/shots/io.navbytes.stackbar.plugins.ports/1.5.0/light/panel.png"
         }
+      },
+      "1.6.0": {
+        "panel": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.ports/1.6.0/dark/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.ports/1.6.0/light/panel.png"
+        }
       }
     },
     "io.navbytes.stackbar.plugins.recent-projects": {
@@ -4404,6 +4579,12 @@
         "panel": {
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.script-commands/1.4.0/dark/panel.png",
           "light": "Developer/shots/io.navbytes.stackbar.plugins.script-commands/1.4.0/light/panel.png"
+        }
+      },
+      "1.5.0": {
+        "panel": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.script-commands/1.5.0/dark/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.script-commands/1.5.0/light/panel.png"
         }
       }
     },
@@ -4534,6 +4715,16 @@
         "panel": {
           "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.system-monitor/1.8.0/dark/panel.png",
           "light": "Monitoring/shots/io.navbytes.stackbar.plugins.system-monitor/1.8.0/light/panel.png"
+        }
+      },
+      "1.9.0": {
+        "menuBar": {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.system-monitor/1.9.0/dark/menuBar.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.system-monitor/1.9.0/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.system-monitor/1.9.0/dark/panel.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.system-monitor/1.9.0/light/panel.png"
         }
       }
     },
@@ -4976,6 +5167,16 @@
         "panel": {
           "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.1/dark/panel.png",
           "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.1/light/panel.png"
+        }
+      },
+      "1.19.0": {
+        "menuBar": {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.19.0/dark/menuBar.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.19.0/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.19.0/dark/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.19.0/light/panel.png"
         }
       },
       "1.4.0": {
@@ -5866,6 +6067,22 @@
           "surface": "panel",
           "title": "Safari, Chrome, Arc, Brave and Edge in one list"
         }
+      ],
+      "1.4.0": [
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.browser-tabs/1.4.0/dark/previews/hero/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.browser-tabs/1.4.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Every tab, a few letters away"
+        },
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.browser-tabs/1.4.0/dark/previews/browsers/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.browser-tabs/1.4.0/light/previews/browsers/panel.png",
+          "name": "browsers",
+          "surface": "panel",
+          "title": "Safari, Chrome, Arc, Brave and Edge in one list"
+        }
       ]
     },
     "io.navbytes.stackbar.plugins.calculator": {
@@ -6080,6 +6297,36 @@
         {
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.docker/1.10.1/dark/previews/widget/widget.png",
           "light": "Developer/shots/io.navbytes.stackbar.plugins.docker/1.10.1/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "Your stack's health on the desktop"
+        }
+      ],
+      "1.11.0": [
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.docker/1.11.0/dark/previews/hero/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.docker/1.11.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Every container, grouped by Compose project"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.docker/1.11.0/dark/previews/trouble/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.docker/1.11.0/light/previews/trouble/panel.png",
+          "name": "trouble",
+          "surface": "panel",
+          "title": "Catch the container that keeps crashing"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.docker/1.11.0/dark/previews/logs/window.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.docker/1.11.0/light/previews/logs/window.png",
+          "name": "logs",
+          "surface": "window",
+          "title": "Follow a container's logs beside your editor"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.docker/1.11.0/dark/previews/widget/widget.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.docker/1.11.0/light/previews/widget/widget.png",
           "name": "widget",
           "surface": "widget",
           "title": "Your stack's health on the desktop"
@@ -6469,6 +6716,36 @@
           "surface": "widget",
           "title": "Behind and unpushed at a glance"
         }
+      ],
+      "1.3.0": [
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.3.0/dark/previews/hero/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.3.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Which repositories are behind, and one click to update them"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.3.0/dark/previews/worktrees/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.3.0/light/previews/worktrees/panel.png",
+          "name": "worktrees",
+          "surface": "panel",
+          "title": "Every worktree under its repository, and the merged ones to clean up"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.3.0/dark/previews/dashboard/window.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.3.0/light/previews/dashboard/window.png",
+          "name": "dashboard",
+          "surface": "window",
+          "title": "Repositories, worktrees and stale branches"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.3.0/dark/previews/widget/widget.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.git-sync/1.3.0/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "Behind and unpushed at a glance"
+        }
       ]
     },
     "io.navbytes.stackbar.plugins.homebrew": {
@@ -6515,6 +6792,22 @@
         {
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.homebrew/1.6.0/dark/previews/widget/widget.png",
           "light": "Developer/shots/io.navbytes.stackbar.plugins.homebrew/1.6.0/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "Updates waiting, on your desktop"
+        }
+      ],
+      "1.7.0": [
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.homebrew/1.7.0/dark/previews/hero/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.homebrew/1.7.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Every outdated formula and cask, one click to upgrade"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.homebrew/1.7.0/dark/previews/widget/widget.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.homebrew/1.7.0/light/previews/widget/widget.png",
           "name": "widget",
           "surface": "widget",
           "title": "Updates waiting, on your desktop"
@@ -6610,6 +6903,22 @@
           "surface": "widget",
           "title": "What you're on, on your desktop"
         }
+      ],
+      "1.7.0": [
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.7.0/dark/previews/hero/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.7.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Your issues, grouped by where they stand"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.7.0/dark/previews/widget/widget.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.jira/1.7.0/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "What you're on, on your desktop"
+        }
       ]
     },
     "io.navbytes.stackbar.plugins.kill-process": {
@@ -6672,6 +6981,29 @@
         {
           "dark": "System/shots/io.navbytes.stackbar.plugins.kill-process/1.3.0/dark/previews/unavailable/panel.png",
           "light": "System/shots/io.navbytes.stackbar.plugins.kill-process/1.3.0/light/previews/unavailable/panel.png",
+          "name": "unavailable",
+          "surface": "panel",
+          "title": "A failed scan keeps the last list"
+        }
+      ],
+      "1.4.0": [
+        {
+          "dark": "System/shots/io.navbytes.stackbar.plugins.kill-process/1.4.0/dark/previews/hero/panel.png",
+          "light": "System/shots/io.navbytes.stackbar.plugins.kill-process/1.4.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "The heaviest processes, one key from gone"
+        },
+        {
+          "dark": "System/shots/io.navbytes.stackbar.plugins.kill-process/1.4.0/dark/previews/memory/panel.png",
+          "light": "System/shots/io.navbytes.stackbar.plugins.kill-process/1.4.0/light/previews/memory/panel.png",
+          "name": "memory",
+          "surface": "panel",
+          "title": "Sort by memory to find the heavy one"
+        },
+        {
+          "dark": "System/shots/io.navbytes.stackbar.plugins.kill-process/1.4.0/dark/previews/unavailable/panel.png",
+          "light": "System/shots/io.navbytes.stackbar.plugins.kill-process/1.4.0/light/previews/unavailable/panel.png",
           "name": "unavailable",
           "surface": "panel",
           "title": "A failed scan keeps the last list"
@@ -6795,6 +7127,22 @@
         {
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.8.1/dark/previews/widget/widget.png",
           "light": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.8.1/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "What you're on, on your desktop"
+        }
+      ],
+      "1.9.0": [
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.9.0/dark/previews/hero/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.9.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Your Linear issues, by state and priority"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.9.0/dark/previews/widget/widget.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.9.0/light/previews/widget/widget.png",
           "name": "widget",
           "surface": "widget",
           "title": "What you're on, on your desktop"
@@ -6935,6 +7283,29 @@
         {
           "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.6.1/dark/previews/widget/widget.png",
           "light": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.6.1/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "Today's spend on the desktop"
+        }
+      ],
+      "1.7.0": [
+        {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.7.0/dark/previews/hero/panel.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.7.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Spend, tokens and budget for your LLM proxy"
+        },
+        {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.7.0/dark/previews/dashboard/window.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.7.0/light/previews/dashboard/window.png",
+          "name": "dashboard",
+          "surface": "window",
+          "title": "Half a year of usage, by model"
+        },
+        {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.7.0/dark/previews/widget/widget.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.7.0/light/previews/widget/widget.png",
           "name": "widget",
           "surface": "widget",
           "title": "Today's spend on the desktop"
@@ -7092,6 +7463,29 @@
         {
           "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.0.1/dark/previews/widget/widget.png",
           "light": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.0.1/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "Today's spend and credits on the desktop"
+        }
+      ],
+      "1.1.0": [
+        {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.1.0/dark/previews/hero/panel.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.1.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Spend, credits and models for OpenRouter"
+        },
+        {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.1.0/dark/previews/key-only/panel.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.1.0/light/previews/key-only/panel.png",
+          "name": "key-only",
+          "surface": "panel",
+          "title": "Just an API key: today, this week and its limit"
+        },
+        {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.1.0/dark/previews/widget/widget.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.openrouter/1.1.0/light/previews/widget/widget.png",
           "name": "widget",
           "surface": "widget",
           "title": "Today's spend and credits on the desktop"
@@ -7290,6 +7684,15 @@
           "surface": "panel",
           "title": "What's listening, and one click to stop it"
         }
+      ],
+      "1.6.0": [
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.ports/1.6.0/dark/previews/hero/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.ports/1.6.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "What's listening, and one click to stop it"
+        }
       ]
     },
     "io.navbytes.stackbar.plugins.recent-projects": {
@@ -7454,6 +7857,22 @@
         {
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.script-commands/1.4.0/dark/previews/first-run/panel.png",
           "light": "Developer/shots/io.navbytes.stackbar.plugins.script-commands/1.4.0/light/previews/first-run/panel.png",
+          "name": "first-run",
+          "surface": "panel",
+          "title": "Start with one line in a script"
+        }
+      ],
+      "1.5.0": [
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.script-commands/1.5.0/dark/previews/hero/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.script-commands/1.5.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Your scripts, as commands"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.script-commands/1.5.0/dark/previews/first-run/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.script-commands/1.5.0/light/previews/first-run/panel.png",
           "name": "first-run",
           "surface": "panel",
           "title": "Start with one line in a script"
@@ -7676,6 +8095,36 @@
         {
           "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.system-monitor/1.8.0/dark/previews/widget/widget.png",
           "light": "Monitoring/shots/io.navbytes.stackbar.plugins.system-monitor/1.8.0/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "Your Mac's load on the desktop"
+        }
+      ],
+      "1.9.0": [
+        {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.system-monitor/1.9.0/dark/previews/hero/panel.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.system-monitor/1.9.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "CPU, memory and disk at a glance"
+        },
+        {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.system-monitor/1.9.0/dark/previews/memory/panel.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.system-monitor/1.9.0/light/previews/memory/panel.png",
+          "name": "memory",
+          "surface": "panel",
+          "title": "Find what is eating your memory"
+        },
+        {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.system-monitor/1.9.0/dark/previews/sensors/panel.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.system-monitor/1.9.0/light/previews/sensors/panel.png",
+          "name": "sensors",
+          "surface": "panel",
+          "title": "Temperatures and fans, as the Mac reports them"
+        },
+        {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.system-monitor/1.9.0/dark/previews/widget/widget.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.system-monitor/1.9.0/light/previews/widget/widget.png",
           "name": "widget",
           "surface": "widget",
           "title": "Your Mac's load on the desktop"
@@ -8517,6 +8966,43 @@
         {
           "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.1/dark/previews/widget/widget.png",
           "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.18.1/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "Your review queue on the desktop"
+        }
+      ],
+      "1.19.0": [
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.19.0/dark/previews/hero/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.19.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Every pull request waiting on you"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.19.0/dark/previews/mine/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.19.0/light/previews/mine/panel.png",
+          "name": "mine",
+          "surface": "panel",
+          "title": "Your own PRs: checks, reviews and conflicts"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.19.0/dark/previews/checks/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.19.0/light/previews/checks/panel.png",
+          "name": "checks",
+          "surface": "panel",
+          "title": "Why a check failed, and its preview deploy, without leaving the menu bar"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.19.0/dark/previews/dashboard/window.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.19.0/light/previews/dashboard/window.png",
+          "name": "dashboard",
+          "surface": "window",
+          "title": "Both lists, what merged and how long reviews wait"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.19.0/dark/previews/widget/widget.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.19.0/light/previews/widget/widget.png",
           "name": "widget",
           "surface": "widget",
           "title": "Your review queue on the desktop"
