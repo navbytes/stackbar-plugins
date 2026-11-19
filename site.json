@@ -1777,6 +1777,40 @@
       ],
       "version": "1.4.0"
     },
+    "io.navbytes.stackbar.plugins.slack": {
+      "changes": [
+        {
+          "notes": [
+            "First release: unread messages from the conversations you watch in the menu bar and panel, message search, a channel and people switcher, sending messages, status, snooze, presence and custom emoji from the palette."
+          ],
+          "version": "1.0.0"
+        }
+      ],
+      "description": "Slack in the menu bar and the palette. The number in the menu bar is how many\nunread messages wait in the conversations you watch (it turns orange when one\nis a direct message, and shows a moon while notifications are snoozed); the\npanel lists them, newest first, with Open, Mark as Read and Reply.\n\n\n## Setting up your token\n\nSlack tokens belong to a Slack app, so you create a small private one in your\nown workspace. It takes about three minutes, and nothing leaves your Mac\nexcept requests to Slack.\n\n1. Open [api.slack.com/apps](https://api.slack.com/apps), choose **Create New\n   App**, then **From a manifest**, and pick your workspace.\n2. Paste the manifest below, then **Create**.\n3. Choose **Install to Workspace** and allow it. If your workspace needs an\n   admin to approve apps, Slack sends them the request.\n4. Under **OAuth & Permissions**, copy the **User OAuth Token** (it starts\n   with `xoxp-`) and paste it when Stackbar asks for `SLACK_TOKEN`.\n\n```yaml\ndisplay_information:\n  name: Stackbar\n  description: Slack in your Mac's menu bar and command palette.\noauth_config:\n  scopes:\n    user:\n      # Your channels, group messages and direct messages, and people's names\n      - channels:read\n      - groups:read\n      - im:read\n      - mpim:read\n      - users:read\n      # Unread messages in watched conversations\n      - channels:history\n      - groups:history\n      - im:history\n      - mpim:history\n      # Mark as Read, and starting a direct message\n      - channels:write\n      - groups:write\n      - im:write\n      - mpim:write\n      # Search Slack Messages\n      - search:read\n      # Send Slack Message\n      - chat:write\n      # Set and Clear Slack Status\n      - users.profile:read\n      - users.profile:write\n      # Set Slack Presence\n      - users:write\n      # Snooze Slack Notifications\n      - dnd:read\n      - dnd:write\n      # Search Slack Emoji\n      - emoji:read\nsettings:\n  org_deploy_enabled: false\n  socket_mode_enabled: false\n  token_rotation_enabled: false\n```\n\nYou can leave out the groups of scopes for commands you won't use; that\ncommand then says which scope it is missing.",
+      "facts": [
+        {
+          "label": "Needs",
+          "text": "`slack.com` and the secret `SLACK_TOKEN`, a Slack user token (`xoxp-\u2026`) from a Slack app you create in your workspace (below). It opens `slack:` links to jump into the Slack app."
+        },
+        {
+          "label": "Surfaces",
+          "text": "menu bar, panel, settings."
+        },
+        {
+          "label": "Commands",
+          "text": "Search Slack Messages (alias `sl`; Slack's own search syntax such as `in:#channel` and `from:@person` works), Open Slack Channel (channels, group messages and people; \u2318W watches one), Slack Unread Messages, Send Slack Message, Set Slack Status (presets or your own text, emoji and when to clear it), Clear Slack Status, Snooze Slack Notifications (20 minutes to tomorrow morning, or off), Set Slack Presence (away or automatic) and Search Slack Emoji (your workspace's custom emoji)."
+        },
+        {
+          "label": "Watched conversations",
+          "text": "pick up to 30 channels and people, in Settings or with \u2318W in Open Slack Channel. Each is checked every two minutes, two requests apiece, so the plugin stays well inside Slack's limits."
+        },
+        {
+          "label": "Settings",
+          "text": "watched conversations, open links in the Slack app or the browser, notifications for new messages in watched conversations (off by default), and the server: slack.com, or another address such as `slack-gov.com` for GovSlack or a company gateway (`SLACK_API_URL`)."
+        }
+      ],
+      "version": "1.0.0"
+    },
     "io.navbytes.stackbar.plugins.system-commands": {
       "changes": [
         {
@@ -4370,6 +4404,18 @@
         "panel": {
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.script-commands/1.4.0/dark/panel.png",
           "light": "Developer/shots/io.navbytes.stackbar.plugins.script-commands/1.4.0/light/panel.png"
+        }
+      }
+    },
+    "io.navbytes.stackbar.plugins.slack": {
+      "1.0.0": {
+        "menuBar": {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.slack/1.0.0/dark/menuBar.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.slack/1.0.0/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.slack/1.0.0/dark/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.slack/1.0.0/light/panel.png"
         }
       }
     },
@@ -7411,6 +7457,24 @@
           "name": "first-run",
           "surface": "panel",
           "title": "Start with one line in a script"
+        }
+      ]
+    },
+    "io.navbytes.stackbar.plugins.slack": {
+      "1.0.0": [
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.slack/1.0.0/dark/previews/hero/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.slack/1.0.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "What's new in the conversations you watch"
+        },
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.slack/1.0.0/dark/previews/snoozed/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.slack/1.0.0/light/previews/snoozed/panel.png",
+          "name": "snoozed",
+          "surface": "panel",
+          "title": "Snooze and status a click away"
         }
       ]
     },
