@@ -22,6 +22,10 @@ Upgrade All at the top.
 - **Agent tool:** `outdated` lists what can be upgraded.
 - **Requires:** Stackbar 0.26.0 or later.
 
+## What's new in 1.7.0
+
+- Outdated and Services open at once after the first check. They show the last list and run `brew outdated` or `brew services` again in the background, which can take several seconds; the list updates when Homebrew answers.
+
 ## What's new in 1.6.0
 
 - Homebrew Services: see which background services are running, and start, stop or restart them from the palette.

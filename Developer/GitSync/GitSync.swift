@@ -18,7 +18,7 @@ final class GitSync: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.git-sync",
         name: "Git Sync",
-        version: "1.2.1",
+        version: "1.3.0",
         summary: "Which local repositories are behind or ahead of their remote, with the safe ones updated in one click.",
         surfaces: [.menuBar, .panel, .window, .widget, .settings],
         triggers: [.launch, .every(.seconds(60)), .wake],
@@ -413,6 +413,25 @@ final class GitSync: StackbarPlugin {
     }
 
     /// Reads every repository's local state. Nothing here uses the network.
+    /// For a view: only the first check keeps it waiting. After that it
+    /// answers from the repositories in hand and, when they were checked over
+    /// a minute ago, checks them again behind the list (stale-while-
+    /// revalidate); the view redraws when that lands. With many repositories
+    /// a check takes seconds.
+    func checkAllIfStale() async {
+        guard let checkedAt else { return await checkAll() }
+        guard !rechecking, Date().timeIntervalSince(checkedAt) > 60 else { return }
+        rechecking = true
+        Task {
+            await self.checkAll()
+            self.rechecking = false
+            Stackbar.redraw()
+        }
+    }
+
+    /// A check started behind a view is running.
+    var rechecking = false
+
     func checkAll() async {
         let list = repositories
         let checked: [Repository] = await each(list) { repo in await self.check(repo) }
@@ -1156,7 +1175,7 @@ final class GitSync: StackbarPlugin {
     var commands: [Command] {
         Command("repositories", title: "Search Local Repositories", subtitle: "Behind, ahead or changed, with Pull and Push", symbol: "arrow.triangle.branch", keywords: ["git", "repo", "sync", "pull"])
             .view(search: { _ in
-                if self.checkedAt.map({ Date().timeIntervalSince($0) > 60 }) ?? true { await self.checkAll() }
+                await self.checkAllIfStale()
             }) { _ in
                 if self.folders.isEmpty {
                     ContentUnavailableView("Choose your code folders first", symbol: "folder.badge.plus", message: "Open Git Sync from the menu bar and choose where your repositories are.")
@@ -1178,7 +1197,7 @@ final class GitSync: StackbarPlugin {
         }
         Command("worktrees", title: "Search Worktrees", subtitle: "Every worktree by branch or folder", symbol: "folder", keywords: ["git", "worktree", "branch"])
             .view(search: { _ in
-                if self.checkedAt.map({ Date().timeIntervalSince($0) > 60 }) ?? true { await self.checkAll() }
+                await self.checkAllIfStale()
             }) { _ in
                 let trees = self.shown.flatMap { repo in repo.linked.map { (repo, $0) } }
                 if trees.isEmpty {

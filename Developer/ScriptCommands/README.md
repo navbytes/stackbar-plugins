@@ -34,6 +34,10 @@ echo "Hello ${1:-world}"
 - **Surfaces:** panel (your scripts; click one to run it), settings (folders).
 - **Commands:** one for each script, Script Commands (the list), and Reload Script Commands.
 
+## What's new in 1.5.0
+
+- The Script Commands view opens at once after the first scan. It shows the scripts already found and looks for new ones in the background; the list updates when the scan lands.
+
 ## What's new in 1.4.0
 
 - Scripts can run for up to ten minutes instead of 30 seconds (Stackbar 0.36).

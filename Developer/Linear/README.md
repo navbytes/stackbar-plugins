@@ -23,6 +23,10 @@ groups everything assigned to you by state, ordered by priority.
   default team for new issues.
 - **Agent tool:** `assigned` lists your open issues with their branch names.
 
+## What's new in 1.9.0
+
+- My Issues and the inbox open at once after the first fetch. They show what was fetched last and ask Linear again in the background; the list updates when Linear answers.
+
 ## What's new in 1.8.1
 
 - Adding your API key or pressing Try Again cancels a refresh already running, so older results never replace newer ones. Needs Stackbar 0.40.1, where clicks no longer wait for a refresh.

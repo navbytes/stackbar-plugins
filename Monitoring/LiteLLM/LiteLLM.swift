@@ -14,7 +14,7 @@ final class LiteLLM: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.litellm",
         name: "LiteLLM",
-        version: "1.6.1",
+        version: "1.7.0",
         summary: "Tokens, spend, budget and model mix from your LiteLLM proxy, with charts.",
         surfaces: [.menuBar, .panel, .window, .widget, .settings],
         triggers: [.launch, .minutes(2), .wake],
@@ -187,9 +187,13 @@ final class LiteLLM: StackbarPlugin {
 
     /// A refresh unless one started less than `maxAge` ago. The Spend view asks
     /// on every keystroke, so it waits, and a failed proxy waits 30 s at least.
+    /// A view opening answers from what is loaded and refreshes behind it,
+    /// stale-while-revalidate: the view redraws when the refresh lands, so
+    /// only the very first load keeps it waiting on the network.
     func refresh(maxAge: TimeInterval) async throws {
         if let at = lastAttempt, Date().timeIntervalSince(at) < (problem == nil ? maxAge : max(maxAge, 30)) { return }
-        try await Stackbar.refresh()
+        guard lastAttempt != nil else { return try await Stackbar.refresh() }
+        if !Stackbar.isRefreshing { Task { try? await Stackbar.refresh() } }
     }
 
     private func headers(_ key: String) -> [String: String] {

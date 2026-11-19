@@ -102,6 +102,10 @@ how long reviews have waited.
 A widget keeps the review queue in view.
 <!-- preview: widget -->
 
+## What's new in 1.19.0
+
+- Assigned issues and the GitHub inbox open at once after the first fetch. They show what was fetched last and ask GitHub again in the background; the list updates when GitHub answers.
+
 ## What's new in 1.18.1
 
 - Switching tabs no longer hangs while PR Cockpit waits on GitHub. Refreshing happens in the background, so a click is handled at once.

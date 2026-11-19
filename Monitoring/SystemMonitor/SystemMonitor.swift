@@ -15,7 +15,7 @@ final class SystemMonitor: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.system-monitor",
         name: "System Monitor",
-        version: "1.8.0",
+        version: "1.9.0",
         summary: "CPU, memory, disk and network speed in the menu bar, the processes using the most, and alerts when one stays high.",
         surfaces: [.menuBar, .panel, .widget, .settings],
         triggers: [.launch, .every(.seconds(10)), .wake],
@@ -870,6 +870,9 @@ final class SystemMonitor: StackbarPlugin {
         sample?.processes = Self.sorted(processes, by: sortBy)
     }
 
+    /// A reading started behind the Top Processes view is running.
+    var remeasuring = false
+
     // MARK: Commands
 
     var commands: [Command] {
@@ -880,9 +883,19 @@ final class SystemMonitor: StackbarPlugin {
                     self.sortBy = by
                     self.resort()
                 }
-                // The list filters itself as you type; only an old reading is worth another read.
-                if self.sample == nil || Date().timeIntervalSince(self.lastAttempt ?? .distantPast) > 5 {
+                // The list filters itself as you type; only an old reading is
+                // worth another read, and only the first one keeps the view
+                // waiting: after it the view shows the last reading and
+                // redraws when the new one lands (stale-while-revalidate).
+                if self.sample == nil {
                     await self.measure(recording: false)
+                } else if !self.remeasuring, Date().timeIntervalSince(self.lastAttempt ?? .distantPast) > 5 {
+                    self.remeasuring = true
+                    Task {
+                        await self.measure(recording: false)
+                        self.remeasuring = false
+                        Stackbar.redraw()
+                    }
                 }
             }) { _ in
                 if let sample = self.sample {

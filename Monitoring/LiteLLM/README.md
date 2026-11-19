@@ -33,6 +33,10 @@ red at 90%.
 
 Ported from vee-plugins' `litellm-cost`.
 
+## What's new in 1.7.0
+
+- The usage view opens at once after the first fetch. It shows the last numbers and asks your proxy again in the background; they update when it answers.
+
 ## What's new in 1.6.1
 
 - Try Again cancels a refresh already running, so older numbers never replace newer ones. Needs Stackbar 0.40.1, where clicks no longer wait for a refresh.

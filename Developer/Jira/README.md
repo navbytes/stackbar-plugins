@@ -25,6 +25,10 @@ first.
   and the default project for new issues.
 - **Agent tool:** `assigned` lists your open issues.
 
+## What's new in 1.7.0
+
+- My Issues opens at once after the first fetch. It shows your issues as last fetched and asks Jira again in the background; the list updates when Jira answers.
+
 ## What's new in 1.6.1
 
 - Changing a setting or pressing Try Again cancels a refresh already running, so older results never replace newer ones. Needs Stackbar 0.40.1, where clicks no longer wait for a refresh.

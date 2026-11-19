@@ -17,7 +17,7 @@ final class ScriptCommands: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.script-commands",
         name: "Script Commands",
-        version: "1.4.0",
+        version: "1.5.0",
         summary: "Run your own scripts from the palette, in Raycast's Script Commands format.",
         surfaces: [.panel, .settings],
         // Every minute for inline scripts that refresh; the folders are
@@ -163,6 +163,8 @@ final class ScriptCommands: StackbarPlugin {
     }
 
     private var lastScan = Date.distantPast
+    /// A scan started behind the view is running.
+    var rescanning = false
     /// Opening the Script Commands view rescans unless a scan just ran.
     static let openRescanAfter: TimeInterval = 5
 
@@ -404,7 +406,18 @@ final class ScriptCommands: StackbarPlugin {
             .view(search: { _ in
                 // Opening the view (and each keystroke after) picks up scripts
                 // added since the last scan, without waiting for the timer.
-                if Date().timeIntervalSince(self.lastScan) >= Self.openRescanAfter { await self.scan() }
+                // Only the first scan keeps the view waiting; after it the view
+                // shows the scripts in hand and redraws when the scan lands.
+                if !self.scanned {
+                    await self.scan()
+                } else if !self.rescanning, Date().timeIntervalSince(self.lastScan) >= Self.openRescanAfter {
+                    self.rescanning = true
+                    Task {
+                        await self.scan()
+                        self.rescanning = false
+                        Stackbar.redraw()
+                    }
+                }
             }) { _ in
                 if let problem = self.problem { Banner(problem, theme: .warning) }
                 List(self.scripts, searchable: true) { script in
