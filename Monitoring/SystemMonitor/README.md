@@ -55,6 +55,10 @@ fans.
 A widget shows your Mac's load without opening anything.
 <!-- preview: widget -->
 
+## What's new in 1.9.0
+
+- Top Processes opens at once. It shows the last reading and takes a new one in the background; the list updates when it lands.
+
 ## What's new in 1.8.0
 
 - Quit Process asks through Stackbar, naming the process and its pid.

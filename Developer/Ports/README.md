@@ -19,6 +19,10 @@ whatever holds it is asked to stop.
 Processes owned by another user, like system services, can't be stopped
 from here.
 
+## What's new in 1.6.0
+
+- The port views open at once after the first scan. They show the ports already found and run lsof again in the background; the list updates when it lands.
+
 ## What's new in 1.5.0
 
 - Stop and Force Quit ask through Stackbar, naming the process and port. Kill Port's confirm row still acts at once.

@@ -14,7 +14,7 @@ final class Homebrew: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.homebrew",
         name: "Homebrew",
-        version: "1.6.0",
+        version: "1.7.0",
         summary: "Outdated formulae and casks, with upgrades a click away.",
         surfaces: [.menuBar, .panel, .widget, .settings],
         triggers: [.launch, .minutes(60), .wake],
@@ -178,11 +178,24 @@ final class Homebrew: StackbarPlugin {
         }
     }
 
-    /// For views that ask on every keystroke: a list checked in the last minute
-    /// is as good as a new one, and a failed check is tried again.
+    /// For views, which ask on every keystroke: only the first check keeps
+    /// the view waiting. After that it answers from the list in hand and,
+    /// when that is over a minute old or the last check failed, checks again
+    /// behind it (stale-while-revalidate); `brew outdated` takes seconds, and
+    /// the view redraws when it lands.
     func checkIfStale() async {
-        if problem != nil || checked.map({ Date().timeIntervalSince($0) > 60 }) ?? true { await check() }
+        guard checked != nil else { return await check() }
+        guard !rechecking, problem != nil || checked.map({ Date().timeIntervalSince($0) > 60 }) ?? true else { return }
+        rechecking = true
+        Task {
+            await self.check()
+            self.rechecking = false
+            Stackbar.redraw()
+        }
     }
+
+    /// A check started behind a view is running.
+    var rechecking = false
 
     /// No auto-update, hints or analytics noise in the output.
     static let quiet = ["HOMEBREW_NO_AUTO_UPDATE": "1", "HOMEBREW_NO_ENV_HINTS": "1", "HOMEBREW_NO_INSTALL_CLEANUP": "1", "HOMEBREW_NO_COLOR": "1"]
@@ -263,6 +276,21 @@ final class Homebrew: StackbarPlugin {
     /// The background services launchd runs for formulae, like postgresql.
     /// Reused for half a minute, so searching the view doesn't re-run brew;
     /// a failure is kept for that long too.
+    /// Services for the view, stale-while-revalidate like `checkIfStale`:
+    /// only the first list waits for `brew services`.
+    func loadServicesIfStale() async {
+        guard let at = servicesLoadedAt else { return await loadServices() }
+        guard !reloadingServices, Date().timeIntervalSince(at) >= 30 else { return }
+        reloadingServices = true
+        Task {
+            await self.loadServices(force: true)
+            self.reloadingServices = false
+            Stackbar.redraw()
+        }
+    }
+
+    var reloadingServices = false
+
     func loadServices(force: Bool = false) async {
         if !force, let at = servicesLoadedAt, Date().timeIntervalSince(at) < 30 { return }
         defer { servicesLoadedAt = Date() }
@@ -479,7 +507,7 @@ final class Homebrew: StackbarPlugin {
                 }
             }
         Command("services", title: "Homebrew Services", symbol: "gearshape.2", keywords: ["brew", "homebrew", "services", "launchd", "postgres", "redis"])
-            .view(search: { _ in await self.loadServices() }) { _ in
+            .view(search: { _ in await self.loadServicesIfStale() }) { _ in
                 if let problem = self.servicesProblem {
                     ContentUnavailableView("Can't list services", symbol: "exclamationmark.triangle", message: problem)
                 } else if self.services.isEmpty {
