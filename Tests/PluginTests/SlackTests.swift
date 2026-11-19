@@ -123,7 +123,8 @@ final class SlackWorkspaceTests: XCTestCase {
         await supervisor.press("picker/Server", value: .text("Other"))
         await supervisor.press("field/add-watched", value: .text("@mei"))
         let counted = await waitUntil { await supervisor.views[.menuBar]?.plainText == "2" }
-        XCTAssertTrue(counted, "two unread from Mei: \(String(describing: await supervisor.views[.menuBar]?.plainText))")
+        let shown = await supervisor.views[.menuBar]?.plainText
+        XCTAssertTrue(counted, "two unread from Mei: \(String(describing: shown))")
         let panel = await supervisor.views[.panel].map { TreeTextRenderer.render($0) } ?? ""
         XCTAssertTrue(panel.contains("ping @Sam about #general and the doc & more"), panel)
         XCTAssertTrue(calls(stub).contains { $0.hasPrefix("auth.test") }, "\(calls(stub))")
