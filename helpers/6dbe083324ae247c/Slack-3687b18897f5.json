@@ -1,0 +1,13 @@
+{
+  "arch" : "arm64",
+  "id" : "io.navbytes.stackbar.plugins.slack",
+  "protocol" : 29,
+  "publicKey" : "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+  "sha256" : "7bfdb4393218d053ccaadf964a292f401cef3ba751778e734a38a60f5216df2a",
+  "signature" : "8jOchTZJWj2UMEWE109hX3z1htNtO0cP/y9thSMotw3ciFMlp6dx0pZM4cYvQs3qlsR6w4CMJJqeWIL1uQ4fBQ==",
+  "size" : 6872792,
+  "sourceDigest" : "3687b18897f557a080d17543b7bfcf8c82255f4ae119606ed4b66a0c2d5384f4",
+  "stackbarKit" : "6dbe083324ae247cee98f129b8fedd6a3ef50662a494a0020caf7fb9c4ef3544",
+  "url" : "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-6dbe083324ae247c/Slack-3687b18897f5",
+  "version" : "1.0.0"
+}
