@@ -15,7 +15,7 @@ final class Slack: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.slack",
         name: "Slack",
-        version: "1.0.0",
+        version: "1.0.1",
         summary: "Unread Slack conversations in the menu bar; search messages, jump to channels, send messages, set your status and snooze from the palette.",
         surfaces: [.menuBar, .panel, .settings],
         triggers: [.launch, .minutes(2), .wake],
@@ -170,6 +170,7 @@ final class Slack: StackbarPlugin {
     var snoozedUntil: Date?
     var problem: String?
     var loaded = false
+    var refreshedAt: Date?
     var settingsNote: String?
 
     var found: [Found] = []
@@ -262,7 +263,17 @@ final class Slack: StackbarPlugin {
 
     // MARK: Refresh
 
+    /// For a view: waits only for the first refresh; after that it answers
+    /// from what is in hand and, when older than `maxAge`, refreshes behind
+    /// it (the view redraws when it lands).
+    func refresh(maxAge: TimeInterval) async throws {
+        if loaded, let at = refreshedAt, Date().timeIntervalSince(at) < maxAge { return }
+        guard loaded else { return try await Stackbar.refresh() }
+        if !Stackbar.isRefreshing { Task { try? await Stackbar.refresh() } }
+    }
+
     func refresh() async throws {
+        refreshedAt = Date()
         do {
             struct Auth: Decodable { let user: String; let userId: String; let team: String; let teamId: String; let url: String }
             let auth = try await call("auth.test", as: Auth.self)
@@ -924,7 +935,7 @@ final class Slack: StackbarPlugin {
         .argument("id", placeholder: "Conversation ID")
         .stackbarOnly()
         Command("unread", title: "Slack Unread Messages", symbol: "bubble.left", keywords: ["slack", "unread", "new"])
-            .view(search: { _ in try await Stackbar.refresh() }) { _ in
+            .view(search: { _ in try await self.refresh(maxAge: 15) }) { _ in
                 if let problem = self.problem, self.unread.isEmpty {
                     ContentUnavailableView("Can't reach Slack", symbol: "exclamationmark.triangle", message: problem)
                 } else if self.watched.isEmpty {

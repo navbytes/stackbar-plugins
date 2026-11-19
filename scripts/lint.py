@@ -107,6 +107,54 @@ def unconfirmed_critical(source):
     return found
 
 
+def blocking_searches(source):
+    """Lines of `.view(search: { _ in ... })` closures that ignore the query
+    yet await something with no staleness check: each open then waits for a
+    load, where the authoring guide answers from memory and reloads behind.
+    Only a hint: a load that caches inside (or is quick) is fine."""
+    found = []
+    for match in re.finditer(r"\.view\(search:\s*\{\s*_\s+in\b", source):
+        depth, end = 0, None
+        start = source.index("{", match.start())
+        for index in range(start, len(source)):
+            char = source[index]
+            if char == "{":
+                depth += 1
+            elif char == "}":
+                depth -= 1
+                if depth == 0:
+                    end = index
+                    break
+        body = source[match.end():end] if end else ""
+        if "await" not in body or re.search(r"IfStale|maxAge|behindView|\bif\b|\bguard\b|Task\s*\{", body):
+            continue
+        # A load that returns early when it has data (`guard x.isEmpty`) or
+        # awaits nothing itself is a first-load-only wait: fine.
+        if all(loads_only_once(source, name) for name in re.findall(r"await\s+self\.(\w+)\(", body)) and "Stackbar.refresh()" not in body:
+            continue
+        found.append(source.count("\n", 0, match.start()) + 1)
+    return found
+
+
+def loads_only_once(source, name):
+    match = re.search(r"func\s+" + re.escape(name) + r"\([^)]*\)[^{]*\{", source)
+    if not match:
+        return False
+    depth, end = 0, None
+    for index in range(match.end() - 1, len(source)):
+        char = source[index]
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                end = index
+                break
+    body = source[match.end():end] if end else ""
+    first = body.strip().split("\n", 1)[0].strip()
+    return "await" not in body or first.startswith(("guard", "if "))
+
+
 def lint(ctl, base=None):
     problems = []
     rows = []
@@ -166,6 +214,10 @@ def lint(ctl, base=None):
             problems.append(f"{where}: README.md needs a \"## What's new in {version}\" section; the store shows it on the Update button")
         if base:
             old = git_show(base, f"{category}/{name}/{name}.swift")
+            if old is None or old != source:
+                for line in blocking_searches(source):
+                    print(f"warning: {where}: line {line}: this view waits for a load every time it opens; "
+                          "answer from what you hold and reload in a Task with Stackbar.redraw() (stackbarctl docs: \"A search runs in the background\")")
             if old is not None and old != source:
                 old_version = base_version(ctl, name, old)
                 if old_version is None:
