@@ -148,14 +148,18 @@ final class SlackWorkspaceTests: XCTestCase {
         await supervisor.press("field/add-watched", value: .text("Mei Tanaka"))
         _ = await waitUntil { await supervisor.views[.menuBar]?.plainText == "1" }
 
+        // A refresh runs in the background, so wait for what it shows.
         workspace.change { $0.history["D1"]?.insert(("1700000200.000100", "U2", "second", nil), at: 0) }
         await refreshed(supervisor)
+        _ = await waitUntil { await supervisor.views[.menuBar]?.plainText == "2" }
         XCTAssertTrue(host.notifications.all.isEmpty, "off by default: \(host.notifications.all.map(\.title))")
 
         await supervisor.press("toggle/Notify about new messages in watched conversations", value: .bool(true))
         workspace.change { $0.history["D1"]?.insert(("1700000300.000100", "U2", "third", nil), at: 0) }
         await refreshed(supervisor)
+        _ = await waitUntil { !host.notifications.all.isEmpty }
         await refreshed(supervisor)
+        _ = await waitUntil(2) { false }
         XCTAssertEqual(host.notifications.all.map(\.title), ["Mei Tanaka"])
         XCTAssertEqual(host.notifications.all.first?.body, "third")
         await supervisor.stop()
