@@ -1,0 +1,13 @@
+{
+  "arch" : "arm64",
+  "id" : "io.navbytes.stackbar.plugins.file-search",
+  "protocol" : 31,
+  "publicKey" : "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+  "sha256" : "d217db08ea169391401992d0aa5a3066f62560f35188eabfd106e7a9180f1f3a",
+  "signature" : "ly6gAkiFyHy/S0OTatzcFMaLxxrfMiefOY+5+Xwj+KecSmmGg8uNEIS5MQJv0RjWSByxOK4zMS1iYShI6iZ1CQ==",
+  "size" : 6211496,
+  "sourceDigest" : "c9b5d7c3bd5953596a2936cf96e365f1368e3e37aa3aa8c59d8972fdc70ff163",
+  "stackbarKit" : "9596f75e9469852971807a7af51cb330c524c61674595d61c4772cacbb325099",
+  "url" : "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-9596f75e94698529/FileSearch-c9b5d7c3bd59",
+  "version" : "1.0.2"
+}

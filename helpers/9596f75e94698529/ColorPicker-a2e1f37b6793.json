@@ -1,0 +1,13 @@
+{
+  "arch" : "arm64",
+  "id" : "io.navbytes.stackbar.plugins.color-picker",
+  "protocol" : 31,
+  "publicKey" : "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+  "sha256" : "acd27f4e816b9f7c7d2922bc4caada17b1e84a20c344860c7cae64e1075846e9",
+  "signature" : "eSrYkkSzW1Fi5B33oyvQWz8C7k+MaG2l74jIwTRJqI2dX62+BhSy+gl2f7/g1CSwHAFb2E6hNxhcvAfgY24gCA==",
+  "size" : 6269568,
+  "sourceDigest" : "a2e1f37b679315b978c3c60b08a74f28408b312ea5e6fbfedc5f5618e92e4f1d",
+  "stackbarKit" : "9596f75e9469852971807a7af51cb330c524c61674595d61c4772cacbb325099",
+  "url" : "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-9596f75e94698529/ColorPicker-a2e1f37b6793",
+  "version" : "1.3.0"
+}

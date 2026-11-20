@@ -1,0 +1,13 @@
+{
+  "arch" : "arm64",
+  "id" : "io.navbytes.stackbar.plugins.dictionary",
+  "protocol" : 31,
+  "publicKey" : "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+  "sha256" : "f4c844ca80055d2ed87fb07708cbf3cb6a43ac43273b7238294a9a5ab12ca98d",
+  "signature" : "mNBXL1XsuudxGtrGCxAMkAbn4Zq2CCB4FhbCg/pXgavhzXf8W8gjUGk1FzBuOiJQn/GD7TiBHfXCpK0wczqQBA==",
+  "size" : 6209704,
+  "sourceDigest" : "b3a69e810988f79a3608d0323b5f4672f0d1fc88d634e1d1896091a4cf895e20",
+  "stackbarKit" : "9596f75e9469852971807a7af51cb330c524c61674595d61c4772cacbb325099",
+  "url" : "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-9596f75e94698529/Dictionary-b3a69e810988",
+  "version" : "1.2.0"
+}

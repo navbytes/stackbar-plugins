@@ -1,0 +1,13 @@
+{
+  "arch" : "arm64",
+  "id" : "io.navbytes.stackbar.plugins.browser-tabs",
+  "protocol" : 31,
+  "publicKey" : "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+  "sha256" : "74c78b4cb12e2f48900fbea538ba4ccafea72be59c51a99290ebb84140abe313",
+  "signature" : "hyGxeDyO5t255e3Mmtjk7e44601SE3GRskH88jQOQ43nO1uReVMFR/X8K3C1OJlKr+24/H3MIAADv7PgzxZNCw==",
+  "size" : 6459920,
+  "sourceDigest" : "9bbbf202137f2f83626dc101cf7dbef485c170415a6bbd3a05041a94017da88f",
+  "stackbarKit" : "9596f75e9469852971807a7af51cb330c524c61674595d61c4772cacbb325099",
+  "url" : "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-9596f75e94698529/BrowserTabs-9bbbf202137f",
+  "version" : "1.5.0"
+}
