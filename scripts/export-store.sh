@@ -13,7 +13,10 @@
 set -eu
 OUT=$1
 cd "$(dirname "$0")/.."
-REPO=${GITHUB_REPOSITORY:-navbytes/stackbar-plugins}
+# The repository whose releases hold the helper binaries. Actions sets it;
+# run by hand, name it, so a copy never reaches upstream's releases by mistake.
+REPO=${GITHUB_REPOSITORY:-}
+[ -n "$REPO" ] || { echo "set GITHUB_REPOSITORY to this repository (owner/name)" >&2; exit 1; }
 HELPERS_URL=$(python3 scripts/store_config.py get helpersURL)
 HELPERS_URL=${HELPERS_URL%/}
 
