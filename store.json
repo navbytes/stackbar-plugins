@@ -6,5 +6,6 @@
   "stackbar": "https://github.com/navbytes/stackbar",
   "idPrefixes": ["io.navbytes.stackbar.plugins."],
   "exclude": [],
-  "helpersURL": null
+  "helpersURL": null,
+  "pluginHomepage": "https://github.com/navbytes/stackbar-plugins/tree/main/"
 }

@@ -96,12 +96,15 @@ Up Next and PR Cockpit) live in the Stackbar repository and update with the app.
   The binaries are assets of `helpers-<digest>` releases, and their signed
   records are in `helpers.json` on `gh-pages`. Stackbar installs these, so a
   Mac without Xcode or the Command Line Tools runs store plugins. A record
-  names the exact source it was built from.
+  names the exact source it was built from. A copy that hosts its store
+  itself runs `scripts/helpers.sh --local <site> <key> <stackbar checkout>`
+  instead, which needs no GitHub and writes the binaries beside `helpers.json`.
 - `revoked.json` withdraws a published version; Stackbar removes it from Macs
   that installed it.
 - A nightly canary builds everything against Stackbar's `main`.
-- The store's name, publisher, website, accepted id prefixes and the Stackbar
-  it builds against are in `store.json` (`scripts/store_config.py`). A
+- The store's name, publisher, website, accepted id prefixes, the Stackbar
+  it builds against and the start of every plugin's homepage link are in
+  `store.json` (`scripts/store_config.py`). A
   company's private copy adds `store.override.json` and edits nothing else;
   see Stackbar's
   [docs/self-hosting.md](https://github.com/navbytes/stackbar/blob/main/docs/self-hosting.md).

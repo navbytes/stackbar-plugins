@@ -127,9 +127,17 @@ PY
     echo "published: $id $version"
 done
 
+# A copy's own pluginHomepage (or none) replaces upstream's in the index's
+# links only; the signed source keeps the manifests as written.
+PLUGIN_HOMEPAGE=$(python3 scripts/store_config.py get pluginHomepage)
+UPSTREAM_PLUGIN_HOMEPAGE=$(python3 scripts/store_config.py upstream pluginHomepage)
+set --
+if [ -n "$UPSTREAM_PLUGIN_HOMEPAGE" ] && [ "$PLUGIN_HOMEPAGE" != "$UPSTREAM_PLUGIN_HOMEPAGE" ]; then
+    set -- --plugin-homepage-from "$UPSTREAM_PLUGIN_HOMEPAGE" --plugin-homepage-to "$PLUGIN_HOMEPAGE"
+fi
 "$CTL" index build "$SITE" --name "$NAME" \
     --homepage "$HOMEPAGE" \
-    --revoked revoked.json --key "$KEY"
+    --revoked revoked.json --key "$KEY" "$@"
 touch "$SITE/.nojekyll"
 
 # site.json: each version's renders, for the site's plugin galleries and the
