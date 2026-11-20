@@ -269,6 +269,15 @@
       "changes": [
         {
           "notes": [
+            "Return on Ask AI under the palette's results asks what you typed, as Tab does, instead of leaving it in the answer view's field.",
+            "One field: the question. The small \"Ask anything\" box beside it is gone, and with it a request sent for every letter typed there.",
+            "One question at a time. Typing while an answer is on its way neither cancels it nor asks again; Return on the follow-up asks once it is in.",
+            "Reopening the palette on the same question shows its answer again rather than asking it again."
+          ],
+          "version": "1.2.0"
+        },
+        {
+          "notes": [
             "LiteLLM as a provider: ask your own proxy, with its models in a picker. Shares its URL and key with the LiteLLM plugin."
           ],
           "version": "1.1.0"
@@ -280,7 +289,7 @@
           "version": "1.0.0"
         }
       ],
-      "description": "Ask an AI model from the palette with your own key. Type a question and press\n**Tab** (Stackbar 0.36 and later; you can change what Tab does in Settings \u203a\nCommand Palette), or pick **Ask AI** under the results for any text. Type\nagain in the answer view to ask a follow-up with the conversation so far.\nReturn copies an answer and \u2318P pastes it into the app you were in.",
+      "description": "Ask an AI model from the palette with your own key. Type a question and press\n**Tab** (Stackbar 0.36 and later; you can change what Tab does in Settings \u203a\nCommand Palette), or **Return** on **Ask AI** under the results for any text:\nit is asked at once. Type again in the answer view and press Return to ask a\nfollow-up with the conversation so far, or \u2318Return to start a new one. Return\non an answer copies it and \u2318P pastes it into the app you were in.",
       "facts": [
         {
           "label": "Commands",
@@ -307,7 +316,7 @@
           "text": "the provider and its model."
         }
       ],
-      "version": "1.1.0"
+      "version": "1.2.0"
     },
     "io.navbytes.stackbar.plugins.browser-tabs": {
       "changes": [
@@ -1153,6 +1162,12 @@
       "changes": [
         {
           "notes": [
+            "Searches wait for a pause in typing through Stackbar's own debounce; the first search when the view opens is no longer delayed."
+          ],
+          "version": "1.10.1"
+        },
+        {
+          "notes": [
             "While it checks for fresh data behind the list it shows, the palette's loading bar stays on, so you can tell the list may still change (Stackbar 0.41.0 and later)."
           ],
           "version": "1.10.0"
@@ -1260,7 +1275,7 @@
           "text": "`assigned` lists your open issues with their branch names."
         }
       ],
-      "version": "1.10.0"
+      "version": "1.10.1"
     },
     "io.navbytes.stackbar.plugins.litellm": {
       "changes": [
@@ -1916,6 +1931,12 @@
       "changes": [
         {
           "notes": [
+            "Searches wait for a pause in typing through Stackbar's own debounce; the first search when the view opens is no longer delayed."
+          ],
+          "version": "1.1.1"
+        },
+        {
+          "notes": [
             "While it checks for fresh data behind the list it shows, the palette's loading bar stays on, so you can tell the list may still change (Stackbar 0.41.0 and later)."
           ],
           "version": "1.1.0"
@@ -1956,7 +1977,7 @@
           "text": "watched conversations, open links in the Slack app or the browser, notifications for new messages in watched conversations (off by default), and the server: slack.com, or another address such as `slack-gov.com` for GovSlack or a company gateway (`SLACK_API_URL`)."
         }
       ],
-      "version": "1.1.0"
+      "version": "1.1.1"
     },
     "io.navbytes.stackbar.plugins.system-commands": {
       "changes": [
@@ -2318,6 +2339,12 @@
       "changes": [
         {
           "notes": [
+            "Typed text waits for a pause in typing through Stackbar's own debounce, rather than a timer of its own."
+          ],
+          "version": "1.7.1"
+        },
+        {
+          "notes": [
             "Translate and Replace Selection pastes the translation straight over the text you selected.",
             "Translate and Replace Selection won't replace a selection longer than 5,000 characters when Google or DeepL translates it, so nothing is lost; select less text.",
             "Long texts in Chinese, Japanese, Korean and other non-Latin scripts translate with Google instead of failing with an error.",
@@ -2387,7 +2414,7 @@
           "text": "Stackbar 0.26.0 or later."
         }
       ],
-      "version": "1.7.0"
+      "version": "1.7.1"
     },
     "io.navbytes.stackbar.plugins.window-switcher": {
       "changes": [
@@ -2609,6 +2636,12 @@
       "changes": [
         {
           "notes": [
+            "Search Pull Requests waits for a pause in typing through Stackbar's own debounce; the first search when the view opens is no longer delayed."
+          ],
+          "version": "1.20.1"
+        },
+        {
+          "notes": [
             "While it checks for fresh data behind the list it shows, the palette's loading bar stays on, so you can tell the list may still change (Stackbar 0.41.0 and later)."
           ],
           "version": "1.20.0"
@@ -2790,7 +2823,7 @@
           "text": "`review_queue`, `my_pull_requests` and `my_issues`."
         }
       ],
-      "version": "1.20.0"
+      "version": "1.20.1"
     },
     "io.navbytes.stackbar.quicklinks": {
       "changes": [
@@ -3323,6 +3356,12 @@
         "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.20.0/light/demo/cbb7eda2f6be/panel.png",
         "seconds": 5.0,
         "surface": "panel"
+      },
+      "1.20.1": {
+        "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.20.1/dark/demo/cbb7eda2f6be/panel.png",
+        "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.20.1/light/demo/cbb7eda2f6be/panel.png",
+        "seconds": 5.0,
+        "surface": "panel"
       }
     }
   },
@@ -3591,6 +3630,12 @@
         "panel": {
           "dark": "Productivity/shots/io.navbytes.stackbar.plugins.ask-ai/1.1.0/dark/panel.png",
           "light": "Productivity/shots/io.navbytes.stackbar.plugins.ask-ai/1.1.0/light/panel.png"
+        }
+      },
+      "1.2.0": {
+        "panel": {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.ask-ai/1.2.0/dark/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.ask-ai/1.2.0/light/panel.png"
         }
       }
     },
@@ -4203,6 +4248,16 @@
           "light": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.10.0/light/panel.png"
         }
       },
+      "1.10.1": {
+        "menuBar": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.10.1/dark/menuBar.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.10.1/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.10.1/dark/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.10.1/light/panel.png"
+        }
+      },
       "1.2.0": {
         "menuBar": {
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.2.0/dark/menuBar.png",
@@ -4808,6 +4863,16 @@
           "dark": "Productivity/shots/io.navbytes.stackbar.plugins.slack/1.1.0/dark/panel.png",
           "light": "Productivity/shots/io.navbytes.stackbar.plugins.slack/1.1.0/light/panel.png"
         }
+      },
+      "1.1.1": {
+        "menuBar": {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.slack/1.1.1/dark/menuBar.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.slack/1.1.1/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.slack/1.1.1/dark/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.slack/1.1.1/light/panel.png"
+        }
       }
     },
     "io.navbytes.stackbar.plugins.system-commands": {
@@ -5114,6 +5179,12 @@
           "dark": "Productivity/shots/io.navbytes.stackbar.plugins.translate/1.7.0/dark/panel.png",
           "light": "Productivity/shots/io.navbytes.stackbar.plugins.translate/1.7.0/light/panel.png"
         }
+      },
+      "1.7.1": {
+        "panel": {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.translate/1.7.1/dark/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.translate/1.7.1/light/panel.png"
+        }
       }
     },
     "io.navbytes.stackbar.plugins.window-layouts": {
@@ -5407,6 +5478,16 @@
         "panel": {
           "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.20.0/dark/panel.png",
           "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.20.0/light/panel.png"
+        }
+      },
+      "1.20.1": {
+        "menuBar": {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.20.1/dark/menuBar.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.20.1/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.20.1/dark/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.20.1/light/panel.png"
         }
       },
       "1.4.0": {
@@ -6209,6 +6290,15 @@
         {
           "dark": "Productivity/shots/io.navbytes.stackbar.plugins.ask-ai/1.1.0/dark/previews/hero/panel.png",
           "light": "Productivity/shots/io.navbytes.stackbar.plugins.ask-ai/1.1.0/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Ask from the palette, follow up, copy the answer"
+        }
+      ],
+      "1.2.0": [
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.ask-ai/1.2.0/dark/previews/hero/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.ask-ai/1.2.0/light/previews/hero/panel.png",
           "name": "hero",
           "surface": "panel",
           "title": "Ask from the palette, follow up, copy the answer"
@@ -7388,6 +7478,22 @@
           "title": "What you're on, on your desktop"
         }
       ],
+      "1.10.1": [
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.10.1/dark/previews/hero/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.10.1/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Your Linear issues, by state and priority"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.10.1/dark/previews/widget/widget.png",
+          "light": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.10.1/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "What you're on, on your desktop"
+        }
+      ],
       "1.3.0": [
         {
           "dark": "Developer/shots/io.navbytes.stackbar.plugins.linear/1.3.0/dark/previews/hero/panel.png",
@@ -8375,6 +8481,22 @@
           "surface": "panel",
           "title": "Snooze and status a click away"
         }
+      ],
+      "1.1.1": [
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.slack/1.1.1/dark/previews/hero/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.slack/1.1.1/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "What's new in the conversations you watch"
+        },
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.slack/1.1.1/dark/previews/snoozed/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.slack/1.1.1/light/previews/snoozed/panel.png",
+          "name": "snoozed",
+          "surface": "panel",
+          "title": "Snooze and status a click away"
+        }
       ]
     },
     "io.navbytes.stackbar.plugins.system-commands": {
@@ -8853,6 +8975,22 @@
         {
           "dark": "Productivity/shots/io.navbytes.stackbar.plugins.translate/1.7.0/dark/previews/deepl/panel.png",
           "light": "Productivity/shots/io.navbytes.stackbar.plugins.translate/1.7.0/light/previews/deepl/panel.png",
+          "name": "deepl",
+          "surface": "panel",
+          "title": "DeepL, formal or informal"
+        }
+      ],
+      "1.7.1": [
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.translate/1.7.1/dark/previews/hero/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.translate/1.7.1/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Translate on your Mac, without leaving the app you're in"
+        },
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.translate/1.7.1/dark/previews/deepl/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.translate/1.7.1/light/previews/deepl/panel.png",
           "name": "deepl",
           "surface": "panel",
           "title": "DeepL, formal or informal"
@@ -9550,6 +9688,43 @@
         {
           "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.20.0/dark/previews/widget/widget.png",
           "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.20.0/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "Your review queue on the desktop"
+        }
+      ],
+      "1.20.1": [
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.20.1/dark/previews/hero/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.20.1/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Every pull request waiting on you"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.20.1/dark/previews/mine/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.20.1/light/previews/mine/panel.png",
+          "name": "mine",
+          "surface": "panel",
+          "title": "Your own PRs: checks, reviews and conflicts"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.20.1/dark/previews/checks/panel.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.20.1/light/previews/checks/panel.png",
+          "name": "checks",
+          "surface": "panel",
+          "title": "Why a check failed, and its preview deploy, without leaving the menu bar"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.20.1/dark/previews/dashboard/window.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.20.1/light/previews/dashboard/window.png",
+          "name": "dashboard",
+          "surface": "window",
+          "title": "Both lists, what merged and how long reviews wait"
+        },
+        {
+          "dark": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.20.1/dark/previews/widget/widget.png",
+          "light": "Developer/shots/io.navbytes.stackbar.pr-cockpit/1.20.1/light/previews/widget/widget.png",
           "name": "widget",
           "surface": "widget",
           "title": "Your review queue on the desktop"

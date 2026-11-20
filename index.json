@@ -1,6 +1,6 @@
 {
   "format" : 2,
-  "generated" : "2026-11-20T00:27:55Z",
+  "generated" : "2026-11-20T04:20:40Z",
   "homepage" : "https://github.com/navbytes/stackbar-plugins",
   "name" : "Stackbar Plugins by navbytes",
   "plugins" : [
@@ -871,6 +871,46 @@
       "symbol" : "sparkles",
       "updated" : "2026-11-20",
       "version" : "1.1.0"
+    },
+    {
+      "accent" : "violet",
+      "bundle" : "Productivity/io.navbytes.stackbar.plugins.ask-ai-1.2.0.stackbarplugin",
+      "capabilities" : [
+        "Reads the text you select and which app you're in",
+        "Reads everything you copy, and pastes into the app you're using",
+        "Connects to api.anthropic.com, api.openai.com, openrouter.ai, localhost",
+        "Reads the secret ANTHROPIC_API_KEY",
+        "Reads the secret OPENAI_API_KEY",
+        "Reads the secret OPENROUTER_API_KEY",
+        "Connects to the server you enter as LITELLM_PROXY_URL, and no other",
+        "Reads the secret LITELLM_API_KEY"
+      ],
+      "capabilityKinds" : [
+        "context",
+        "clipboard",
+        "network",
+        "secret",
+        "secret",
+        "secret",
+        "userServer",
+        "secret"
+      ],
+      "category" : "Productivity",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Productivity/AskAI",
+      "id" : "io.navbytes.stackbar.plugins.ask-ai",
+      "minimumStackbar" : "0.26.0",
+      "name" : "Ask AI",
+      "publisher" : "navbytes",
+      "screenshot" : "Productivity/io.navbytes.stackbar.plugins.ask-ai.png",
+      "sha256" : "15383e1a36ea5c824b3337427846a512e00bc568d77e43ee5d24366d9b3f71ee",
+      "summary" : "Ask Claude, ChatGPT, a local model or your LiteLLM proxy from the palette, and fix or summarize selected text, with your own key.",
+      "surfaces" : [
+        "panel",
+        "settings"
+      ],
+      "symbol" : "sparkles",
+      "updated" : "2026-11-20",
+      "version" : "1.2.0"
     },
     {
       "accent" : "cyan",
@@ -3398,6 +3438,36 @@
       "version" : "1.10.0"
     },
     {
+      "accent" : "indigo",
+      "bundle" : "Developer/io.navbytes.stackbar.plugins.linear-1.10.1.stackbarplugin",
+      "capabilities" : [
+        "Connects to api.linear.app",
+        "Reads the secret LINEAR_API_KEY"
+      ],
+      "capabilityKinds" : [
+        "network",
+        "secret"
+      ],
+      "category" : "Developer",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/Linear",
+      "id" : "io.navbytes.stackbar.plugins.linear",
+      "minimumStackbar" : "0.40.1",
+      "name" : "Linear",
+      "publisher" : "navbytes",
+      "screenshot" : "Developer/io.navbytes.stackbar.plugins.linear.png",
+      "sha256" : "8bffb17c219d6abf0a3c30940e6f919759b6d5aa24b03e2f0bd62dd1d00f9e71",
+      "summary" : "Your assigned Linear issues and inbox: change status and priority, start work, comment, and new issues from the palette.",
+      "surfaces" : [
+        "menuBar",
+        "panel",
+        "widget",
+        "settings"
+      ],
+      "symbol" : "circle.lefthalf.filled",
+      "updated" : "2026-11-20",
+      "version" : "1.10.1"
+    },
+    {
       "bundle" : "Monitoring/io.navbytes.stackbar.plugins.litellm-1.0.0.stackbarplugin",
       "capabilities" : [
         "Connects to the server you enter as LITELLM_PROXY_URL, and no other",
@@ -5185,6 +5255,39 @@
       "version" : "1.1.0"
     },
     {
+      "accent" : "violet",
+      "bundle" : "Productivity/io.navbytes.stackbar.plugins.slack-1.1.1.stackbarplugin",
+      "capabilities" : [
+        "Connects to slack.com",
+        "Reads the secret SLACK_TOKEN",
+        "Connects to the server you enter as SLACK_API_URL, and no other",
+        "Opens slack: links"
+      ],
+      "capabilityKinds" : [
+        "network",
+        "secret",
+        "userServer",
+        "openURLs"
+      ],
+      "category" : "Productivity",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Productivity/Slack",
+      "id" : "io.navbytes.stackbar.plugins.slack",
+      "minimumStackbar" : "0.40.1",
+      "name" : "Slack",
+      "publisher" : "navbytes",
+      "screenshot" : "Productivity/io.navbytes.stackbar.plugins.slack.png",
+      "sha256" : "8176e55cc53e248f9f7a6d6237b0eca3862c144f80b258dda5e4f5bac17cc121",
+      "summary" : "Unread Slack conversations in the menu bar; search messages, jump to channels, send messages, set your status and snooze from the palette.",
+      "surfaces" : [
+        "menuBar",
+        "panel",
+        "settings"
+      ],
+      "symbol" : "number.square.fill",
+      "updated" : "2026-11-20",
+      "version" : "1.1.1"
+    },
+    {
       "accent" : "graphite",
       "bundle" : "System/io.navbytes.stackbar.plugins.system-commands-1.0.0.stackbarplugin",
       "capabilities" : [
@@ -6215,6 +6318,40 @@
       "symbol" : "character.bubble.fill",
       "updated" : "2026-11-20",
       "version" : "1.7.0"
+    },
+    {
+      "accent" : "teal",
+      "bundle" : "Productivity/io.navbytes.stackbar.plugins.translate-1.7.1.stackbarplugin",
+      "capabilities" : [
+        "Reads the text you select and which app you're in",
+        "Reads everything you copy, and pastes into the app you're using",
+        "Reads the text in a part of the screen you choose",
+        "Connects to translate.googleapis.com, api-free.deepl.com, api.deepl.com",
+        "Reads the secret DEEPL_API_KEY"
+      ],
+      "capabilityKinds" : [
+        "context",
+        "clipboard",
+        "screenText",
+        "network",
+        "secret"
+      ],
+      "category" : "Productivity",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Productivity/Translate",
+      "id" : "io.navbytes.stackbar.plugins.translate",
+      "minimumStackbar" : "0.26.0",
+      "name" : "Translate",
+      "publisher" : "navbytes",
+      "screenshot" : "Productivity/io.navbytes.stackbar.plugins.translate.png",
+      "sha256" : "331c9f3d8e1835e19266ae7401a7c32d5404f2c668e5f3cbc01fd93c790632ce",
+      "summary" : "Translate the selected text in place, on your Mac or with Google or DeepL.",
+      "surfaces" : [
+        "panel",
+        "settings"
+      ],
+      "symbol" : "character.bubble.fill",
+      "updated" : "2026-11-20",
+      "version" : "1.7.1"
     },
     {
       "accent" : "indigo",
@@ -7486,6 +7623,41 @@
       "version" : "1.20.0"
     },
     {
+      "accent" : "violet",
+      "bundle" : "Developer/io.navbytes.stackbar.pr-cockpit-1.20.1.stackbarplugin",
+      "capabilities" : [
+        "Connects to api.github.com",
+        "Reads the secret GITHUB_TOKEN",
+        "Runs /opt/homebrew/bin/gh",
+        "Connects to the server you enter as GITHUB_ENTERPRISE_URL, and no other"
+      ],
+      "capabilityKinds" : [
+        "network",
+        "secret",
+        "run",
+        "userServer"
+      ],
+      "category" : "Developer",
+      "homepage" : "https://github.com/navbytes/stackbar-plugins/tree/main/Developer/PRCockpit",
+      "id" : "io.navbytes.stackbar.pr-cockpit",
+      "minimumStackbar" : "0.37.0",
+      "name" : "PR Cockpit",
+      "publisher" : "navbytes",
+      "screenshot" : "Developer/io.navbytes.stackbar.pr-cockpit.png",
+      "sha256" : "cdfa332c8e316fe1f42c35f21506d3632a6b7f196b7f82a308540b8eb1c58365",
+      "summary" : "Your pull requests, reviews and issues with CI and review state, and your repositories a keystroke away.",
+      "surfaces" : [
+        "menuBar",
+        "panel",
+        "window",
+        "widget",
+        "settings"
+      ],
+      "symbol" : "arrow.triangle.pull",
+      "updated" : "2026-11-20",
+      "version" : "1.20.1"
+    },
+    {
       "bundle" : "Productivity/io.navbytes.stackbar.quicklinks-1.0.1.stackbarplugin",
       "capabilities" : [
         "Opens any link, file or folder, in any app",
@@ -8505,5 +8677,5 @@
       "reason" : "GitHub is now part of PR Cockpit, which has the same features and more. Install PR Cockpit from the store."
     }
   ],
-  "signature" : "pmfCGODX3HQBzO8OhjP0O9lVWVJPUjN3iYLzPQSUbJxyTS5zJL2YXJqKXhrjE8Dr8fQJbY5VzUCtIMQCCAlnAA=="
+  "signature" : "zzerJSGJ/sA2ajiuT/6e7c518KmfkmgmLguC7e69fS3kOt2qtu0A6TFqGkSR9wkqYC3SO73311hLCU+w+LriCQ=="
 }
