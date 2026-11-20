@@ -1,0 +1,13 @@
+{
+  "arch" : "arm64",
+  "id" : "io.navbytes.stackbar.plugins.ask-ai",
+  "protocol" : 30,
+  "publicKey" : "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+  "sha256" : "0a20f092921571b48c40154cc4d5d299d287f9f6cf95cefad78dd3469ac6e99e",
+  "signature" : "mC1RMmbJ/q1V3Q6uDrKLLk+zfdjhvWP0sDHbgYA8RrurGPdU3T/h2/l+4At+Bdh7IdX6Cja7Z+qmFd77qtr4AQ==",
+  "size" : 6256200,
+  "sourceDigest" : "b62af37a3eb29b39e44c682bfd802938da35ad97bcb424ee8aa33af865e95c14",
+  "stackbarKit" : "3b3e4fe992788823ef7d7afeabf70fd9ae87b49d6dacec55a1afcba82b0933a9",
+  "url" : "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-3b3e4fe992788823/AskAI-b62af37a3eb2",
+  "version" : "1.2.0"
+}

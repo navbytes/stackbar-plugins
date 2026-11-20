@@ -2135,6 +2135,19 @@
     },
     {
       "arch": "arm64",
+      "id": "io.navbytes.stackbar.plugins.ask-ai",
+      "protocol": 30,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "0a20f092921571b48c40154cc4d5d299d287f9f6cf95cefad78dd3469ac6e99e",
+      "signature": "mC1RMmbJ/q1V3Q6uDrKLLk+zfdjhvWP0sDHbgYA8RrurGPdU3T/h2/l+4At+Bdh7IdX6Cja7Z+qmFd77qtr4AQ==",
+      "size": 6256200,
+      "sourceDigest": "b62af37a3eb29b39e44c682bfd802938da35ad97bcb424ee8aa33af865e95c14",
+      "stackbarKit": "3b3e4fe992788823ef7d7afeabf70fd9ae87b49d6dacec55a1afcba82b0933a9",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-3b3e4fe992788823/AskAI-b62af37a3eb2",
+      "version": "1.2.0"
+    },
+    {
+      "arch": "arm64",
       "id": "io.navbytes.stackbar.plugins.browser-tabs",
       "protocol": 30,
       "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
@@ -2294,6 +2307,19 @@
       "id": "io.navbytes.stackbar.plugins.linear",
       "protocol": 30,
       "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "e912eba756b550ab0ec76d541417f6a1a772888f127a9fd054f533886fdb0bd9",
+      "signature": "27lqIKuiC2IK4MJw8do1TUmc71Xh9g53BHoYTTlCQtOw7cq/zewTwavMF6Dxgv8Cg95Nvo1ZAaiBt8F1dA4bCw==",
+      "size": 7037272,
+      "sourceDigest": "173077a7e9035c62e09b52af3b2f8558f2aaf2ece11ba450901534e5fd62315d",
+      "stackbarKit": "3b3e4fe992788823ef7d7afeabf70fd9ae87b49d6dacec55a1afcba82b0933a9",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-3b3e4fe992788823/Linear-173077a7e903",
+      "version": "1.10.1"
+    },
+    {
+      "arch": "arm64",
+      "id": "io.navbytes.stackbar.plugins.linear",
+      "protocol": 30,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
       "sha256": "3e59ce5511a874b90356f56728b5413a609686b030ad02c9cdc87f4529b3a092",
       "signature": "cAmCqDGUgTsu2UV6sv5Dsc7hKr9hlOYwgiruKVVv0/s4CT1pKH/WTpCaTRlG8Te9HK8QDv1fMVnyQruoyT++Cg==",
       "size": 7038040,
@@ -2366,6 +2392,19 @@
       "stackbarKit": "3b3e4fe992788823ef7d7afeabf70fd9ae87b49d6dacec55a1afcba82b0933a9",
       "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-3b3e4fe992788823/OpenRouter-501ec0650802",
       "version": "1.2.0"
+    },
+    {
+      "arch": "arm64",
+      "id": "io.navbytes.stackbar.pr-cockpit",
+      "protocol": 30,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "7633cad067edfc7b4d1882033e741c55d55f4c36ee0b110bc401166ea583c5b7",
+      "signature": "STbfWqjqJyWiNDTUknPkC3CfFywI9phMqKb6ifgSbgUdEmUp7almzK+FLUl2r0FQcy3RlDDvmexmYoONVt90AA==",
+      "size": 8141512,
+      "sourceDigest": "af1b7590c3c35f6288f60ba24f6b4f0d05bc1139b8a9d1de6968badb76ec22e4",
+      "stackbarKit": "3b3e4fe992788823ef7d7afeabf70fd9ae87b49d6dacec55a1afcba82b0933a9",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-3b3e4fe992788823/PRCockpit-af1b7590c3c3",
+      "version": "1.20.1"
     },
     {
       "arch": "arm64",
@@ -2460,6 +2499,19 @@
     },
     {
       "arch": "arm64",
+      "id": "io.navbytes.stackbar.plugins.slack",
+      "protocol": 30,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "514cc32dcffbd20a3a86627304eff78d9e2590cedb72f90f05740a0ffd72fdc1",
+      "signature": "1Kc5xehO8OV2ngIMycVv7TO7khSyLPeTm11edq6BkOtfVfLk0josE/+BjVEI1+s05bnOl5kbFYzce/QtreKeCA==",
+      "size": 6946360,
+      "sourceDigest": "f8f4b3a5fa7bb8327c504d57e2482cdf0ad18be1864f149e625fc1f9c20d7b23",
+      "stackbarKit": "3b3e4fe992788823ef7d7afeabf70fd9ae87b49d6dacec55a1afcba82b0933a9",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-3b3e4fe992788823/Slack-f8f4b3a5fa7b",
+      "version": "1.1.1"
+    },
+    {
+      "arch": "arm64",
       "id": "io.navbytes.stackbar.snippets",
       "protocol": 30,
       "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
@@ -2535,6 +2587,19 @@
       "stackbarKit": "3b3e4fe992788823ef7d7afeabf70fd9ae87b49d6dacec55a1afcba82b0933a9",
       "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-3b3e4fe992788823/Todo-a53b7e433d10",
       "version": "2.3.0"
+    },
+    {
+      "arch": "arm64",
+      "id": "io.navbytes.stackbar.plugins.translate",
+      "protocol": 30,
+      "publicKey": "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+      "sha256": "34b97c8818c4dbf83224de7c4c80fa0906784ec472908c5931607cba723596ed",
+      "signature": "6rgJz2LJS3RoRz3Gp30BtlWuLF6qFDwGqi82XPvfXrFcqiEjKObHIl9sbqB4x0glwpkvPlASTnp8JrclA7g+Bg==",
+      "size": 6279704,
+      "sourceDigest": "1c5eb76a730f5b2183a73f5286f661c674b25f5cb6b4c2735d604f8dfe61f273",
+      "stackbarKit": "3b3e4fe992788823ef7d7afeabf70fd9ae87b49d6dacec55a1afcba82b0933a9",
+      "url": "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-3b3e4fe992788823/Translate-1c5eb76a730f",
+      "version": "1.7.1"
     },
     {
       "arch": "arm64",
