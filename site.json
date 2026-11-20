@@ -1281,6 +1281,12 @@
       "changes": [
         {
           "notes": [
+            "Today no longer shows $0 for the first hours after local midnight east of UTC. LiteLLM counts each day in UTC, so the plugin's days, tiles and chart labels now follow UTC days too: today runs from 00:00 to 24:00 UTC."
+          ],
+          "version": "1.8.1"
+        },
+        {
+          "notes": [
             "While it checks for fresh data behind the list it shows, the palette's loading bar stays on, so you can tell the list may still change (Stackbar 0.41.0 and later)."
           ],
           "version": "1.8.0"
@@ -1339,7 +1345,7 @@
           "version": "1.2.1"
         }
       ],
-      "description": "Tokens, spend and budget from your own [LiteLLM](https://docs.litellm.ai)\nproxy, with charts. The panel has:\n\n- **Tiles** for today, the last 7 days and the last 30 days, with tokens,\n  spend, active days and the daily average.\n- **Budget**: spend against your key's budget and when it resets.\n- **Today by model**: what each model cost today and how many tokens it\n  used, the most expensive first, as a share of the day's spend.\n- **Activity**: six months of daily tokens as a heatmap.\n- **Trend**: a week as bars, or a month or six months as an area chart, in\n  tokens or spend.\n- **Models**: the top five models over 30 days, with each one's share.\n- **Today's requests**: the success rate, how much input came from the\n  cache, and what caching saved.\n\nThe menu bar shows today's spend, today's tokens or the share of the budget\nused (you choose in Settings), and it turns orange at 75% of the budget and\nred at 90%.\n\n\nPorted from vee-plugins' `litellm-cost`.",
+      "description": "Tokens, spend and budget from your own [LiteLLM](https://docs.litellm.ai)\nproxy, with charts. The panel has:\n\n- **Tiles** for today, the last 7 days and the last 30 days, with tokens,\n  spend, active days and the daily average.\n- **Budget**: spend against your key's budget and when it resets.\n- **Today by model**: what each model cost today and how many tokens it\n  used, the most expensive first, as a share of the day's spend.\n- **Activity**: six months of daily tokens as a heatmap.\n- **Trend**: a week as bars, or a month or six months as an area chart, in\n  tokens or spend.\n- **Models**: the top five models over 30 days, with each one's share.\n- **Today's requests**: the success rate, how much input came from the\n  cache, and what caching saved.\n\nThe menu bar shows today's spend, today's tokens or the share of the budget\nused (you choose in Settings), and it turns orange at 75% of the budget and\nred at 90%.\n\n- **Days** are UTC days, the way the proxy counts them, so \"today\" starts at\n  midnight UTC rather than your local midnight.\n\nPorted from vee-plugins' `litellm-cost`.",
       "facts": [
         {
           "label": "Needs",
@@ -1362,7 +1368,7 @@
           "text": "`usage_summary`."
         }
       ],
-      "version": "1.8.0"
+      "version": "1.8.1"
     },
     "io.navbytes.stackbar.plugins.menu-search": {
       "changes": [
@@ -4480,6 +4486,16 @@
         "panel": {
           "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.8.0/dark/panel.png",
           "light": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.8.0/light/panel.png"
+        }
+      },
+      "1.8.1": {
+        "menuBar": {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.8.1/dark/menuBar.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.8.1/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.8.1/dark/panel.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.8.1/light/panel.png"
         }
       }
     },
@@ -7834,6 +7850,29 @@
         {
           "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.8.0/dark/previews/widget/widget.png",
           "light": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.8.0/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "Today's spend on the desktop"
+        }
+      ],
+      "1.8.1": [
+        {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.8.1/dark/previews/hero/panel.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.8.1/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Spend, tokens and budget for your LLM proxy"
+        },
+        {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.8.1/dark/previews/dashboard/window.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.8.1/light/previews/dashboard/window.png",
+          "name": "dashboard",
+          "surface": "window",
+          "title": "Half a year of usage, by model"
+        },
+        {
+          "dark": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.8.1/dark/previews/widget/widget.png",
+          "light": "Monitoring/shots/io.navbytes.stackbar.plugins.litellm/1.8.1/light/previews/widget/widget.png",
           "name": "widget",
           "surface": "widget",
           "title": "Today's spend on the desktop"
