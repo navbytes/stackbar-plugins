@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """This store's settings: its name and publisher, the Stackbar it builds
-against, the plugin ids it accepts, the plugins it leaves out and where its
-prebuilt helpers are downloaded from.
+against, the plugin ids it accepts, the plugins it leaves out, where its
+prebuilt helpers are downloaded from and where its plugins' pages are.
+
+pluginHomepage is the start of the homepage URL every plugin's manifest
+declares (its folder on GitHub). A copy sets its own in store.override.json,
+or null to show none, and publish.sh changes the links in the index it signs;
+the plugins' source, and so every digest keyed on it, is never rewritten.
 
 store.json holds navbytes' values. An organization's private copy adds
 store.override.json with only the keys it changes and edits nothing else, so
@@ -9,6 +14,7 @@ merging upstream never conflicts (stackbar's docs/self-hosting.md).
 
     scripts/store_config.py get <key>       a value; a list prints one per line, null prints nothing
     scripts/store_config.py excluded <dir>  exit 0 when <Category>/<Name> is left out of the store
+    scripts/store_config.py upstream <key>  the value in store.json alone, without the override
     scripts/store_config.py show
 """
 import json
@@ -30,6 +36,7 @@ SCHEMA = {
     "idPrefixes": ("prefixes", True),
     "exclude": ("paths", True),
     "helpersURL": ("str", False),
+    "pluginHomepage": ("url", False),
 }
 
 
@@ -85,6 +92,10 @@ def main(argv):
             for entry in item:
                 print(entry)
         elif item is not None:
+            print(item)
+    elif command == "upstream" and len(rest) == 1 and rest[0] in SCHEMA:
+        item = load(include_override=False).get(rest[0])
+        if item is not None:
             print(item)
     elif command == "excluded" and len(rest) == 1:
         sys.exit(0 if rest[0].strip("/") in value["exclude"] else 1)
