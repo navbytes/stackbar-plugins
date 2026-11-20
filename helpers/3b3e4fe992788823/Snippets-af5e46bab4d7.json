@@ -1,0 +1,13 @@
+{
+  "arch" : "arm64",
+  "id" : "io.navbytes.stackbar.snippets",
+  "protocol" : 30,
+  "publicKey" : "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+  "sha256" : "5a53e503b6d3a491a3f3d56d0d7eb0e139d9e3a4738d6ab87c4bc7793c819811",
+  "signature" : "TrDGxfoE1DCIl/HU6HcmouRueD0nB34P9GPHwt2+1/l8QCsFjxrmueycdepraoVoRnL7xI/M1UP8m+GLhvhGBQ==",
+  "size" : 6365832,
+  "sourceDigest" : "af5e46bab4d77ea3416355190ba3987f989b0f5a48b51da1b87d9c364d5da557",
+  "stackbarKit" : "3b3e4fe992788823ef7d7afeabf70fd9ae87b49d6dacec55a1afcba82b0933a9",
+  "url" : "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-3b3e4fe992788823/Snippets-af5e46bab4d7",
+  "version" : "1.7.0"
+}

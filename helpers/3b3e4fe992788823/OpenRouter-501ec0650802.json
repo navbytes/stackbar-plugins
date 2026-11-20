@@ -1,0 +1,13 @@
+{
+  "arch" : "arm64",
+  "id" : "io.navbytes.stackbar.plugins.openrouter",
+  "protocol" : 30,
+  "publicKey" : "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+  "sha256" : "789eaa8aab19790aaa12bfb1cc5df0f7fc35d420741add476de73b5b7edb0299",
+  "signature" : "7K0cglw1GaVOV3II/V2Xqm/7e1LDmHqQpNS6NrVveCrblmCO75dGjoJcqTp9lcB7itLyx6V4Pq6NdF6B53K2DQ==",
+  "size" : 6568744,
+  "sourceDigest" : "501ec0650802b75462c7f12f07ba8250b46d63eaedec017eaa0ee3ffc5a34857",
+  "stackbarKit" : "3b3e4fe992788823ef7d7afeabf70fd9ae87b49d6dacec55a1afcba82b0933a9",
+  "url" : "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-3b3e4fe992788823/OpenRouter-501ec0650802",
+  "version" : "1.2.0"
+}
