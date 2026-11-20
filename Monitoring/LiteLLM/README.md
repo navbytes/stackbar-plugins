@@ -30,8 +30,14 @@ red at 90%.
 - **Settings:** what the menu bar shows, and notifications at 90% and 100% of
   the budget.
 - **Agent tool:** `usage_summary`.
+- **Days** are UTC days, the way the proxy counts them, so "today" starts at
+  midnight UTC rather than your local midnight.
 
 Ported from vee-plugins' `litellm-cost`.
+
+## What's new in 1.8.1
+
+- Today no longer shows $0 for the first hours after local midnight east of UTC. LiteLLM counts each day in UTC, so the plugin's days, tiles and chart labels now follow UTC days too: today runs from 00:00 to 24:00 UTC.
 
 ## What's new in 1.8.0
 

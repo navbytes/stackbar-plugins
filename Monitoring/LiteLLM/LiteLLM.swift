@@ -14,7 +14,7 @@ final class LiteLLM: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.litellm",
         name: "LiteLLM",
-        version: "1.8.0",
+        version: "1.8.1",
         summary: "Tokens, spend, budget and model mix from your LiteLLM proxy, with charts.",
         surfaces: [.menuBar, .panel, .window, .widget, .settings],
         triggers: [.launch, .minutes(2), .wake],
@@ -39,7 +39,7 @@ final class LiteLLM: StackbarPlugin {
         plugin.proxy = "https://llm.example.com"
         var days: [String: Day] = [:]
         for offset in -179...0 {
-            let weekday = Calendar.current.component(.weekday, from: Date().addingTimeInterval(Double(offset) * 86400))
+            let weekday = utc.component(.weekday, from: Date().addingTimeInterval(Double(offset) * 86400))
             let weekend = weekday == 1 || weekday == 7
             let growth = 1 + Double(offset + 180) / 180
             let wobble = 0.8 + 0.4 * abs(sin(Double(offset) * 1.7))
@@ -638,11 +638,12 @@ final class LiteLLM: StackbarPlugin {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = format
+        formatter.timeZone = utc.timeZone
         return formatter
     }
 
     func dayLabels(_ count: Int, formatter: DateFormatter) -> [String] {
-        (0..<count).reversed().map { formatter.string(from: Calendar.current.date(byAdding: .day, value: -$0, to: Date()) ?? Date()) }
+        (0..<count).reversed().map { formatter.string(from: Self.utc.date(byAdding: .day, value: -$0, to: Date()) ?? Date()) }
     }
 
     /// Keeps every `every`th label, counted back from the last, and blanks the
@@ -693,12 +694,20 @@ final class LiteLLM: StackbarPlugin {
 
     // MARK: - Formatting
 
-    static func day(_ offset: Int) -> String {
-        // Components rather than a DateFormatter: this runs hundreds of times a render.
+    /// The proxy buckets daily spend by UTC date, so every day key, label and
+    /// window here is a UTC day. A local calendar asked for a day the proxy had
+    /// not started yet, and showed $0 from local midnight until UTC caught up.
+    static let utc: Calendar = {
         var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = Calendar.current.timeZone
-        let date = calendar.date(byAdding: .day, value: offset, to: Date()) ?? Date()
-        let parts = calendar.dateComponents([.year, .month, .day], from: date)
+        calendar.timeZone = TimeZone(identifier: "UTC") ?? TimeZone(secondsFromGMT: 0) ?? .current
+        return calendar
+    }()
+
+    /// The proxy's date key for `offset` days from today, in UTC.
+    static func day(_ offset: Int, now: Date = Date()) -> String {
+        // Components rather than a DateFormatter: this runs hundreds of times a render.
+        let date = utc.date(byAdding: .day, value: offset, to: now) ?? now
+        let parts = utc.dateComponents([.year, .month, .day], from: date)
         return String(format: "%04d-%02d-%02d", parts.year ?? 0, parts.month ?? 0, parts.day ?? 0)
     }
 
