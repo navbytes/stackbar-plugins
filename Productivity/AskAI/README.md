@@ -2,9 +2,10 @@
 
 Ask an AI model from the palette with your own key. Type a question and press
 **Tab** (Stackbar 0.36 and later; you can change what Tab does in Settings ›
-Command Palette), or pick **Ask AI** under the results for any text. Type
-again in the answer view to ask a follow-up with the conversation so far.
-Return copies an answer and ⌘P pastes it into the app you were in.
+Command Palette), or **Return** on **Ask AI** under the results for any text:
+it is asked at once. Type again in the answer view and press Return to ask a
+follow-up with the conversation so far, or ⌘Return to start a new one. Return
+on an answer copies it and ⌘P pastes it into the app you were in.
 
 - **Commands:**
   - **Ask AI:** a question, with follow-ups. Also offered under the
@@ -36,6 +37,17 @@ Return copies an answer and ⌘P pastes it into the app you were in.
   to that provider.
 - **Surfaces:** panel, settings. No menu-bar item.
 - **Settings:** the provider and its model.
+
+## What's new in 1.2.0
+
+- Return on Ask AI under the palette's results asks what you typed, as Tab
+  does, instead of leaving it in the answer view's field.
+- One field: the question. The small "Ask anything" box beside it is gone,
+  and with it a request sent for every letter typed there.
+- One question at a time. Typing while an answer is on its way neither
+  cancels it nor asks again; Return on the follow-up asks once it is in.
+- Reopening the palette on the same question shows its answer again rather
+  than asking it again.
 
 ## What's new in 1.1.0
 

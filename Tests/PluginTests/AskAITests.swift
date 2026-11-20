@@ -86,6 +86,39 @@ final class AskAITests: XCTestCase {
         await session.stop()
     }
 
+    /// The palette's text is asked once, as the view opens; typing after it
+    /// asks nothing until Return on the row that offers it. Ollama on a port
+    /// nothing listens on fails fast, and the audit counts each request.
+    func testTheOpeningTextIsAskedOnceAndTypingAsksNothing() async throws {
+        let host = Host(self)
+        let session = try await host.session("AskAI")
+        try await session.event("picker/Ask", value: .text("Ollama"))
+        let audit = host.services.audit
+        let asks = { audit.entries(for: "io.navbytes.stackbar.plugins.ask-ai").reduce(0) { $0 + $1.allowed } }
+
+        let opened = try await session.openView("ask", query: CommandQuery(text: "What is 2+2?"))
+        let failed = await waitUntil { await session.commandView(opened.session)?.rows.contains { $0.key == "problem" } ?? false }
+        let shown = await session.commandView(opened.session)
+        XCTAssertTrue(failed, "\(String(describing: shown))")
+        XCTAssertEqual(asks(), 1)
+        let first = try XCTUnwrap(shown?.rows)
+        XCTAssertFalse(first.contains { $0.key == "ask" || $0.key == "follow-up" }, "the question the view opened with is not offered again")
+
+        for typed in ["W", "Wh", "Why?"] {
+            _ = try await session.updateView(opened.session, query: CommandQuery(text: typed))
+        }
+        try await Task.sleep(for: .milliseconds(300))
+        XCTAssertEqual(asks(), 1, "typing asks nothing")
+        let typedRows = await session.commandView(opened.session)?.rows
+        let offered = try XCTUnwrap(typedRows?.first)
+        XCTAssertEqual(offered.title, "Ask “Why?”")
+
+        _ = try await session.event(try XCTUnwrap(offered.actions.first).id)
+        let askedAgain = await waitUntil { asks() == 2 }
+        XCTAssertTrue(askedAgain, "Return asks it")
+        await session.stop()
+    }
+
     func testLiteLLMAsksTheProxyWithItsKey() throws {
         XCTAssertEqual(AskAI.apiRoot("https://llm.example.com/"), "https://llm.example.com/v1")
         XCTAssertEqual(AskAI.apiRoot(" https://llm.example.com/v1/ "), "https://llm.example.com/v1")
