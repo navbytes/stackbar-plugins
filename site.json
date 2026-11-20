@@ -2558,6 +2558,12 @@
       "changes": [
         {
           "notes": [
+            "The desktop widget's times keep up on their own. They used to show the time of the plugin's last refresh until macOS redrew the widget."
+          ],
+          "version": "1.7.1"
+        },
+        {
+          "notes": [
             "**Use it in place of the macOS clock.** The menu bar can show this Mac's own time, and Settings has the macOS clock's options: the date, the day of the week, 24-hour time, AM/PM, seconds, the city's name and the globe. A custom format (like `EEE d MMM HH:mm`) replaces them all.",
             "The menu-bar clock now changes on the minute (or the second) exactly, instead of up to 30 seconds late, and keeps one width so the menu bar doesn't shift.",
             "The time-travel slider moves every clock while you drag it, not only when you let go.",
@@ -2630,7 +2636,7 @@
           "text": "`times` returns the time in every city."
         }
       ],
-      "version": "1.7.0"
+      "version": "1.7.1"
     },
     "io.navbytes.stackbar.pr-cockpit": {
       "changes": [
@@ -3334,6 +3340,12 @@
       "1.7.0": {
         "dark": "Productivity/shots/io.navbytes.stackbar.plugins.world-clock/1.7.0/dark/demo/6b74b0a73db2/panel.png",
         "light": "Productivity/shots/io.navbytes.stackbar.plugins.world-clock/1.7.0/light/demo/6b74b0a73db2/panel.png",
+        "seconds": 5.75,
+        "surface": "panel"
+      },
+      "1.7.1": {
+        "dark": "Productivity/shots/io.navbytes.stackbar.plugins.world-clock/1.7.1/dark/demo/6b74b0a73db2/panel.png",
+        "light": "Productivity/shots/io.navbytes.stackbar.plugins.world-clock/1.7.1/light/demo/6b74b0a73db2/panel.png",
         "seconds": 5.75,
         "surface": "panel"
       }
@@ -5356,6 +5368,16 @@
         "panel": {
           "dark": "Productivity/shots/io.navbytes.stackbar.plugins.world-clock/1.7.0/dark/panel.png",
           "light": "Productivity/shots/io.navbytes.stackbar.plugins.world-clock/1.7.0/light/panel.png"
+        }
+      },
+      "1.7.1": {
+        "menuBar": {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.world-clock/1.7.1/dark/menuBar.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.world-clock/1.7.1/light/menuBar.png"
+        },
+        "panel": {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.world-clock/1.7.1/dark/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.world-clock/1.7.1/light/panel.png"
         }
       }
     },
@@ -9242,6 +9264,36 @@
         {
           "dark": "Productivity/shots/io.navbytes.stackbar.plugins.world-clock/1.7.0/dark/previews/menu-bar/menuBar.png",
           "light": "Productivity/shots/io.navbytes.stackbar.plugins.world-clock/1.7.0/light/previews/menu-bar/menuBar.png",
+          "name": "menu-bar",
+          "surface": "menuBar",
+          "title": "In place of the macOS clock"
+        }
+      ],
+      "1.7.1": [
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.world-clock/1.7.1/dark/previews/hero/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.world-clock/1.7.1/light/previews/hero/panel.png",
+          "name": "hero",
+          "surface": "panel",
+          "title": "Every city you work with, and their working hours"
+        },
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.world-clock/1.7.1/dark/previews/plan/panel.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.world-clock/1.7.1/light/previews/plan/panel.png",
+          "name": "plan",
+          "surface": "panel",
+          "title": "Slide to find a time that works everywhere"
+        },
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.world-clock/1.7.1/dark/previews/widget/widget.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.world-clock/1.7.1/light/previews/widget/widget.png",
+          "name": "widget",
+          "surface": "widget",
+          "title": "Your cities on the desktop"
+        },
+        {
+          "dark": "Productivity/shots/io.navbytes.stackbar.plugins.world-clock/1.7.1/dark/previews/menu-bar/menuBar.png",
+          "light": "Productivity/shots/io.navbytes.stackbar.plugins.world-clock/1.7.1/light/previews/menu-bar/menuBar.png",
           "name": "menu-bar",
           "surface": "menuBar",
           "title": "In place of the macOS clock"
