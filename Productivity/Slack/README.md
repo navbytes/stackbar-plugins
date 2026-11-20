@@ -84,6 +84,10 @@ settings:
 You can leave out the groups of scopes for commands you won't use; that
 command then says which scope it is missing.
 
+## What's new in 1.1.1
+
+- Searches wait for a pause in typing through Stackbar's own debounce; the first search when the view opens is no longer delayed.
+
 ## What's new in 1.1.0
 
 - While it checks for fresh data behind the list it shows, the palette's loading bar stays on, so you can tell the list may still change (Stackbar 0.41.0 and later).

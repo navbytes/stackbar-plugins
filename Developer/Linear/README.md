@@ -23,6 +23,10 @@ groups everything assigned to you by state, ordered by priority.
   default team for new issues.
 - **Agent tool:** `assigned` lists your open issues with their branch names.
 
+## What's new in 1.10.1
+
+- Searches wait for a pause in typing through Stackbar's own debounce; the first search when the view opens is no longer delayed.
+
 ## What's new in 1.10.0
 
 - While it checks for fresh data behind the list it shows, the palette's loading bar stays on, so you can tell the list may still change (Stackbar 0.41.0 and later).

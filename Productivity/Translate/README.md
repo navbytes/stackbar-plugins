@@ -34,6 +34,10 @@ share its selection, it uses what you last copied.
   (pastes the translation over what you selected).
 - **Requires:** Stackbar 0.26.0 or later.
 
+## What's new in 1.7.1
+
+- Typed text waits for a pause in typing through Stackbar's own debounce, rather than a timer of its own.
+
 ## What's new in 1.7.0
 
 - Translate and Replace Selection pastes the translation straight over the text you selected.

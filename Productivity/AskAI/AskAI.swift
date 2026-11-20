@@ -2,8 +2,8 @@ import StackbarKit
 import Foundation
 
 /// Ask an AI model from the palette, with your own key: type a question and
-/// press Tab (Stackbar 0.36 and later), or pick Ask AI under the results.
-/// Follow-up questions keep the conversation. Commands on the selected text
+/// press Tab (Stackbar 0.36 and later), or Return on Ask AI under the
+/// results. Follow-up questions keep the conversation. Commands on the selected text
 /// summarize or explain it, or fix, improve or shorten it in place.
 ///
 /// Anthropic's Claude is the default provider; OpenAI, OpenRouter, Ollama
@@ -17,7 +17,7 @@ final class AskAI: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.ask-ai",
         name: "Ask AI",
-        version: "1.1.0",
+        version: "1.2.0",
         summary: "Ask Claude, ChatGPT, a local model or your LiteLLM proxy from the palette, and fix or summarize selected text, with your own key.",
         surfaces: [.panel, .settings],
         triggers: [.launch],
@@ -180,10 +180,15 @@ final class AskAI: StackbarPlugin {
 
     /// The conversation shown in the palette, oldest first.
     var exchanges: [Exchange] = []
-    /// The prompt (or selection command) the conversation started from, so
-    /// the view asks once and not on every keystroke.
-    var started: String?
+    /// The question being answered now, shown as Thinking…. One at a time.
+    var asking: String?
     var problem: String?
+    /// The question `problem` is about, to try again.
+    var failed: String?
+    /// The answer on its way, which a new conversation drops.
+    var pending: Task<Void, Never>?
+    /// Counts conversations, so a late answer to an older one is dropped.
+    var conversation = 0
 
     nonisolated static let systemPrompt = "You answer inside a Mac launcher. Be brief and direct, and start with the answer. Use plain text (no Markdown headings or tables); short lists and code are fine."
 
@@ -284,25 +289,76 @@ final class AskAI: StackbarPlugin {
     /// Who answered, for the caption.
     var by: String { provider == .anthropic ? model : "\(provider.rawValue) · \(model)" }
 
-    /// Starts a conversation, once per prompt.
-    func start(_ question: String, key: String, system: String = systemPrompt) async {
-        guard started != key else { return }
-        started = key
-        exchanges = []
-        await follow(question, system: system)
-    }
-
-    /// Asks within the conversation.
-    func follow(_ question: String, system: String = systemPrompt) async {
+    /// Starts a new conversation with `question`, dropping one on its way.
+    /// The same question as the conversation shown started with keeps it,
+    /// so reopening the palette on that text costs nothing.
+    func begin(_ question: String, system: String = systemPrompt) {
         let question = question.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !question.isEmpty else { return }
+        if (exchanges.first?.question ?? asking) == question, problem == nil { return }
+        reset()
+        send(question, system: system)
+    }
+
+    /// Asks within the conversation. While an answer is on its way another
+    /// question waits for it: false, and nothing is sent.
+    @discardableResult
+    func follow(_ question: String, system: String = systemPrompt) -> Bool {
+        guard asking == nil else { return false }
+        return send(question.trimmingCharacters(in: .whitespacesAndNewlines), system: system)
+    }
+
+    /// Clears the conversation, and drops an answer on its way.
+    func reset() {
+        pending?.cancel()
+        pending = nil
+        conversation += 1
+        exchanges = []
+        asking = nil
         problem = nil
-        do {
-            let answer = try await ask(question, history: exchanges, system: system)
-            exchanges.append(Exchange(question: question, answer: answer, by: by))
-        } catch {
-            problem = "\(error)"
+        failed = nil
+    }
+
+    /// Asks the question that got no answer again.
+    func retry() {
+        guard let question = failed else { return }
+        if exchanges.isEmpty { begin(question) } else { follow(question) }
+    }
+
+    /// Sends one question in its own task, so typing in the palette while it
+    /// is answered neither waits for it nor cancels it. Each question is
+    /// one request: nothing here asks on a keystroke.
+    @discardableResult
+    private func send(_ question: String, system: String) -> Bool {
+        guard !question.isEmpty else { return false }
+        asking = question
+        problem = nil
+        failed = nil
+        let history = exchanges
+        let id = conversation
+        pending = Task { @MainActor in
+            await Stackbar.updating {
+                do {
+                    let answer = try await self.ask(question, history: history, system: system)
+                    guard id == self.conversation else { return }
+                    self.exchanges.append(Exchange(question: question, answer: answer, by: self.by))
+                } catch {
+                    guard id == self.conversation, !(error is CancellationError) else { return }
+                    self.problem = "\(error)"
+                    self.failed = question
+                }
+                self.asking = nil
+                self.pending = nil
+            }
         }
+        return true
+    }
+
+    /// The question a view opened with: the palette's text (Return or Tab on
+    /// it, an alias), or a `stackbar://` link's `prompt` from 1.1.0 and before.
+    nonisolated static func opening(_ invocation: CommandInvocation) -> String? {
+        let question = (invocation["prompt"] ?? invocation.text).trimmingCharacters(in: .whitespacesAndNewlines)
+        return question.isEmpty ? nil : question
     }
 
     // MARK: Selected text
@@ -341,11 +397,13 @@ final class AskAI: StackbarPlugin {
     // MARK: Commands
 
     var commands: [Command] {
+        // The view's one field is the question. What it opens with is asked
+        // at once, as a new conversation; what is typed after is offered as a
+        // follow-up, asked on Return.
         Command("ask", title: "Ask AI", subtitle: "A question, with follow-ups", symbol: "sparkles", keywords: ["ai", "chat", "claude", "gpt", "llm", "question"])
-            .argument("prompt", placeholder: "Ask anything")
             .view(search: { invocation in
-                guard let prompt = invocation["prompt"] else { return }
-                await self.start(prompt, key: "ask:" + prompt)
+                guard invocation.isOpening, let question = Self.opening(invocation) else { return }
+                self.begin(question)
             }) { invocation in
                 self.conversation(typed: invocation.text)
             }
@@ -361,13 +419,13 @@ final class AskAI: StackbarPlugin {
             } else {
                 Command(command.id, title: command.title, subtitle: "The selected text", symbol: command.symbol, keywords: ["ai", "selection"])
                     .view(search: { invocation in
+                        guard invocation.isOpening else { return }
                         guard let text = Self.selection(invocation) else {
-                            self.exchanges = []
-                            self.started = nil
+                            self.reset()
                             self.problem = "Select some text first, then run \(command.title)"
                             return
                         }
-                        await self.start(Self.prompt(command, text: text), key: command.id + ":" + text)
+                        self.begin(Self.prompt(command, text: text))
                     }) { invocation in
                         self.conversation(typed: invocation.text)
                     }
@@ -375,21 +433,38 @@ final class AskAI: StackbarPlugin {
         }
     }
 
-    /// The answers, newest first, with a follow-up row for typed text.
+    /// The answers, newest first, under a row that asks what is typed. The
+    /// field still holding a question already asked (the one the view
+    /// opened with) offers nothing.
     @ViewBuilder func conversation(typed: String) -> ViewContent {
         let typed = typed.trimmingCharacters(in: .whitespacesAndNewlines)
-        if exchanges.isEmpty, let problem {
-            ContentUnavailableView("No answer", symbol: "sparkles", message: problem)
-        } else if exchanges.isEmpty {
-            ContentUnavailableView("Thinking…", symbol: "sparkles")
+        let asked = exchanges.map(\.question) + [asking, failed].compactMap { $0 }
+        let offer = !typed.isEmpty && !asked.contains(typed)
+        if exchanges.isEmpty, asking == nil, failed == nil, !offer {
+            if let problem {
+                ContentUnavailableView("No answer", symbol: "sparkles", message: problem)
+            } else {
+                ContentUnavailableView("Ask anything", symbol: "sparkles", message: "Type a question and press Return. Questions after it follow up on the answer.")
+            }
         } else {
             List {
-                if !typed.isEmpty {
-                    Row("Ask “\(typed)”", subtitle: "A follow-up, with this conversation", symbol: "arrow.up.message", key: "follow-up")
-                        .action("Ask") { await self.follow(typed) }
+                if offer, exchanges.isEmpty, asking == nil {
+                    Row("Ask “\(typed)”", subtitle: "A new question", symbol: "sparkles", key: "ask")
+                        .action("Ask") { self.begin(typed) }
+                } else if offer {
+                    Row("Ask “\(typed)”", subtitle: asking == nil ? "A follow-up, with this conversation" : "A follow-up, once this answer is in",
+                        symbol: "arrow.up.message", key: "follow-up")
+                        .action("Ask") {
+                            if !self.follow(typed) { Stackbar.hud("Still answering the last question") }
+                        }
+                        .action("Ask as a New Question", shortcut: "cmd+return") { self.begin(typed) }
+                }
+                if let asking {
+                    Row("Thinking…", subtitle: Self.gist(Self.shownQuestion(asking)), symbol: "ellipsis", key: "thinking")
                 }
                 if let problem {
                     Row(problem, subtitle: "The last question got no answer", symbol: "exclamationmark.triangle", key: "problem")
+                        .action("Try Again") { self.retry() }
                 }
                 for (index, exchange) in exchanges.enumerated().reversed() {
                     Row(Self.gist(exchange.answer), subtitle: Self.gist(Self.shownQuestion(exchange.question)), symbol: "sparkles", key: "answer-\(index)")
@@ -419,21 +494,21 @@ final class AskAI: StackbarPlugin {
     var panel: ViewContent {
         PanelHeader("Ask AI", subtitle: by, symbol: "sparkles", theme: theme)
         TextField("Ask anything, then Return") { text in
-            await self.start(text, key: "panel:\(text):\(Date().timeIntervalSince1970)")
+            self.reset()
+            self.begin(text)
         }
         if let problem {
             Banner(problem)
         }
-        if let last = exchanges.last {
+        if let asking {
+            Text(Self.shownQuestion(asking)).style(.caption).role(.secondary)
+            Text("Thinking…").style(.body).role(.secondary)
+        } else if let last = exchanges.last {
             Text(Self.shownQuestion(last.question)).style(.caption).role(.secondary)
             Text(last.answer).style(.body)
             HStack(spacing: Space.s) {
                 ActionButton("Copy", symbol: "doc.on.doc", theme: theme, prominent: true) { Stackbar.copy(last.answer) }
-                ActionButton("New Question", symbol: "plus", theme: theme) {
-                    self.exchanges = []
-                    self.started = nil
-                    self.problem = nil
-                }
+                ActionButton("New Question", symbol: "plus", theme: theme) { self.reset() }
                 Spacer()
             }
         } else if problem == nil {
@@ -445,7 +520,6 @@ final class AskAI: StackbarPlugin {
         Section("Provider") {
             Picker("Ask", options: Provider.allCases.map(\.rawValue), selection: provider.rawValue, style: .segmented) { choice in
                 self.storedProvider = choice
-                self.started = nil
                 self.problem = nil
                 if self.provider == .litellm, self.litellmModels.isEmpty { await self.loadLiteLLMModels() }
             }
@@ -473,7 +547,6 @@ final class AskAI: StackbarPlugin {
             Picker("Model", options: litellmModels.contains(chosen) || chosen.isEmpty ? litellmModels : [chosen] + litellmModels,
                    selection: chosen, key: "litellm-model") { choice in
                 self.models[Provider.litellm.rawValue] = choice
-                self.started = nil
             }
         }
         if let litellmProblem {
