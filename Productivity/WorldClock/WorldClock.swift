@@ -12,7 +12,7 @@ final class WorldClock: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.world-clock",
         name: "World Clock",
-        version: "1.7.0",
+        version: "1.7.1",
         summary: "The time in the cities you work with, with offsets and working hours.",
         surfaces: [.menuBar, .panel, .settings, .widget],
         triggers: [.launch, .every(.seconds(30)), .wake],
@@ -259,7 +259,8 @@ final class WorldClock: StackbarPlugin {
                         Image(systemName: sky.symbol).font(size: 11).symbolRendering(.multicolor)
                         Text(city(zone.identifier)).typography(.caption).opacity(0.85)
                     }
-                    Text(time(realNow, in: zone)).typography(Typography(size: 22, weight: .bold, design: .rounded, monospacedDigit: true))
+                    // Kept current by Stackbar, so the desktop widget doesn't go stale between refreshes.
+                    Clock(use24Hour ? "HH:mm" : "h:mm a", timeZone: zone).typography(Typography(size: 22, weight: .bold, design: .rounded, monospacedDigit: true))
                 }
                 .foreground(.onMedia)
                 .padding(horizontal: Space.m - 2, vertical: Space.s)

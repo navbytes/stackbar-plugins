@@ -39,6 +39,10 @@ Add `Tokyo` or `Asia/Tokyo`, and pick which city the menu bar shows.
 A widget keeps your cities on the desktop.
 <!-- preview: widget -->
 
+## What's new in 1.7.1
+
+- The desktop widget's times keep up on their own. They used to show the time of the plugin's last refresh until macOS redrew the widget.
+
 ## What's new in 1.7.0
 
 - **Use it in place of the macOS clock.** The menu bar can show this Mac's own time, and Settings has the macOS clock's options: the date, the day of the week, 24-hour time, AM/PM, seconds, the city's name and the globe. A custom format (like `EEE d MMM HH:mm`) replaces them all.
