@@ -1,0 +1,13 @@
+{
+  "arch" : "arm64",
+  "id" : "io.navbytes.stackbar.plugins.workspaces",
+  "protocol" : 30,
+  "publicKey" : "4dpLtXEpFXdi+6cviY/KdYuUulJPbEmCxxIK0EEN2/w=",
+  "sha256" : "4f21ec0ea77030b88233e46596294095653dff1e29607187114f120dfc14145f",
+  "signature" : "i2w52GFOujhVaFWQesbvrojY4Vr9dUFsjOJnGgVX7qYw0Q39Ss0IL71jHIQirGhyoI0ufjvpBi8WfKvrzHoMCw==",
+  "size" : 6348952,
+  "sourceDigest" : "df966072cb6bdb82bb531e050206e0b7942db078486ec7625bcd55fbc16b2e1d",
+  "stackbarKit" : "90f9a59284bb06788ff770c10b41cd508b1c2af873baf61051ba1ed4aa42da76",
+  "url" : "https://github.com/navbytes/stackbar-plugins/releases/download/helpers-90f9a59284bb0678/Windows-df966072cb6b",
+  "version" : "2.4.0"
+}
