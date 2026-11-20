@@ -17,7 +17,7 @@ final class ScriptCommands: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.script-commands",
         name: "Script Commands",
-        version: "1.5.0",
+        version: "1.6.0",
         summary: "Run your own scripts from the palette, in Raycast's Script Commands format.",
         surfaces: [.panel, .settings],
         // Every minute for inline scripts that refresh; the folders are
@@ -413,7 +413,7 @@ final class ScriptCommands: StackbarPlugin {
                 } else if !self.rescanning, Date().timeIntervalSince(self.lastScan) >= Self.openRescanAfter {
                     self.rescanning = true
                     Task {
-                        await self.scan()
+                        await Stackbar.updating { await self.scan() }
                         self.rescanning = false
                         Stackbar.redraw()
                     }

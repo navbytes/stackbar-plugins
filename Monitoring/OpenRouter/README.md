@@ -32,6 +32,10 @@ at 90% or when credits run low.
   (5 dollars to start).
 - **Agent tool:** `usage_summary`.
 
+## What's new in 1.2.0
+
+- While it checks for fresh data behind the list it shows, the palette's loading bar stays on, so you can tell the list may still change (Stackbar 0.41.0 and later).
+
 ## What's new in 1.1.0
 
 - The usage view opens at once after the first fetch. It shows the last numbers and asks OpenRouter again in the background; they update when it answers.

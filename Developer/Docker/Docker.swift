@@ -15,7 +15,7 @@ final class Docker: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.docker",
         name: "Docker",
-        version: "1.11.0",
+        version: "1.12.0",
         summary: "Your containers with live CPU and memory, Compose projects, and start, stop, restart and logs a click away.",
         surfaces: [.menuBar, .panel, .window, .widget, .settings],
         triggers: [.launch, .every(.seconds(15)), .wake],
@@ -222,7 +222,7 @@ final class Docker: StackbarPlugin {
         guard !reloading, Date().timeIntervalSince(lastSlowCheck) > 5 else { return }
         reloading = true
         Task {
-            await self.load()
+            await Stackbar.updating { await self.load() }
             self.reloading = false
             Stackbar.redraw()
         }

@@ -65,6 +65,10 @@ up the merged ones.
 A widget with what's behind and unpushed, and an Update button.
 <!-- preview: widget -->
 
+## What's new in 1.4.0
+
+- While it checks for fresh data behind the list it shows, the palette's loading bar stays on, so you can tell the list may still change (Stackbar 0.41.0 and later).
+
 ## What's new in 1.3.0
 
 - The repository and worktree views open at once. They show your repositories as last checked and check them again in the background when that was over a minute ago, which takes seconds with many repositories; the list updates when the check lands.

@@ -14,7 +14,7 @@ final class LiteLLM: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.litellm",
         name: "LiteLLM",
-        version: "1.7.0",
+        version: "1.8.0",
         summary: "Tokens, spend, budget and model mix from your LiteLLM proxy, with charts.",
         surfaces: [.menuBar, .panel, .window, .widget, .settings],
         triggers: [.launch, .minutes(2), .wake],
@@ -193,7 +193,7 @@ final class LiteLLM: StackbarPlugin {
     func refresh(maxAge: TimeInterval) async throws {
         if let at = lastAttempt, Date().timeIntervalSince(at) < (problem == nil ? maxAge : max(maxAge, 30)) { return }
         guard lastAttempt != nil else { return try await Stackbar.refresh() }
-        if !Stackbar.isRefreshing { Task { try? await Stackbar.refresh() } }
+        if !Stackbar.isRefreshing { Task { try? await Stackbar.updating { try await Stackbar.refresh() } } }
     }
 
     private func headers(_ key: String) -> [String: String] {

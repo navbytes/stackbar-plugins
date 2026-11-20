@@ -11,7 +11,7 @@ final class Ports: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.ports",
         name: "Ports",
-        version: "1.6.0",
+        version: "1.7.0",
         summary: "Which process is listening on which port, and a way to stop it.",
         surfaces: [.panel, .settings],
         triggers: [.launch, .every(.seconds(30))],
@@ -123,7 +123,7 @@ final class Ports: StackbarPlugin {
         guard !reloading, Date().timeIntervalSince(loadedAt) > 10 else { return }
         reloading = true
         Task {
-            await self.load()
+            await Stackbar.updating { await self.load() }
             self.reloading = false
             Stackbar.redraw()
         }

@@ -15,7 +15,7 @@ final class SystemMonitor: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.system-monitor",
         name: "System Monitor",
-        version: "1.9.0",
+        version: "1.10.0",
         summary: "CPU, memory, disk and network speed in the menu bar, the processes using the most, and alerts when one stays high.",
         surfaces: [.menuBar, .panel, .widget, .settings],
         triggers: [.launch, .every(.seconds(10)), .wake],
@@ -892,7 +892,7 @@ final class SystemMonitor: StackbarPlugin {
                 } else if !self.remeasuring, Date().timeIntervalSince(self.lastAttempt ?? .distantPast) > 5 {
                     self.remeasuring = true
                     Task {
-                        await self.measure(recording: false)
+                        await Stackbar.updating { await self.measure(recording: false) }
                         self.remeasuring = false
                         Stackbar.redraw()
                     }

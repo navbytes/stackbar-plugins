@@ -34,6 +34,10 @@ echo "Hello ${1:-world}"
 - **Surfaces:** panel (your scripts; click one to run it), settings (folders).
 - **Commands:** one for each script, Script Commands (the list), and Reload Script Commands.
 
+## What's new in 1.6.0
+
+- While it checks for fresh data behind the list it shows, the palette's loading bar stays on, so you can tell the list may still change (Stackbar 0.41.0 and later).
+
 ## What's new in 1.5.0
 
 - The Script Commands view opens at once after the first scan. It shows the scripts already found and looks for new ones in the background; the list updates when the scan lands.

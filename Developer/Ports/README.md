@@ -19,6 +19,10 @@ whatever holds it is asked to stop.
 Processes owned by another user, like system services, can't be stopped
 from here.
 
+## What's new in 1.7.0
+
+- While it checks for fresh data behind the list it shows, the palette's loading bar stays on, so you can tell the list may still change (Stackbar 0.41.0 and later).
+
 ## What's new in 1.6.0
 
 - The port views open at once after the first scan. They show the ports already found and run lsof again in the background; the list updates when it lands.

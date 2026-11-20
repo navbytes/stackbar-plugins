@@ -35,7 +35,7 @@ final class BrowserTabs: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.browser-tabs",
         name: "Browser Tabs",
-        version: "1.4.0",
+        version: "1.5.0",
         summary: "Switch to any open tab in Safari, Chrome, Arc, Brave or Edge, and search your bookmarks.",
         surfaces: [.panel],
         // Leaving a browser is when its tabs change: they're read again then, in
@@ -286,7 +286,7 @@ final class BrowserTabs: StackbarPlugin {
         guard tabsReading == nil else { return }
         if let tabsReadAt, Date().timeIntervalSince(tabsReadAt) < Self.tabsFreshFor { return }
         Task { @MainActor in
-            await self.readTabs()
+            await Stackbar.updating { await self.readTabs() }
             self.tabResults = Self.matches(self.tabQuery, in: self.tabs, title: \.lowerTitle, url: \.lowerURL)
             Stackbar.redraw()
         }

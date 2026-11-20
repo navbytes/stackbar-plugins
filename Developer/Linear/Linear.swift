@@ -15,7 +15,7 @@ final class Linear: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.linear",
         name: "Linear",
-        version: "1.9.0",
+        version: "1.10.0",
         summary: "Your assigned Linear issues and inbox: change status and priority, start work, comment, and new issues from the palette.",
         surfaces: [.menuBar, .panel, .widget, .settings],
         triggers: [.launch, .minutes(5), .wake],
@@ -197,7 +197,7 @@ final class Linear: StackbarPlugin {
     func refresh(maxAge: TimeInterval) async throws {
         if loaded, let at = refreshed, Date().timeIntervalSince(at) < (problem == nil ? maxAge : max(maxAge, 30)) { return }
         guard loaded else { return try await Stackbar.refresh() }
-        if !Stackbar.isRefreshing { Task { try? await Stackbar.refresh() } }
+        if !Stackbar.isRefreshing { Task { try? await Stackbar.updating { try await Stackbar.refresh() } } }
     }
 
     /// The assigned issues after the first hundred, up to three more pages.

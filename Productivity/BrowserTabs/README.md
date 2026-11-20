@@ -15,6 +15,10 @@ Edge and Vivaldi keep in every profile, and opens one in its browser.
 - **Leaves out:** Safari's bookmarks, which macOS keeps behind Full Disk
   Access, and Arc's sidebar.
 
+## What's new in 1.5.0
+
+- While it checks for fresh data behind the list it shows, the palette's loading bar stays on, so you can tell the list may still change (Stackbar 0.41.0 and later).
+
 ## What's new in 1.4.0
 
 - Search Browser Tabs opens at once. It shows the tabs it already knows and reads them again in the background, and the list updates when that read finishes. Before, every open waited for every browser to answer.

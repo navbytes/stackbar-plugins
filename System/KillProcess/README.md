@@ -18,6 +18,10 @@ line.
   screen.
 - To free a port, use Ports; for the whole-system view, use System Monitor.
 
+## What's new in 1.5.0
+
+- While it checks for fresh data behind the list it shows, the palette's loading bar stays on, so you can tell the list may still change (Stackbar 0.41.0 and later).
+
 ## What's new in 1.4.0
 
 - Kill Process opens at once after the first list. It shows the processes already read and reads them again in the background as you type; the list updates when that lands. Ending a process still checks it is the same one first.
