@@ -19,7 +19,7 @@ final class Translate: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.translate",
         name: "Translate",
-        version: "1.7.0",
+        version: "1.7.1",
         summary: "Translate the selected text in place, on your Mac or with Google or DeepL.",
         surfaces: [.panel, .settings],
         triggers: [.launch],
@@ -263,9 +263,6 @@ final class Translate: StackbarPlugin {
         return "\(result.source.count) characters translated by \(result.by)"
     }
 
-    /// The typed text the search last saw, so an older keystroke doesn't translate.
-    private var latestTyped: String?
-
     // MARK: Commands
 
     var commands: [Command] {
@@ -318,13 +315,6 @@ final class Translate: StackbarPlugin {
                     return
                 }
                 if self.inPlace {
-                    // Typed text is translated once the typing pauses, not
-                    // sent to a network engine for every keystroke.
-                    if !invocation.text.isEmpty {
-                        self.latestTyped = text
-                        try? await Task.sleep(for: .milliseconds(350))
-                        if self.latestTyped != text || Task.isCancelled { return }
-                    }
                     do { try await self.translate(text, to: invocation["to"]) } catch { self.problem = "\(error)" }
                 } else {
                     self.result = (text, "", nil, invocation["to"] ?? self.target, "")
@@ -332,6 +322,9 @@ final class Translate: StackbarPlugin {
             }) { invocation in
                 self.view(into: invocation["to"])
             }
+            // Typed text is translated once the typing pauses, not sent to a
+            // network engine for every keystroke.
+            .debounce(.milliseconds(350))
     }
 
     @ViewBuilder func view(into name: String?) -> ViewContent {

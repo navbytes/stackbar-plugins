@@ -15,7 +15,7 @@ final class Linear: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.linear",
         name: "Linear",
-        version: "1.10.0",
+        version: "1.10.1",
         summary: "Your assigned Linear issues and inbox: change status and priority, start work, comment, and new issues from the palette.",
         surfaces: [.menuBar, .panel, .widget, .settings],
         triggers: [.launch, .minutes(5), .wake],
@@ -284,9 +284,9 @@ final class Linear: StackbarPlugin {
             searchProblem = found.isEmpty ? (lookupProblems[identifier].map { "Couldn't look up \(identifier): \($0)" } ?? "No issue \(identifier)") : nil
             return
         }
-        // Asked once typing pauses; retyping the text it last found asks nothing.
+        // Asked once typing pauses (the command's debounce); retyping the
+        // text it last found asks nothing.
         if term == foundText, searchProblem == nil { return }
-        try? await Task.sleep(for: .milliseconds(250))
         struct Data: Decodable { struct Issues: Decodable { let nodes: [Issue] }; let issues: Issues }
         do {
             let data = try await query("query($term: String!) { issues(first: 25, orderBy: updatedAt, filter: { title: { containsIgnoreCase: $term } }) { nodes { \(Self.fields) } } }", variables: ["term": term], as: Data.self)
@@ -682,6 +682,7 @@ final class Linear: StackbarPlugin {
                 }
             }
         Command("search", title: "Search Linear Issues", symbol: "magnifyingglass", keywords: ["linear", "issue", "find"])
+            .debounce(.milliseconds(250))
             .view(search: { invocation in await self.search(invocation.text) }) { invocation in
                 if invocation.text.trimmingCharacters(in: .whitespaces).count < 2 {
                     ContentUnavailableView("Type to search titles, or paste an ID or link", symbol: "magnifyingglass")

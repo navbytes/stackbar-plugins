@@ -15,7 +15,7 @@ final class Slack: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.plugins.slack",
         name: "Slack",
-        version: "1.1.0",
+        version: "1.1.1",
         summary: "Unread Slack conversations in the menu bar; search messages, jump to channels, send messages, set your status and snooze from the palette.",
         surfaces: [.menuBar, .panel, .settings],
         triggers: [.launch, .minutes(2), .wake],
@@ -690,7 +690,6 @@ final class Slack: StackbarPlugin {
         let term = text.trimmingCharacters(in: .whitespaces)
         guard term.count >= 2 else { found = []; searchProblem = nil; foundText = nil; return }
         if term == foundText, searchProblem == nil { return }
-        try? await Task.sleep(for: .milliseconds(250))
         struct Reply: Decodable {
             struct Messages: Decodable {
                 struct Match: Decodable {
@@ -905,6 +904,7 @@ final class Slack: StackbarPlugin {
 
     var commands: [Command] {
         Command("search", title: "Search Slack Messages", symbol: "magnifyingglass", keywords: ["slack", "message", "find"])
+            .debounce(.milliseconds(250))
             .view(search: { invocation in await self.search(invocation.text) }) { invocation in
                 if invocation.text.trimmingCharacters(in: .whitespaces).count < 2 {
                     ContentUnavailableView("Search your Slack messages", symbol: "magnifyingglass", message: "Slack's own search: in:#channel, from:@person, after:2026-01-01 and quotes work.")

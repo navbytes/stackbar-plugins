@@ -25,7 +25,7 @@ final class PRCockpit: StackbarPlugin {
     static let manifest = Manifest(
         id: "io.navbytes.stackbar.pr-cockpit",
         name: "PR Cockpit",
-        version: "1.20.0",
+        version: "1.20.1",
         summary: "Your pull requests, reviews and issues with CI and review state, and your repositories a keystroke away.",
         surfaces: [.menuBar, .panel, .window, .widget, .settings],
         triggers: [.launch, .every(.seconds(20)), .wake],
@@ -2243,6 +2243,7 @@ final class PRCockpit: StackbarPlugin {
     var commands: [Command] {
         Command("search", title: "Search Pull Requests", subtitle: "Yours and to review; type to search GitHub", symbol: "magnifyingglass", keywords: ["github", "pr", "pull request"])
             .alias("pr")
+            .debounce(.milliseconds(250))
             .view(search: { invocation in
                 try await self.search(invocation.text)
             }) { invocation in
@@ -2354,11 +2355,9 @@ final class PRCockpit: StackbarPlugin {
             searchedText = nil
             return
         }
-        // The host sends the newest text once this returns, so a short wait
-        // folds a burst of keystrokes into one request; the same text again
-        // (a reopen, a refresh) keeps its results.
+        // The command's debounce folds a burst of keystrokes into one
+        // request; the same text again (a reopen, a refresh) keeps its results.
         if text == searchedText, searchError == nil { return }
-        try? await Task.sleep(for: .milliseconds(250))
         searchedText = text
         guard try await loadEnterpriseServer() else {
             searchError = "Enter your GitHub Enterprise server as GITHUB_ENTERPRISE_URL."
